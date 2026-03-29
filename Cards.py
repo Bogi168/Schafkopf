@@ -2,11 +2,11 @@ class Card:
     def __init__(self, card_symbol: str, card_type: str, card_value: int):
         self.card_symbol = card_symbol
         self.card_type = card_type
-        self.card_name = "(" + self.card_symbol + " " + self.card_type + ")"
+        self.card_name = self.card_symbol + " " + self.card_type
         self.card_value = card_value
 
     def __repr__(self):
-        return self.card_name
+        return f"({self.card_name})"
 
 class Ober(Card):
     def __init__(self, card_symbol: str):
@@ -16,9 +16,9 @@ class Unter(Card):
     def __init__(self, card_symbol: str):
         super().__init__(card_symbol = card_symbol, card_type = "Unter", card_value = 2)
 
-class Ass(Card):
+class Sau(Card):
     def __init__(self, card_symbol: str):
-        super().__init__(card_symbol = card_symbol, card_type = "Ass", card_value = 11)
+        super().__init__(card_symbol = card_symbol, card_type = "Sau", card_value = 11)
 
 class Koenig(Card):
     def __init__(self, card_symbol: str):
@@ -44,10 +44,10 @@ class Seven(Card):
 class Cards:
     def __init__(self):
         self.card_symbols = ("Eichel", "Grün", "Herz", "Schellen")
-        self.card_types = (Ober, Unter, Ass, Ten, Koenig, Nine, Eight, Seven)
-        self.full_deck = []
+        self.card_types = (Ober, Unter, Sau, Ten, Koenig, Nine, Eight, Seven)
+        self.full_deck = [card_type(card_symbol = card_symbol) for card_type in self.card_types
+                          for card_symbol in self.card_symbols]
+        self.deck = self.full_deck.copy()
 
-    def create_full_deck(self):
-        self.full_deck.clear()
-        for card_symbol in self.card_symbols:
-            full_deck = [card_type(card_symbol = card_symbol) for card_type in self.card_types]
+    def reset_deck(self):
+        self.deck = self.full_deck.copy()
