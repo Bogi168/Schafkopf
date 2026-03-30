@@ -2,10 +2,20 @@ from enum import Enum, IntEnum
 
 
 class Color(Enum):
-    EICHEL = "Eichel"
-    GRUEN = "Grün"
-    HERZ = "Herz"
-    SCHELLEN = "Schellen"
+    EICHEL = 4
+    GRUEN = 3
+    HERZ = 2
+    SCHELLEN = 1
+
+    @property
+    def name(self):
+        names = {
+            Color.EICHEL: "Eichel",
+            Color.GRUEN: "Grün",
+            Color.HERZ: "Herz",
+            Color.SCHELLEN: "Schellen"
+        }
+        return names[self]
 
 class Type(IntEnum):
     SEVEN = 1
@@ -27,7 +37,7 @@ class Type(IntEnum):
             Type.OBER: "Ober",
             Type.KOENIG: "König",
             Type.TEN: "10",
-            Type.SAU: "Sau",
+            Type.SAU: "Sau"
         }
         return names[self]
 
@@ -49,7 +59,7 @@ class Card:
     def __init__(self, card_color: Color, card_type: Type):
         self.card_color: Color = card_color
         self.card_type: Type = card_type
-        self.card_name: str = f"{self.card_color.value} {self.card_type.name}"
+        self.card_name: str = f"{self.card_color.name} {self.card_type.name}"
 
     def __repr__(self):
         return f"({self.card_name})"
@@ -59,6 +69,7 @@ class Cards:
     def __init__(self):
         self.full_deck = [Card(card_color = card_color, card_type = card_type) for card_type in Type
                           for card_color in Color]
+        self.spatzen = [spatz for spatz in self.full_deck if spatz.card_type in (Type.SEVEN, Type.EIGHT, Type.NINE)]
         self.deck = self.full_deck.copy()
 
     def reset_deck(self) -> None:

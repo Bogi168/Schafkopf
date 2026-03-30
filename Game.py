@@ -1,25 +1,7 @@
 from Cards import Cards
 from Renderer import Renderer
 from card_dealing import *
-from create_players import *
-import random
-
-
-def choose_starter(players: list):
-    starter = random.choice(players)
-    starter.bool_beginner = True
-    return starter.player_name
-
-def sort_players(players: list):
-    found_winner = False
-    while not found_winner:
-        player = players.__getitem__(0)
-        if not player.bool_beginner:
-                players.append(player)
-                players.pop(0)
-        else:
-            found_winner = True
-    return players
+from handle_players import create_players, choose_starter, sort_players
 
 class Game:
     def __init__(self, renderer: Renderer):
@@ -31,10 +13,18 @@ class Game:
         self.cards = Cards()
         self.renderer = renderer
 
+    @property
+    def first_card(self):
+        if len(self.played_cards) == 0:
+            return self.played_cards[0]
+        else:
+            return None
+
     def prepare_cards(self):
         self.cards.reset_deck()
         for player in self.players:
             player.player_cards.clear()
+            player.collected_cards.clear()
         deal_cards(cards = self.cards.deck, players = self.players)
 
     def prepare_players(self):
@@ -47,7 +37,8 @@ class Game:
 
 
     def play_game(self):
-        self.players = create_players()
-        choose_starter(players=self.players)
+        self.players = create_players(renderer = self.renderer)
+        choose_starter(players = self.players)
         self.prepare_players()
+        self.prepare_cards()
         self.play_round()

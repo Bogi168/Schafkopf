@@ -32,7 +32,7 @@ class ConsoleRenderer(Renderer):
         return input("The name you entered is not valid! Enter your name: ")
 
     def ask_player_decision(self, player_name):
-        return input(f"{player_name}: Which card do you want to play? (1-8)")
+        return input(f"{player_name}: Which card do you want to play? (1-8): ")
 
     def reask_player_decision(self, player_name):
-        return input(f"{player_name}: That's not valid! Which card do you want to play? (1-8)")
+        return input(f"{player_name}: That's not valid! Which card do you want to play? (1-8): ")
