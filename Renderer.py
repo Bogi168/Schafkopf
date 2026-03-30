@@ -14,11 +14,11 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def ask_player_decision(self, player_name):
+    def ask_player_decision(self, player_name, player_cards):
         pass
 
     @abstractmethod
-    def reask_player_decision(self, player_name):
+    def reask_player_decision(self, player_name, player_cards):
         pass
 
 class ConsoleRenderer(Renderer):
@@ -31,8 +31,8 @@ class ConsoleRenderer(Renderer):
     def reask_player_name(self):
         return input("The name you entered is not valid! Enter your name: ")
 
-    def ask_player_decision(self, player_name):
-        return input(f"{player_name}: Which card do you want to play? (1-8): ")
+    def ask_player_decision(self, player_name, player_cards):
+        return input(f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): ")
 
-    def reask_player_decision(self, player_name):
-        return input(f"{player_name}: That's not valid! Which card do you want to play? (1-8): ")
+    def reask_player_decision(self, player_name, player_cards):
+        return input(f"{player_name}: That's not a legal move! Which card do you want to play? (1-{len(player_cards)}): ")

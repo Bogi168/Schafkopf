@@ -56,9 +56,10 @@ class Type(IntEnum):
         return points[self]
 
 class Card:
-    def __init__(self, card_color: Color, card_type: Type):
+    def __init__(self, card_color: Color, card_type: Type, card_rank: int):
         self.card_color: Color = card_color
         self.card_type: Type = card_type
+        self.card_rank: int = card_rank
         self.card_name: str = f"{self.card_color.name} {self.card_type.name}"
 
     def __repr__(self):
@@ -67,8 +68,8 @@ class Card:
 
 class Cards:
     def __init__(self):
-        self.full_deck = [Card(card_color = card_color, card_type = card_type) for card_type in Type
-                          for card_color in Color]
+        self.full_deck = [Card(card_color = card_color, card_type = card_type, card_rank = card_type.value)
+                          for card_type in Type for card_color in Color]
         self.spatzen = [spatz for spatz in self.full_deck if spatz.card_type in (Type.SEVEN, Type.EIGHT, Type.NINE)]
         self.deck = self.full_deck.copy()
 
