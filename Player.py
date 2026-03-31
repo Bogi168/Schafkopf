@@ -7,26 +7,28 @@ class Player:
         self.player_name = player_name
         self.player_cards = []
         self.collected_cards = []
-        self.bool_beginner = False
 
     def __repr__(self):
         return self.player_name
 
-    def bool_valid_number(self, decision) -> bool:
+    def choose_game_decision(self):
+        pass
+
+    def bool_valid_card_number(self, decision) -> bool:
         return decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(decision) <= len(self.player_cards)
 
-    def decision(self, renderer: Renderer, lead_card: Card, played_cards: list, trumps: list):
+    def card_decision(self, renderer: Renderer, lead_card: Card, played_cards: list, trumps: list):
         print(self.player_cards)
-        index_decision = renderer.ask_player_decision(self.player_name, player_cards=self.player_cards)
-        while not self.bool_valid_number(index_decision):
-            index_decision = renderer.reask_player_decision(self.player_name, player_cards=self.player_cards)
-            if self.bool_valid_number(index_decision):
+        index_decision = renderer.ask_player_card_decision(self.player_name, player_cards=self.player_cards)
+        while not self.bool_valid_card_number(index_decision):
+            index_decision = renderer.reask_player_card_decision(self.player_name, player_cards=self.player_cards)
+            if self.bool_valid_card_number(index_decision):
                 break
         decision = self.player_cards[int(index_decision) - 1]
         legal = is_move_legal(decision=decision, player_cards=self.player_cards, lead_card=lead_card, trumps=trumps)
         while not legal:
-            index_decision = renderer.reask_player_decision(self.player_name, player_cards=self.player_cards)
-            if not self.bool_valid_number(index_decision):
+            index_decision = renderer.reask_player_card_decision(self.player_name, player_cards=self.player_cards)
+            if not self.bool_valid_card_number(index_decision):
                 legal = False
             else:
                 decision = self.player_cards[int(index_decision) - 1]

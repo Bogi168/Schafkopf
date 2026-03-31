@@ -14,19 +14,19 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def ask_player_game(self):
+    def ask_player_game(self, player_name):
         pass
 
     @abstractmethod
-    def reask_player_game(self):
+    def reask_player_game(self, player_name):
         pass
 
     @abstractmethod
-    def player_choose_game(self):
+    def player_choose_game(self, player_name):
         pass
 
     @abstractmethod
-    def player_rechoose_game(self):
+    def player_rechoose_game(self, player_name):
         pass
 
     @abstractmethod
@@ -38,11 +38,11 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def ask_player_decision(self, player_name, player_cards):
+    def ask_player_card_decision(self, player_name, player_cards):
         pass
 
     @abstractmethod
-    def reask_player_decision(self, player_name, player_cards):
+    def reask_player_card_decision(self, player_name, player_cards):
         pass
 
 class ConsoleRenderer(Renderer):
@@ -55,17 +55,17 @@ class ConsoleRenderer(Renderer):
     def reask_player_name(self):
         return input("The name you entered is not valid! Enter your name: ")
 
-    def ask_player_game(self):
-        return input("Do you want to choose a game: ")
+    def ask_player_game(self, player_name):
+        return input(f"{player_name}: Do you want to choose a game (Y/N): ").upper()
 
-    def reask_player_game(self):
-        return input("Your answer is not valid! Do you want to choose a game: ")
+    def reask_player_game(self, player_name):
+        return input(f"{player_name}: Your answer is not valid! Do you want to choose a game (Y/N): ").upper()
 
-    def player_choose_game(self):
-        return input("Which game do you want to choose?: ")
+    def player_choose_game(self, player_name):
+        return input(f"{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): ").upper()
 
-    def player_rechoose_game(self):
-        return input("Your answer is not valid! Which game do you want to choose?: ")
+    def player_rechoose_game(self, player_name):
+        return input(f"{player_name}: Your answer is not valid! Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): ").upper()
 
     def player_choose_color(self):
         return input("Which color?: ")
@@ -73,8 +73,8 @@ class ConsoleRenderer(Renderer):
     def player_rechoose_color(self):
         return input("Your answer is not valid! Which color?: ")
 
-    def ask_player_decision(self, player_name, player_cards):
+    def ask_player_card_decision(self, player_name, player_cards):
         return input(f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): ")
 
-    def reask_player_decision(self, player_name, player_cards):
+    def reask_player_card_decision(self, player_name, player_cards):
         return input(f"{player_name}: That's not a legal move! Which card do you want to play? (1-{len(player_cards)}): ")

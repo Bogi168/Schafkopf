@@ -7,6 +7,7 @@ class Color(Enum):
     GRUEN = 3
     HERZ = 2
     SCHELLEN = 1
+    NOCOLOR = 0
 
     @property
     def name(self):
@@ -14,7 +15,8 @@ class Color(Enum):
             Color.EICHEL: "Eichel",
             Color.GRUEN: "Grün",
             Color.HERZ: "Herz",
-            Color.SCHELLEN: "Schellen"
+            Color.SCHELLEN: "Schellen",
+            Color.NOCOLOR: "No_color"
         }
         return names[self]
 
