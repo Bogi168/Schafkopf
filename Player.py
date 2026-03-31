@@ -26,7 +26,10 @@ class Player:
         legal = is_move_legal(decision=decision, player_cards=self.player_cards, lead_card=lead_card, trumps=trumps)
         while not legal:
             index_decision = renderer.reask_player_decision(self.player_name, player_cards=self.player_cards)
-            decision = self.player_cards[int(index_decision) - 1]
-            legal = is_move_legal(decision=decision,player_cards=self.player_cards, lead_card=lead_card, trumps=trumps)
+            if not self.bool_valid_number(index_decision):
+                legal = False
+            else:
+                decision = self.player_cards[int(index_decision) - 1]
+                legal = is_move_legal(decision=decision,player_cards=self.player_cards, lead_card=lead_card, trumps=trumps)
         played_cards.append(decision)
         self.player_cards.remove(decision)

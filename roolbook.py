@@ -14,7 +14,7 @@ def similar_color_available(lead_card: Card, player_cards: list, trumps: list) -
                 bool_color_available = True
     return bool_color_available
 
-def trump_available(trumps: list, player_cards: list):
+def trump_available(trumps: list, player_cards: list) -> bool:
     bool_trumps = False
     for card in player_cards:
         if card in trumps:

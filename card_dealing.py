@@ -2,10 +2,11 @@ import random
 from Cards import Color, Card
 
 
-def shuffle_cards(cards: list):
+def shuffle_cards(cards: list) -> list:
     random.shuffle(cards)
+    return cards
 
-def order_cards(card: Card, trumps: list):
+def adjust_rank(card: Card, trumps: list) -> Card:
     if card in trumps:
         card.card_rank += 100
         match card.card_color:
@@ -27,13 +28,14 @@ def order_cards(card: Card, trumps: list):
                 card.card_rank += 40
             case Color.SCHELLEN:
                 card.card_rank += 20
+    return card
 
-def deal_cards(deck: list, players: list, trumps: list):
-    shuffle_cards(cards = deck)
+def deal_cards(deck: list, players: list, trumps: list) -> list:
+    deck = shuffle_cards(cards = deck)
     for player_num in range(len(players)):
         for x in range(8):
-            card = deck[-1]
-            order_cards(card=card, trumps=trumps)
+            card = adjust_rank(card=deck[-1], trumps=trumps)
             players[player_num].player_cards.append(card)
             deck.pop(-1)
-        players[player_num].player_cards.sort(key=lambda card: card.card_rank, reverse=True)
+        players[player_num].player_cards.sort(key=lambda sort_card: sort_card.card_rank, reverse=True)
+    return deck

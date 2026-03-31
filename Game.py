@@ -4,7 +4,9 @@ from card_dealing import *
 from handle_players import create_players, choose_starter, sort_players
 
 class Game:
-    def __init__(self, renderer: Renderer):
+    def __init__(self, renderer: Renderer, trump_color, trump_types):
+        self.trump_color = trump_color
+        self.trump_types = trump_types
         self.players = []
         self.trumps = []
         self.starting_order = []
@@ -14,6 +16,9 @@ class Game:
         self.cards = Cards()
         self.renderer = renderer
 
+        self.trumps = [card for card in self.cards.deck if card.card_type in trump_types
+                       or card.card_color == trump_color if card.card_color not in trump_types]
+
     @property
     def lead_card(self):
         if len(self.played_cards) != 0:
@@ -22,11 +27,10 @@ class Game:
             return None
 
     def prepare_cards(self):
-        self.cards.reset_deck()
         for player in self.players:
             player.player_cards.clear()
             player.collected_cards.clear()
-        deal_cards(deck= self.cards.deck, players = self.players, trumps=self.trumps)
+        self.cards.deck = deal_cards(deck=self.cards.deck, players=self.players, trumps=self.trumps)
 
     def prepare_players(self):
         self.starting_order = sort_players(self.players)
@@ -41,16 +45,20 @@ class Game:
     def play_game(self):
         self.prepare_players()
         self.prepare_cards()
-        for rounds in range(1,5):
+        for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
+        self.cards.reset_deck()
 
     def main(self):
+        print(self.trumps)
         self.players = create_players(renderer=self.renderer)
         choose_starter(players=self.players)
         self.play_game()
 
 class Sauspiel(Game):
     def __init__(self, renderer):
-        super().__init__(renderer=renderer)
-        self.trumps = [trump for trump in self.cards.full_deck if trump.card_type in (Type.OBER, Type.UNTER)
-                       or trump.card_color == Color.HERZ]
+        super().__init__(renderer=renderer, trump_color=Color.HERZ, trump_types=(Type.OBER, Type.UNTER))
+
+class Solo(Game):
+    def __init__(self, renderer, trump_color, trump_types):
+        super().__init__(renderer=renderer, trump_color=trump_color, trump_types=trump_types)
