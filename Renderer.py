@@ -14,6 +14,30 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
+    def ask_player_game(self):
+        pass
+
+    @abstractmethod
+    def reask_player_game(self):
+        pass
+
+    @abstractmethod
+    def player_choose_game(self):
+        pass
+
+    @abstractmethod
+    def player_rechoose_game(self):
+        pass
+
+    @abstractmethod
+    def player_choose_color(self):
+        pass
+
+    @abstractmethod
+    def player_rechoose_color(self):
+        pass
+
+    @abstractmethod
     def ask_player_decision(self, player_name, player_cards):
         pass
 
@@ -30,6 +54,24 @@ class ConsoleRenderer(Renderer):
 
     def reask_player_name(self):
         return input("The name you entered is not valid! Enter your name: ")
+
+    def ask_player_game(self):
+        return input("Do you want to choose a game: ")
+
+    def reask_player_game(self):
+        return input("Your answer is not valid! Do you want to choose a game: ")
+
+    def player_choose_game(self):
+        return input("Which game do you want to choose?: ")
+
+    def player_rechoose_game(self):
+        return input("Your answer is not valid! Which game do you want to choose?: ")
+
+    def player_choose_color(self):
+        return input("Which color?: ")
+
+    def player_rechoose_color(self):
+        return input("Your answer is not valid! Which color?: ")
 
     def ask_player_decision(self, player_name, player_cards):
         return input(f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): ")

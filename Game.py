@@ -3,6 +3,7 @@ from Renderer import Renderer
 from card_dealing import *
 from handle_players import create_players, choose_starter, sort_players
 
+
 class Game:
     def __init__(self, renderer: Renderer, trump_color, trump_types):
         self.trump_color = trump_color
