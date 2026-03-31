@@ -38,7 +38,6 @@ class Game:
                                               played_cards=self.played_cards, trumps=self.trumps)
         self.played_cards.clear()
 
-
     def play_game(self):
         self.prepare_players()
         self.prepare_cards()
