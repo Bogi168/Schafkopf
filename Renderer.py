@@ -30,11 +30,19 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def player_choose_color(self):
+    def player_choose_sau_color(self):
         pass
 
     @abstractmethod
-    def player_rechoose_color(self):
+    def player_rechoose_sau_color(self):
+        pass
+
+    @abstractmethod
+    def player_choose_solo_color(self):
+        pass
+
+    @abstractmethod
+    def player_rechoose_solo_color(self):
         pass
 
     @abstractmethod
@@ -67,11 +75,17 @@ class ConsoleRenderer(Renderer):
     def player_rechoose_game(self, player_name):
         return input(f"{player_name}: Your answer is not valid! Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): ").upper()
 
-    def player_choose_color(self):
-        return input("Which color?: ")
+    def player_choose_sau_color(self):
+        return input("Which color? (1: Eichel, 2: Grün, 3: Schellen): ")
 
-    def player_rechoose_color(self):
-        return input("Your answer is not valid! Which color?: ")
+    def player_rechoose_sau_color(self):
+        return input("Your answer is not valid! Which color? (1: Eichel, 2: Grün, 3: Schellen): ")
+
+    def player_choose_solo_color(self):
+        return input("Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): ")
+
+    def player_rechoose_solo_color(self):
+        return input("Your answer is not valid! Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): ")
 
     def ask_player_card_decision(self, player_name, player_cards):
         return input(f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): ")

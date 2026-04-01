@@ -26,7 +26,7 @@ class Game:
     def play_round(self):
         for player_num in range(len(self.players)):
             self.players[player_num].card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
-                                                   played_cards=self.played_cards, trumps=self.trumps, called_sau=None)
+                                                   played_cards=self.played_cards, trumps=self.trumps, call_sau=None)
         self.played_cards.clear()
 
     def play_game(self):
@@ -44,17 +44,18 @@ class Sauspiel(Game):
         self.sau_color = sau_color
 
     @property
-    def called_sau(self):
-        called_sau = None
-        for card in self.cards.full_deck:
-            if card.card_color == self.sau_color and card.card_type == Type.SAU:
-                called_sau = card
-        return called_sau
+    def call_sau(self):
+        call_sau = None
+        for player in self.players:
+            for card in player.player_cards:
+                if card.card_color == self.sau_color and card.card_type == Type.SAU:
+                    call_sau = card
+        return call_sau
 
     def play_round(self):
         for player_num in range(len(self.players)):
             self.players[player_num].card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
-                                                   played_cards=self.played_cards, trumps=self.trumps, called_sau=self.called_sau)
+                                                   played_cards=self.played_cards, trumps=self.trumps, call_sau=self.call_sau)
         self.played_cards.clear()
 
 class Wenz(Game):

@@ -5,10 +5,10 @@ from Game import Game, Sauspiel
 def check_lead_card(lead_card: Card) -> bool:
     return lead_card is None
 
-def check_player_owns_call_sau(player_cards: list, called_sau: Card) -> bool:
+def check_player_owns_call_sau(player_cards: list, call_sau: Card) -> bool:
     player_owns_call_sau = False
     for card in player_cards:
-        if card.card_name == called_sau.card_name:
+        if card == call_sau:
             player_owns_call_sau = True
     return player_owns_call_sau
 
@@ -33,17 +33,17 @@ def trump_available(trumps: list, player_cards: list) -> bool:
 def decision_legal(decision: Card, legal_cards: list) -> bool:
     return decision.card_name in [legal_card.card_name for legal_card in legal_cards]
 
-def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card: Card, trumps: list, called_sau: Card) -> bool:
+def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card: Card, trumps: list, call_sau: Card) -> bool:
     lead = check_lead_card(lead_card=lead_card)
     if lead:
         legal = True
         print("Lead-")
-        if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, called_sau=called_sau)
-                and decision.card_color == called_sau.card_color and decision.card_name != called_sau.card_name):
+        if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, call_sau=call_sau)
+                and decision.card_color == call_sau.card_color and decision != call_sau):
                 legal = False
     else:
-        lead_trump = check_lead_card_trump(lead_card=lead_card, trumps=trumps)
-        if lead_trump:
+        bool_lead_trump = check_lead_card_trump(lead_card=lead_card, trumps=trumps)
+        if bool_lead_trump:
             trump_avail = trump_available(trumps=trumps, player_cards=player_cards)
             if trump_avail:
                 print("NoLead-LeadTrump-TrumpAvail-")
@@ -54,7 +54,11 @@ def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card
         else:
             sim_col_avail = similar_color_available(lead_card=lead_card, player_cards=player_cards, trumps=trumps)
             if sim_col_avail:
-                legal_cards = [sim_color for sim_color in player_cards if sim_color.card_color == lead_card.card_color and sim_color.card_name not in [trump.card_name for trump in trumps]]
+                legal_cards = [sim_color for sim_color in player_cards if sim_color.card_color == lead_card.card_color
+                               and sim_color.card_name not in [trump.card_name for trump in trumps]]
+                if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, call_sau=call_sau)
+                        and lead_card.card_color == call_sau.card_color):
+                    legal_cards = [call_sau]
                 print("NoLead-NoLeadTrump-SimColAvail-")
                 legal = decision_legal(decision=decision, legal_cards=legal_cards)
             else:
