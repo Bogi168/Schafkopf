@@ -4,25 +4,25 @@ def check_lead_card(lead_card: Card) -> bool:
     return lead_card is None
 
 def check_lead_card_trump(lead_card: Card, trumps: list) -> bool:
-    return lead_card in trumps
+    return lead_card.card_name in [trump.card_name for trump in trumps]
 
 def similar_color_available(lead_card: Card, player_cards: list, trumps: list) -> bool:
     bool_color_available = False
     if not check_lead_card(lead_card=lead_card):
         for card in player_cards:
-            if lead_card.card_color == card.card_color and card not in trumps:
+            if lead_card.card_color == card.card_color and card.card_name not in [trump.card_name for trump in trumps]:
                 bool_color_available = True
     return bool_color_available
 
 def trump_available(trumps: list, player_cards: list) -> bool:
     bool_trumps = False
     for card in player_cards:
-        if card in trumps:
+        if card.card_name in [trump.card_name for trump in trumps]:
             bool_trumps = True
     return bool_trumps
 
 def decision_legal(decision: Card, legal_cards: list) -> bool:
-    return decision in legal_cards
+    return decision.card_name in [legal_card.card_name for legal_card in legal_cards]
 
 def is_move_legal(decision: Card, player_cards: list, lead_card: Card, trumps: list) -> bool:
     lead = check_lead_card(lead_card=lead_card)
@@ -43,7 +43,7 @@ def is_move_legal(decision: Card, player_cards: list, lead_card: Card, trumps: l
         else:
             sim_col_avail = similar_color_available(lead_card=lead_card, player_cards=player_cards, trumps=trumps)
             if sim_col_avail:
-                legal_cards = [sim_color for sim_color in player_cards if sim_color.card_color == lead_card.card_color and sim_color not in trumps]
+                legal_cards = [sim_color for sim_color in player_cards if sim_color.card_color == lead_card.card_color and sim_color.card_name not in [trump.card_name for trump in trumps]]
                 print("NoLead-NoLeadTrump-SimColAvail-")
                 legal = decision_legal(decision=decision, legal_cards=legal_cards)
             else:

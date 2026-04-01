@@ -37,9 +37,19 @@ def play_game_decision(player: Player, renderer: Renderer, game_choosers: list):
         game_choosers.append(player)
     return game_choosers
 
-def choose_game_decision(renderer: Renderer, player_name: str, cards: Cards, players: list) -> Game:
+def check_available_game_decisions(playable_games: list, prev_game_rank: int) -> list:
+    if prev_game_rank != 0:
+        available_game_ranks = [str(game.rank) for game in playable_games if game.rank > prev_game_rank]
+        return available_game_ranks
+    else:
+        available_game_ranks = [str(game.rank) for game in playable_games]
+        return available_game_ranks
+
+
+def choose_game_decision(playable_games: list, renderer: Renderer, player_name: str, cards: Cards, players: list, prev_game_rank: int) -> Game:
+    available_decisions = check_available_game_decisions(playable_games=playable_games, prev_game_rank=prev_game_rank)
     decision = renderer.player_choose_game(player_name)
-    while decision not in ("1", "2", "3"):
+    while decision not in available_decisions:
         decision = renderer.reask_player_game(player_name=player_name)
     match decision:
         case "1":
@@ -60,4 +70,19 @@ def choose_game_decision(renderer: Renderer, player_name: str, cards: Cards, pla
                 case "4":
                     trump_color = Color.SCHELLEN
             game_mode = Solo(trump_color=trump_color, cards=cards, renderer=renderer, players=players)
+    return game_mode
+
+def player_choose_game(renderer: Renderer, cards: Cards, game_choosers: list, playable_games: list, players: list) -> Game:
+    if len(game_choosers) == 0:
+        game_mode = None
+    else:
+        for player in game_choosers:
+            if player == game_choosers[0]:
+                game_mode = choose_game_decision(renderer=renderer, player_name=player.player_name,
+                                                 playable_games=playable_games,
+                                                 cards=cards, players=players, prev_game_rank=0)
+            else:
+                game_mode = choose_game_decision(renderer=renderer, player_name=player.player_name,
+                                                 playable_games=playable_games,
+                                                 cards=cards, players=players, prev_game_rank=game_mode.rank)
     return game_mode
