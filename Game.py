@@ -32,6 +32,7 @@ class Game:
     def play_game(self):
         for player in self.players:
             player.player_cards = adjust_rank(player_cards=player.player_cards, trumps=self.trumps)
+            player.player_cards.sort(key=lambda sort_card: sort_card.card_rank, reverse=True)
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
 
