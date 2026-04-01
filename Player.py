@@ -14,15 +14,15 @@ class Player:
     def choose_game_decision(self):
         pass
 
-    def bool_valid_card_number(self, decision) -> bool:
-        return decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(decision) <= len(self.player_cards)
+    def bool_valid_card_number(self, index_decision) -> bool:
+        return index_decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(index_decision) <= len(self.player_cards)
 
     def card_decision(self, renderer: Renderer, lead_card: Card, played_cards: list, trumps: list):
         print(self.player_cards)
-        index_decision = renderer.ask_player_card_decision(self.player_name, player_cards=self.player_cards)
-        while not self.bool_valid_card_number(index_decision):
-            index_decision = renderer.reask_player_card_decision(self.player_name, player_cards=self.player_cards)
-            if self.bool_valid_card_number(index_decision):
+        index_decision = renderer.ask_player_card_decision(player_name=self.player_name, player_cards=self.player_cards)
+        while not self.bool_valid_card_number(index_decision=index_decision):
+            index_decision = renderer.reask_player_card_decision(player_name=self.player_name, player_cards=self.player_cards)
+            if self.bool_valid_card_number(index_decision=index_decision):
                 break
         decision = self.player_cards[int(index_decision) - 1]
         legal = is_move_legal(decision=decision, player_cards=self.player_cards, lead_card=lead_card, trumps=trumps)

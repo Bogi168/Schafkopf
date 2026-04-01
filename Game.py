@@ -14,7 +14,7 @@ class Game:
         self.played_cards = []
 
         self.trumps = [card for card in self.cards.full_deck if card.card_type in trump_types
-                       or card.card_color == trump_color if card.card_color not in trump_types]
+                       or card.card_color == trump_color]
 
     @property
     def lead_card(self):
@@ -30,6 +30,7 @@ class Game:
         self.played_cards.clear()
 
     def play_game(self):
+        print(self.trumps)
         for player in self.players:
             player.player_cards = adjust_rank(player_cards=player.player_cards, trumps=self.trumps)
             player.player_cards.sort(key=lambda sort_card: sort_card.card_rank, reverse=True)

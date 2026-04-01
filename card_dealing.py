@@ -1,5 +1,5 @@
 import random
-from Cards import Color, Card
+from Cards import Color
 
 
 def shuffle_cards(cards: list) -> list:

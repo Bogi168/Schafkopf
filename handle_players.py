@@ -72,7 +72,7 @@ def choose_game_decision(playable_games: list, renderer: Renderer, player_name: 
             game_mode = Solo(trump_color=trump_color, cards=cards, renderer=renderer, players=players)
     return game_mode
 
-def player_choose_game(renderer: Renderer, cards: Cards, game_choosers: list, playable_games: list, players: list) -> Game:
+def players_choose_game(renderer: Renderer, cards: Cards, game_choosers: list, playable_games: list, players: list) -> Game:
     if len(game_choosers) == 0:
         game_mode = None
     else:
