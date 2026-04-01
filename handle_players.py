@@ -53,7 +53,19 @@ def choose_game_decision(playable_games: list, renderer: Renderer, player_name: 
         decision = renderer.reask_player_game(player_name=player_name)
     match decision:
         case "1":
-            game_mode = Sauspiel(cards=cards, renderer=renderer, players=players)
+            sau_color = renderer.player_choose_color()
+            while sau_color not in ("1", "2", "3", "4"):
+                sau_color = renderer.player_rechoose_color()
+            match sau_color:
+                case "1":
+                    sau_color = Color.EICHEL
+                case "2":
+                    sau_color = Color.GRUEN
+                case "3":
+                    sau_color = Color.HERZ
+                case "4":
+                    sau_color = Color.SCHELLEN
+            game_mode = Sauspiel(cards=cards, renderer=renderer, players=players, sau_color=sau_color)
         case "2":
             game_mode = Wenz(cards=cards, renderer=renderer, players=players)
         case "3":

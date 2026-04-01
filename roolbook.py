@@ -1,7 +1,16 @@
 from Cards import Card
+from Game import Game, Sauspiel
+
 
 def check_lead_card(lead_card: Card) -> bool:
     return lead_card is None
+
+def check_player_owns_call_sau(player_cards: list, called_sau: Card) -> bool:
+    player_owns_call_sau = False
+    for card in player_cards:
+        if card.card_name == called_sau.card_name:
+            player_owns_call_sau = True
+    return player_owns_call_sau
 
 def check_lead_card_trump(lead_card: Card, trumps: list) -> bool:
     return lead_card.card_name in [trump.card_name for trump in trumps]
@@ -24,12 +33,14 @@ def trump_available(trumps: list, player_cards: list) -> bool:
 def decision_legal(decision: Card, legal_cards: list) -> bool:
     return decision.card_name in [legal_card.card_name for legal_card in legal_cards]
 
-def is_move_legal(decision: Card, player_cards: list, lead_card: Card, trumps: list) -> bool:
+def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card: Card, trumps: list, called_sau: Card) -> bool:
     lead = check_lead_card(lead_card=lead_card)
     if lead:
-        # Farbe der Rufsau führt zu legal = False
-        print("Lead-")
         legal = True
+        print("Lead-")
+        if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, called_sau=called_sau)
+                and decision.card_color == called_sau.card_color and decision.card_name != called_sau.card_name):
+                legal = False
     else:
         lead_trump = check_lead_card_trump(lead_card=lead_card, trumps=trumps)
         if lead_trump:

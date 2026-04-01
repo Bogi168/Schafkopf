@@ -25,12 +25,11 @@ class Game:
 
     def play_round(self):
         for player_num in range(len(self.players)):
-            self.players[player_num].card_decision(renderer=self.renderer, lead_card=self.lead_card,
-                                                   played_cards=self.played_cards, trumps=self.trumps)
+            self.players[player_num].card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
+                                                   played_cards=self.played_cards, trumps=self.trumps, called_sau=None)
         self.played_cards.clear()
 
     def play_game(self):
-        print(self.trumps)
         for player in self.players:
             player.player_cards = adjust_rank(player_cards=player.player_cards, trumps=self.trumps)
             player.player_cards.sort(key=lambda sort_card: sort_card.card_rank, reverse=True)
@@ -40,8 +39,23 @@ class Game:
 
 class Sauspiel(Game):
     rank = 1
-    def __init__(self, cards: Cards, renderer: Renderer, players: list):
+    def __init__(self, cards: Cards, renderer: Renderer, players: list, sau_color: Color):
         super().__init__(trump_color=Color.HERZ, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer, players=players)
+        self.sau_color = sau_color
+
+    @property
+    def called_sau(self):
+        called_sau = None
+        for card in self.cards.full_deck:
+            if card.card_color == self.sau_color and card.card_type == Type.SAU:
+                called_sau = card
+        return called_sau
+
+    def play_round(self):
+        for player_num in range(len(self.players)):
+            self.players[player_num].card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
+                                                   played_cards=self.played_cards, trumps=self.trumps, called_sau=self.called_sau)
+        self.played_cards.clear()
 
 class Wenz(Game):
     rank = 2
