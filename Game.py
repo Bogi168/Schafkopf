@@ -37,6 +37,16 @@ class Game:
         else:
             return None
 
+    def sort_players(self, starter):
+        found_beginner = False
+        while not found_beginner:
+            player = self.players.__getitem__(0)
+            if not player == starter:
+                self.players.append(player)
+                self.players.pop(0)
+            else:
+                found_beginner = True
+
     def play_round(self):
         for player in self.players:
             player.card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
@@ -45,7 +55,8 @@ class Game:
         winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
-        print(f"The winner is {self.players[winner_index].player_name}")
+        starter = self.players[winner_index]
+        self.sort_players(starter=starter)
         for player in self.players:
             print(f"{player.player_name} has collected {player.collected_cards}")
         self.played_cards.clear()
