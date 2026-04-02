@@ -1,7 +1,8 @@
 from Renderer import Renderer
 from Cards import Cards
 from Game import Sauspiel, Wenz, Solo
-from handle_players import create_players, choose_starter, sort_players, play_game_decision, players_choose_game
+from handle_players import create_players, choose_starter, sort_players
+from handle_game_decision import play_game_decision, players_choose_game
 from handle_cards import prepare_cards
 
 
