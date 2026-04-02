@@ -1,20 +1,34 @@
 from Cards import Cards, Type, Color
 from Renderer import Renderer
-from card_dealing import adjust_rank
+from handle_cards import adjust_rank, find_strongest_card
 
 
 class Game:
     rank = 0
-    def __init__(self, trump_color: Color, trump_types: list, cards: Cards, renderer: Renderer, players: list):
+    def __init__(self, trump_color: Color, trump_types: list, cards: Cards, renderer: Renderer, players: list, sau_color = None):
         self.trump_color = trump_color
         self.trump_types = trump_types
         self.cards = cards
         self.renderer = renderer
         self.players = players
+        self.sau_color = sau_color
         self.played_cards = []
+        self.team_1 = []
+        self.team_2 = []
+        self.team_3 = []
+        self.team_4 = []
 
         self.trumps = [card for card in self.cards.full_deck if card.card_type in trump_types
                        or card.card_color == trump_color]
+
+    @property
+    def call_sau(self):
+        call_sau = None
+        for player in self.players:
+            for card in player.player_cards:
+                if card.card_color == self.sau_color and card.card_type == Type.SAU:
+                    call_sau = card
+        return call_sau
 
     @property
     def lead_card(self):
@@ -24,9 +38,16 @@ class Game:
             return None
 
     def play_round(self):
-        for player_num in range(len(self.players)):
-            self.players[player_num].card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
-                                                   played_cards=self.played_cards, trumps=self.trumps, call_sau=None)
+        for player in self.players:
+            player.card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
+                                 played_cards=self.played_cards, trumps=self.trumps, call_sau=self.call_sau)
+        strongest_card = find_strongest_card(played_cards=self.played_cards, trumps=self.trumps)
+        winner_index = self.played_cards.index(strongest_card)
+        for card in self.played_cards:
+            self.players[winner_index].collected_cards.append(card)
+        print(f"The winner is {self.players[winner_index].player_name}")
+        for player in self.players:
+            print(f"{player.player_name} has collected {player.collected_cards}")
         self.played_cards.clear()
 
     def play_game(self):
@@ -40,23 +61,7 @@ class Game:
 class Sauspiel(Game):
     rank = 1
     def __init__(self, cards: Cards, renderer: Renderer, players: list, sau_color: Color):
-        super().__init__(trump_color=Color.HERZ, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer, players=players)
-        self.sau_color = sau_color
-
-    @property
-    def call_sau(self):
-        call_sau = None
-        for player in self.players:
-            for card in player.player_cards:
-                if card.card_color == self.sau_color and card.card_type == Type.SAU:
-                    call_sau = card
-        return call_sau
-
-    def play_round(self):
-        for player_num in range(len(self.players)):
-            self.players[player_num].card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
-                                                   played_cards=self.played_cards, trumps=self.trumps, call_sau=self.call_sau)
-        self.played_cards.clear()
+        super().__init__(trump_color=Color.HERZ, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer, players=players, sau_color = sau_color)
 
 class Wenz(Game):
     rank = 2

@@ -2,7 +2,7 @@ from Renderer import Renderer
 from Cards import Cards
 from Game import Sauspiel, Wenz, Solo
 from handle_players import create_players, choose_starter, sort_players, play_game_decision, players_choose_game
-from card_dealing import prepare_cards
+from handle_cards import prepare_cards
 
 
 class Schafkopf:
