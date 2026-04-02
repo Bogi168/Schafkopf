@@ -41,6 +41,11 @@ def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card
         if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, call_sau=call_sau)
                 and decision.card_color == call_sau.card_color and decision != call_sau):
                 legal = False
+    # Player is only allowed to play the call_sau if it is called by the lead_card
+    elif (not lead and game_mode.__class__ == Sauspiel
+          and check_player_owns_call_sau(player_cards=player_cards, call_sau=call_sau)
+          and lead_card.card_color != call_sau.card_color and decision == call_sau):
+        legal = False
     else:
         bool_lead_trump = check_lead_card_trump(lead_card=lead_card, trumps=trumps)
         if bool_lead_trump:
@@ -64,8 +69,5 @@ def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card
             else:
                 print("NoLead-NoLeadTrump-NoSimColAvail-")
                 legal = True
-    if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, call_sau=call_sau)
-            and lead_card.card_color != call_sau.card_color and decision == call_sau):
-        legal = False
     print(f"The Move is {legal}")
     return legal

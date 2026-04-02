@@ -14,7 +14,7 @@ def play_game_decision(player: Player, renderer: Renderer, game_choosers: list):
 def check_player_has_sau(sau_color: Color, player_cards: list) -> bool:
     player_has_sau = False
     for card in player_cards:
-        if card.card_color == sau_color:
+        if card.card_color == sau_color and card.card_type == Type.SAU:
             player_has_sau = True
     return player_has_sau
 
@@ -54,6 +54,7 @@ def check_available_game_decisions(playable_games: list, prev_game: Game, player
         prev_game_rank = 0
     else:
         prev_game_rank = prev_game.rank
+
     if prev_game_rank != 0:
         available_game_ranks = [str(game.rank) for game in playable_games if game.rank > prev_game_rank]
     else:
@@ -68,7 +69,6 @@ def check_available_game_decisions(playable_games: list, prev_game: Game, player
 def choose_game_decision(playable_games: list, renderer: Renderer, player: Player, cards: Cards, players: list, prev_game) -> Game:
     player_name = player.player_name
     player_cards = player.player_cards
-    # Fehlt: keine freie Farbe -> Sauspiel gesperrt
     available_decisions = check_available_game_decisions(playable_games=playable_games, prev_game=prev_game, player_cards=player_cards)
     decision = renderer.player_choose_game(player_name)
     while decision not in available_decisions:
