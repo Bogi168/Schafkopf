@@ -21,6 +21,7 @@ def check_available_game_decisions(playable_games: list, prev_game_rank: int) ->
 
 
 def choose_game_decision(playable_games: list, renderer: Renderer, player_name: str, cards: Cards, players: list, prev_game_rank: int) -> Game:
+    # Fehlt: keine freie Farbe -> Sauspiel gesperrt
     available_decisions = check_available_game_decisions(playable_games=playable_games, prev_game_rank=prev_game_rank)
     decision = renderer.player_choose_game(player_name)
     while decision not in available_decisions:
@@ -54,21 +55,6 @@ def choose_game_decision(playable_games: list, renderer: Renderer, player_name: 
                 case "4":
                     trump_color = Color.SCHELLEN
             game_mode = Solo(trump_color=trump_color, cards=cards, renderer=renderer, players=players)
-    return game_mode
-
-def players_choose_game(renderer: Renderer, cards: Cards, game_choosers: list, playable_games: list, players: list) -> Game:
-    if len(game_choosers) == 0:
-        game_mode = None
-    else:
-        for player in game_choosers:
-            if player == game_choosers[0]:
-                game_mode = choose_game_decision(renderer=renderer, player_name=player.player_name,
-                                                 playable_games=playable_games,
-                                                 cards=cards, players=players, prev_game_rank=0)
-            else:
-                game_mode = choose_game_decision(renderer=renderer, player_name=player.player_name,
-                                                 playable_games=playable_games,
-                                                 cards=cards, players=players, prev_game_rank=game_mode.rank)
     return game_mode
 
 if __name__== "__main__":
