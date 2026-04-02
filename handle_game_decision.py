@@ -11,6 +11,13 @@ def play_game_decision(player: Player, renderer: Renderer, game_choosers: list):
         game_choosers.append(player)
     return game_choosers
 
+def check_player_quits(quitting_possible: bool, decision: str):
+    quitting_code_words = ["QUIT", "Q"]
+    player_quits = False
+    if quitting_possible and decision in quitting_code_words:
+        player_quits = True
+    return player_quits
+
 def count_color_cards(player_cards: list, color: Color, trump_types: list):
     count = 0
     for card in player_cards:

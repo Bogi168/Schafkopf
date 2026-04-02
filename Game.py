@@ -80,6 +80,16 @@ class Game(ABC):
             self.play_round()
 
 
+class Ramsch(Game):
+    rank = 0.5
+    def __init__(self, cards: Cards, renderer: Renderer, players: list):
+        super().__init__(trump_color=Color.HERZ, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer, players=players)
+
+    def create_teams(self):
+        self.team_1.clear()
+        for index in range(len(self.players)):
+            self.teams[index].append(self.players[index])
+
 class Sauspiel(Game):
     rank = 1
     def __init__(self, cards: Cards, renderer: Renderer, players: list, sau_color: Color):

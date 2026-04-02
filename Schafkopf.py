@@ -1,9 +1,9 @@
 from Renderer import Renderer
 from Cards import Cards, Color
 from Player import Player
-from Game import Sauspiel, Wenz, Solo
+from Game import Sauspiel, Wenz, Solo, Ramsch
 from handle_players import create_players, choose_starter, sort_players
-from handle_game_decision import play_game_decision, check_available_game_decisions, check_available_sau_color_decisions, convert_sau_color_value, convert_sau_color_index
+from handle_game_decision import play_game_decision, check_available_game_decisions, check_available_sau_color_decisions, convert_sau_color_value, convert_sau_color_index, check_player_quits
 from handle_cards import prepare_cards
 
 
@@ -19,14 +19,18 @@ class Schafkopf:
         self.cards = Cards()
         self.renderer = renderer
 
-    def choose_game_decision(self, player: Player, prev_game):
+    def choose_game_decision(self, player: Player, prev_game, quitting_possible = False):
         player_name = player.player_name
         player_cards = player.player_cards
-        available_decisions = check_available_game_decisions(playable_games = self.playable_games, prev_game=prev_game, player_cards=player_cards)
+        available_decisions = check_available_game_decisions(playable_games=self.playable_games, prev_game=prev_game, player_cards=player_cards)
         decision = self.renderer.player_choose_game(player_name)
-        while decision not in available_decisions:
+        while decision not in available_decisions and not check_player_quits(quitting_possible=quitting_possible, decision=decision):
             decision = self.renderer.reask_player_game(player_name=player_name)
+        if decision == "QUIT":
+            decision = "Q"
         match decision:
+            case "Q":
+                pass
             case "1":
                 sau_colors = [Color.EICHEL, Color.GRUEN, Color.SCHELLEN]
                 available_colors = check_available_sau_color_decisions(player_cards=player_cards,
@@ -57,15 +61,25 @@ class Schafkopf:
                     case "4":
                         trump_color = Color.SCHELLEN
                 self.game_mode = Solo(trump_color=trump_color, cards=self.cards, renderer=self.renderer, players=self.players)
+        return decision
 
     def players_choose_game(self):
         if len(self.game_choosers) == 0:
-            self.game_mode = None
+            self.game_mode = Ramsch(cards=self.cards, renderer=self.renderer, players=self.players)
         else:
             for player in self.game_choosers:
-                # Fehlt: Wenn Vorgänger spielt Wenz oder Solo -> Abbruch möglich bzw. zwingend
-                self.choose_game_decision(player=player, prev_game=self.game_mode)
-                self.game_chooser = player
+                if self.game_mode is None:
+                    self.choose_game_decision(player=player, prev_game=self.game_mode)
+                    self.game_chooser = player
+                elif self.game_mode.rank == 3:
+                    pass
+                elif self.game_mode.rank > 1:
+                    decision = self.choose_game_decision(player=player, prev_game=self.game_mode, quitting_possible = True)
+                    if decision != "Q":
+                        self.game_chooser = player
+                else:
+                    self.choose_game_decision(player=player, prev_game=self.game_mode)
+                    self.game_chooser = player
 
     def main(self):
         self.players = create_players(renderer=self.renderer)
