@@ -6,7 +6,7 @@ from handle_cards import adjust_rank, find_strongest_card
 
 class Game(ABC):
     rank = 0
-    def __init__(self, trump_color: Color, trump_types: list, cards: Cards, renderer: Renderer, players: list, sau_color = None):
+    def __init__(self, trump_color, trump_types: list, cards: Cards, renderer: Renderer, players: list, sau_color = None):
         self.trump_color = trump_color
         self.trump_types = trump_types
         self.cards = cards
@@ -95,6 +95,7 @@ class Sauspiel(Game):
         self.team_2 = [player for player in self.players if player not in self.team_1]
 
 
+# Position Ober in der Spielerhand stimmt noch nicht
 class Wenz(Game):
     rank = 2
     def __init__(self, cards: Cards, renderer: Renderer, players: list):

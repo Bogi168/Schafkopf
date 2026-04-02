@@ -24,15 +24,15 @@ class Schafkopf:
         else:
             for player in self.game_choosers:
                 if player == self.game_choosers[0]:
-                    self.game_mode = choose_game_decision(renderer=self.renderer, player_name=player.player_name,
+                    self.game_mode = choose_game_decision(renderer=self.renderer, player=player,
                                                      playable_games=self.playable_games,
-                                                     cards=self.cards, players=self.players, prev_game_rank=0)
+                                                     cards=self.cards, players=self.players, prev_game=None)
                     self.game_chooser = player
                 else:
                     # Fehlt: Wenn Vorgänger spielt Wenz oder Solo -> Abbruch möglich bzw. zwingend
-                    self.game_mode = choose_game_decision(renderer=self.renderer, player_name=player.player_name,
+                    self.game_mode = choose_game_decision(renderer=self.renderer, player=player,
                                                      playable_games=self.playable_games,
-                                                     cards=self.cards, players=self.players, prev_game_rank=self.game_mode.rank)
+                                                     cards=self.cards, players=self.players, prev_game=self.game_mode)
                     self.game_chooser = player
 
     def main(self):

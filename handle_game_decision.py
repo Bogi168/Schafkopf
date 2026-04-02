@@ -1,6 +1,6 @@
 from Player import Player
 from Renderer import Renderer
-from Cards import Cards, Color
+from Cards import Cards, Color, Type
 from Game import Game, Sauspiel, Wenz, Solo
 
 def play_game_decision(player: Player, renderer: Renderer, game_choosers: list):
@@ -11,18 +11,65 @@ def play_game_decision(player: Player, renderer: Renderer, game_choosers: list):
         game_choosers.append(player)
     return game_choosers
 
-def check_available_game_decisions(playable_games: list, prev_game_rank: int) -> list:
+def check_player_has_sau(sau_color: Color, player_cards: list) -> bool:
+    player_has_sau = False
+    for card in player_cards:
+        if card.card_color == sau_color:
+            player_has_sau = True
+    return player_has_sau
+
+def check_sau_color_available(player_cards: list) -> bool:
+    colors = (Color.EICHEL, Color.GRUEN, Color.SCHELLEN)
+
+    eichel_count = 0
+    gruen_count = 0
+    schellen_count = 0
+
+    for card in player_cards:
+        match card.card_color:
+            case Color.EICHEL:
+                if card.card_type not in (Type.OBER, Type.UNTER):
+                    eichel_count += 1
+            case Color.GRUEN:
+                if card.card_type not in (Type.OBER, Type.UNTER):
+                    gruen_count += 1
+            case Color.SCHELLEN:
+                if card.card_type not in (Type.OBER, Type.UNTER):
+                    schellen_count += 1
+
+    for color in colors:
+        if check_player_has_sau(color, player_cards=player_cards):
+            match color:
+                case Color.EICHEL:
+                    eichel_count = 0
+                case Color.GRUEN:
+                    gruen_count = 0
+                case Color.SCHELLEN:
+                    schellen_count = 0
+
+    return eichel_count + gruen_count + schellen_count != 0
+
+def check_available_game_decisions(playable_games: list, prev_game: Game, player_cards: list) -> list:
+    if prev_game is None:
+        prev_game_rank = 0
+    else:
+        prev_game_rank = prev_game.rank
     if prev_game_rank != 0:
         available_game_ranks = [str(game.rank) for game in playable_games if game.rank > prev_game_rank]
-        return available_game_ranks
     else:
-        available_game_ranks = [str(game.rank) for game in playable_games]
-        return available_game_ranks
+        color_available = check_sau_color_available(player_cards=player_cards)
+        if color_available:
+            available_game_ranks = [str(game.rank) for game in playable_games]
+        else:
+            available_game_ranks = [str(game.rank) for game in playable_games if game.rank != 1]
+    return available_game_ranks
 
 
-def choose_game_decision(playable_games: list, renderer: Renderer, player_name: str, cards: Cards, players: list, prev_game_rank: int) -> Game:
+def choose_game_decision(playable_games: list, renderer: Renderer, player: Player, cards: Cards, players: list, prev_game) -> Game:
+    player_name = player.player_name
+    player_cards = player.player_cards
     # Fehlt: keine freie Farbe -> Sauspiel gesperrt
-    available_decisions = check_available_game_decisions(playable_games=playable_games, prev_game_rank=prev_game_rank)
+    available_decisions = check_available_game_decisions(playable_games=playable_games, prev_game=prev_game, player_cards=player_cards)
     decision = renderer.player_choose_game(player_name)
     while decision not in available_decisions:
         decision = renderer.reask_player_game(player_name=player_name)
