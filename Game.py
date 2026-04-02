@@ -95,7 +95,7 @@ class Sauspiel(Game):
         self.team_2 = [player for player in self.players if player not in self.team_1]
 
 
-# Position Ober in der Spielerhand stimmt noch nicht
+# Rank von Ober stimmt noch nicht
 class Wenz(Game):
     rank = 2
     def __init__(self, cards: Cards, renderer: Renderer, players: list):

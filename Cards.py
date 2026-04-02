@@ -3,10 +3,10 @@ import copy
 
 
 class Color(Enum):
-    EICHEL = 4
-    GRUEN = 3
-    HERZ = 2
-    SCHELLEN = 1
+    EICHEL = 1
+    GRUEN = 2
+    HERZ = 3
+    SCHELLEN = 4
 
     @property
     def name(self):
