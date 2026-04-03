@@ -69,7 +69,7 @@ class Card:
 
 class Cards:
     def __init__(self):
-        self.full_deck = [Card(card_color = card_color, card_type = card_type, card_rank = card_type.value)
+        self.full_deck = [Card(card_color=card_color, card_type=card_type, card_rank=card_type.value)
                           for card_type in Type for card_color in Color]
         self.deck = copy.deepcopy(self.full_deck)
 
