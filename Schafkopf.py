@@ -8,7 +8,7 @@ from handle_cards import prepare_cards
 
 
 class Schafkopf:
-    def __init__(self, renderer: Renderer):
+    def __init__(self, renderer: Renderer, base_price: int, call_price: int, alone_price: int):
         self.playable_games = [Sauspiel, Wenz, Solo]
         self.players = []
         self.starter = None

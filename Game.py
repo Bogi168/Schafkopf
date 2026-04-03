@@ -7,7 +7,8 @@ from handle_cards import find_strongest_card
 
 class Game(ABC):
     rank = 0
-    def __init__(self, trump_color, trump_types: list, cards: Cards, renderer: Renderer, players: list, game_chooser, sau_color = None):
+    def __init__(self, trump_color, trump_types: list, cards: Cards, renderer: Renderer,
+                 players: list, game_chooser, sau_color = None):
         self.trump_color = trump_color
         self.trump_types = trump_types
         self.cards = cards
@@ -158,10 +159,19 @@ class Ramsch(Game):
     def identify_game_winners(self) -> list:
         winners = []
         most_point_teams = self.identify_most_points_teams()
-        for team in self.teams:
-            if team not in most_point_teams:
-                for player in team.players:
-                    winners.append(player)
+        if len(most_point_teams) != 1:
+            for team in self.teams:
+                if team not in most_point_teams:
+                    for player in team.players:
+                        winners.append(player)
+        else:
+            if most_point_teams[0].points >= 91:
+                winners.append(most_point_teams[0].players[0])
+            else:
+                for team in self.teams:
+                    if team not in most_point_teams:
+                        for player in team.players:
+                            winners.append(player)
         return winners
 
 class Sauspiel(Game):
