@@ -123,11 +123,8 @@ class Game(ABC):
                 for player in team.players:
                     winners.append(player)
         else:
-            for team in most_point_teams:
-                for player in team.players:
-                    if player == self.game_chooser:
-                        most_point_teams.remove(team)
-            for team in most_point_teams:
+            winner_teams = [team for team in most_point_teams if self.game_chooser not in team.players]
+            for team in winner_teams:
                 for player in team.players:
                     winners.append(player)
         return winners
