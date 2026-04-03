@@ -36,6 +36,7 @@ def decision_legal(decision: Card, legal_cards: list) -> bool:
 def is_move_legal(game_mode: Game, decision: Card, player_cards: list, lead_card: Card, trumps: list, call_sau: Card) -> bool:
     lead = check_lead_card(lead_card=lead_card)
     if lead:
+        # Fehlt: Davonlaufen
         legal = True
         print("Lead-")
         if (game_mode.__class__ == Sauspiel and check_player_owns_call_sau(player_cards=player_cards, call_sau=call_sau)

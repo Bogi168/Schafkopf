@@ -8,7 +8,7 @@ from handle_cards import prepare_cards
 
 
 class Schafkopf:
-    def __init__(self, renderer: Renderer, base_price: int, call_price: int, alone_price: int):
+    def __init__(self, renderer: Renderer, base_price: float, call_price: float, alone_price: float):
         self.playable_games = [Sauspiel, Wenz, Solo]
         self.players = []
         self.starter = None
@@ -18,6 +18,9 @@ class Schafkopf:
 
         self.cards = Cards()
         self.renderer = renderer
+        self.base_price = base_price
+        self.call_price = call_price
+        self.alone_price = alone_price
 
     def choose_game_decision(self, player: Player, prev_game, quitting_possible = False):
         player_name = player.player_name
@@ -45,9 +48,13 @@ class Schafkopf:
                     sau_color_value = convert_sau_color_value(decision=sau_color_decision)
                     sau_color_index = convert_sau_color_index(decision=sau_color_decision)
                 sau_color = sau_colors[sau_color_index]
-                self.game_mode = Sauspiel(cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser, sau_color=sau_color)
+                self.game_mode = Sauspiel(cards=self.cards, renderer=self.renderer, players=self.players,
+                                          game_chooser=self.game_chooser, base_price=self.base_price,
+                                          call_price=self.call_price, alone_price=self.alone_price, sau_color=sau_color)
             case "2":
-                self.game_mode = Wenz(cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser)
+                self.game_mode = Wenz(cards=self.cards, renderer=self.renderer, players=self.players,
+                                      game_chooser=self.game_chooser, base_price=self.base_price,
+                                      call_price=self.call_price, alone_price=self.alone_price)
             case "3":
                 trump_color = self.renderer.player_choose_solo_color()
                 while trump_color not in ("1", "2", "3", "4"):
@@ -61,12 +68,16 @@ class Schafkopf:
                         trump_color = Color.HERZ
                     case "4":
                         trump_color = Color.SCHELLEN
-                self.game_mode = Solo(trump_color=trump_color, cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser)
+                self.game_mode = Solo(trump_color=trump_color, cards=self.cards, renderer=self.renderer,
+                                      players=self.players, game_chooser=self.game_chooser, base_price=self.base_price,
+                                      call_price=self.call_price, alone_price=self.alone_price)
         return decision
 
     def players_choose_game(self):
         if len(self.game_choosers) == 0:
-            self.game_mode = Ramsch(cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser)
+            self.game_mode = Ramsch(cards=self.cards, renderer=self.renderer, players=self.players,
+                                    game_chooser=self.game_chooser, base_price=self.base_price,
+                                    call_price=self.call_price, alone_price=self.alone_price)
         else:
             for player in self.game_choosers:
                 if self.game_mode is None:

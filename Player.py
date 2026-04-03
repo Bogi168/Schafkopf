@@ -8,6 +8,7 @@ class Player:
         self.player_name = player_name
         self.player_cards = []
         self.collected_cards = []
+        self.money = 0
 
     def __repr__(self):
         return self.player_name
