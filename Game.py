@@ -141,8 +141,6 @@ class Game(ABC):
         print(f"Team 4: {self.team_4.players}")
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
-        winners = self.identify_game_winners()
-        print(f"The game winners are: {winners}")
 
 
 class Ramsch(Game):

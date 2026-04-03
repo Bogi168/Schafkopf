@@ -88,4 +88,6 @@ class Schafkopf:
             self.game_choosers = play_game_decision(player=player, renderer=self.renderer, game_choosers=self.game_choosers)
         self.players_choose_game()
         self.game_mode.play_game()
+        winners = self.game_mode.identify_game_winners()
+        print(f"The game winners are: {winners}")
         self.cards.reset_deck()
