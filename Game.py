@@ -2,7 +2,7 @@ from Team import Team
 from abc import ABC, abstractmethod
 from Cards import Cards, Type, Color
 from Renderer import Renderer
-from handle_cards import adjust_rank, find_strongest_card
+from handle_cards import find_strongest_card
 
 
 class Game(ABC):
@@ -57,6 +57,31 @@ class Game(ABC):
             else:
                 found_beginner = True
 
+    def adjust_rank(self, player_cards: list) -> list:
+        for card in player_cards:
+            if card.card_name in [trump.card_name for trump in self.trumps]:
+                card.card_rank += 100
+                match card.card_color:
+                    case Color.EICHEL:
+                        card.card_rank += 0.8
+                    case Color.GRUEN:
+                        card.card_rank += 0.6
+                    case Color.HERZ:
+                        card.card_rank += 0.4
+                    case Color.SCHELLEN:
+                        card.card_rank += 0.2
+            elif card.card_name not in [trump.card_name for trump in self.trumps]:
+                match card.card_color:
+                    case Color.EICHEL:
+                        card.card_rank += 80
+                    case Color.GRUEN:
+                        card.card_rank += 60
+                    case Color.HERZ:
+                        card.card_rank += 40
+                    case Color.SCHELLEN:
+                        card.card_rank += 20
+        return player_cards
+
     def play_round(self):
         for player in self.players:
             player.card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
@@ -109,7 +134,7 @@ class Game(ABC):
 
     def play_game(self):
         for player in self.players:
-            player.player_cards = adjust_rank(player_cards=player.player_cards, trumps=self.trumps)
+            player.player_cards = self.adjust_rank(player_cards=player.player_cards)
             player.player_cards.sort(key=lambda sort_card: sort_card.card_rank, reverse=True)
         self.team_1.players.append(self.game_chooser)
         self.create_teams()
@@ -166,6 +191,13 @@ class Wenz(Game):
         self.teams.remove(self.team_3)
         self.teams.remove(self.team_4)
         self.team_2.players = [player for player in self.players if player not in self.team_1.players]
+
+    def adjust_rank(self, player_cards: list) -> list:
+        for card in player_cards:
+            if card.card_type == Type.OBER:
+                card.card_rank = 3.5
+        return super().adjust_rank(player_cards)
+
 
 class Solo(Game):
     rank = 3
