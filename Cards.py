@@ -51,8 +51,8 @@ class Type(IntEnum):
             Type.UNTER: 2,
             Type.OBER: 3,
             Type.KOENIG: 4,
-            Type.TEN: 5,
-            Type.SAU: 6,
+            Type.TEN: 10,
+            Type.SAU: 11,
         }
         return points[self]
 

@@ -25,16 +25,17 @@ class Schafkopf:
         available_decisions = check_available_game_decisions(playable_games=self.playable_games, prev_game=prev_game, player_cards=player_cards)
         decision = self.renderer.player_choose_game(player_name)
         while decision not in available_decisions and not check_player_quits(quitting_possible=quitting_possible, decision=decision):
-            decision = self.renderer.reask_player_game(player_name=player_name)
+            decision = self.renderer.player_rechoose_game(player_name=player_name)
         if decision == "QUIT":
             decision = "Q"
+        if decision != "Q":
+            self.game_chooser = player
         match decision:
             case "Q":
                 pass
             case "1":
                 sau_colors = [Color.EICHEL, Color.GRUEN, Color.SCHELLEN]
-                available_colors = check_available_sau_color_decisions(player_cards=player_cards,
-                                                                       playable_colors=sau_colors.copy())
+                available_colors = check_available_sau_color_decisions(player_cards=player_cards, playable_colors=sau_colors.copy())
                 sau_color_decision = self.renderer.player_choose_sau_color()
                 sau_color_value = convert_sau_color_value(decision=sau_color_decision)
                 sau_color_index = convert_sau_color_index(decision=sau_color_decision)
@@ -44,9 +45,9 @@ class Schafkopf:
                     sau_color_value = convert_sau_color_value(decision=sau_color_decision)
                     sau_color_index = convert_sau_color_index(decision=sau_color_decision)
                 sau_color = sau_colors[sau_color_index]
-                self.game_mode = Sauspiel(cards=self.cards, renderer=self.renderer, players=self.players, sau_color=sau_color)
+                self.game_mode = Sauspiel(cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser, sau_color=sau_color)
             case "2":
-                self.game_mode = Wenz(cards=self.cards, renderer=self.renderer, players=self.players)
+                self.game_mode = Wenz(cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser)
             case "3":
                 trump_color = self.renderer.player_choose_solo_color()
                 while trump_color not in ("1", "2", "3", "4"):
@@ -60,26 +61,22 @@ class Schafkopf:
                         trump_color = Color.HERZ
                     case "4":
                         trump_color = Color.SCHELLEN
-                self.game_mode = Solo(trump_color=trump_color, cards=self.cards, renderer=self.renderer, players=self.players)
+                self.game_mode = Solo(trump_color=trump_color, cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser)
         return decision
 
     def players_choose_game(self):
         if len(self.game_choosers) == 0:
-            self.game_mode = Ramsch(cards=self.cards, renderer=self.renderer, players=self.players)
+            self.game_mode = Ramsch(cards=self.cards, renderer=self.renderer, players=self.players, game_chooser=self.game_chooser)
         else:
             for player in self.game_choosers:
                 if self.game_mode is None:
                     self.choose_game_decision(player=player, prev_game=self.game_mode)
-                    self.game_chooser = player
                 elif self.game_mode.rank == 3:
                     pass
                 elif self.game_mode.rank > 1:
-                    decision = self.choose_game_decision(player=player, prev_game=self.game_mode, quitting_possible = True)
-                    if decision != "Q":
-                        self.game_chooser = player
+                    self.choose_game_decision(player=player, prev_game=self.game_mode, quitting_possible = True)
                 else:
                     self.choose_game_decision(player=player, prev_game=self.game_mode)
-                    self.game_chooser = player
 
     def main(self):
         self.players = create_players(renderer=self.renderer)
@@ -90,5 +87,5 @@ class Schafkopf:
             print(player.player_cards)
             self.game_choosers = play_game_decision(player=player, renderer=self.renderer, game_choosers=self.game_choosers)
         self.players_choose_game()
-        self.game_mode.play_game(chooser=self.game_chooser)
+        self.game_mode.play_game()
         self.cards.reset_deck()
