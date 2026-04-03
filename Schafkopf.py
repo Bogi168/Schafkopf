@@ -1,10 +1,9 @@
 from Renderer import Renderer
 from Cards import Cards, Color
 from Player import Player
-from Game import Sauspiel, Wenz, Solo, Ramsch
-from handle_players import create_players, choose_starter, sort_players
+from Game import Game, Sauspiel, Wenz, Solo, Ramsch
+from handle_players import choose_starter, sort_players
 from handle_game_decision import (
-    play_game_decision,
     check_available_game_decisions,
     check_available_sau_color_decisions,
     convert_sau_color_value,
@@ -17,13 +16,13 @@ from handle_cards import prepare_cards
 class Schafkopf:
     def __init__(
         self, renderer: Renderer, base_price: int, call_price: int, alone_price: int
-    ):
-        self.playable_games = [Sauspiel, Wenz, Solo]
-        self.players = []
-        self.starter = None
-        self.game_choosers = []
-        self.game_chooser = None
-        self.game_mode = None
+    ) -> None:
+        self.playable_games: list[type[Game]] = [Sauspiel, Wenz, Solo]
+        self.players: list[Player] = []
+        self.starter: Player | None = None
+        self.game_choosers: list[Player] = []
+        self.game_chooser: Player | None = None
+        self.game_mode: Game | None = None
 
         self.cards = Cards()
         self.renderer = renderer
@@ -31,7 +30,25 @@ class Schafkopf:
         self.call_price = call_price
         self.alone_price = alone_price
 
-    def choose_game_decision(self, player: Player, prev_game, quitting_possible=False):
+    def _create_players(self) -> list[Player]:
+        player_name = self.renderer.ask_player_name()
+        if player_name == "":
+            player_name = self.renderer.reask_player_name()
+        players = [Player(player_name=player_name)]
+        for i in range(3):
+            players.append(Player(f"Bot {i + 1}"))
+        return players
+
+    def _ask_player_game_decision(self, player: Player) -> None:
+        decision = self.renderer.ask_player_game(player_name=player.player_name)
+        while decision not in ("YES", "Y", "NO", "N"):
+            decision = self.renderer.reask_player_game(player_name=player.player_name)
+        if decision in ("YES", "Y"):
+            self.game_choosers.append(player)
+
+    def choose_game_decision(
+        self, player: Player, prev_game: Game | None, quitting_possible: bool = False
+    ) -> str:
         player_name = player.player_name
         player_cards = player.player_cards
         available_decisions = check_available_game_decisions(
@@ -116,7 +133,7 @@ class Schafkopf:
                 )
         return decision
 
-    def players_choose_game(self):
+    def players_choose_game(self) -> None:
         if len(self.game_choosers) == 0:
             self.game_mode = Ramsch(
                 cards=self.cards,
@@ -140,16 +157,14 @@ class Schafkopf:
                 else:
                     self.choose_game_decision(player=player, prev_game=self.game_mode)
 
-    def main(self):
-        self.players = create_players(renderer=self.renderer)
+    def main(self) -> None:
+        self.players = self._create_players()
         self.starter = choose_starter(players=self.players)
         self.players = sort_players(players=self.players, starter=self.starter)
         self.cards.deck = prepare_cards(players=self.players, deck=self.cards.deck)
         for player in self.players:
             print(player.player_cards)
-            self.game_choosers = play_game_decision(
-                player=player, renderer=self.renderer, game_choosers=self.game_choosers
-            )
+            self._ask_player_game_decision(player=player)
         self.players_choose_game()
         self.game_mode.play_game()
         self.cards.reset_deck()

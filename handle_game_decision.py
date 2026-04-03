@@ -1,19 +1,8 @@
-from Player import Player
-from Renderer import Renderer
-from Cards import Color, Type
+from Cards import Card, Color, Type
 from Game import Game
 
 
-def play_game_decision(player: Player, renderer: Renderer, game_choosers: list):
-    decision = renderer.ask_player_game(player_name=player.player_name)
-    while decision not in ("YES", "Y", "NO", "N"):
-        decision = renderer.reask_player_game(player_name=player.player_name)
-    if decision in ("YES", "Y"):
-        game_choosers.append(player)
-    return game_choosers
-
-
-def check_player_quits(quitting_possible: bool, decision: str):
+def check_player_quits(quitting_possible: bool, decision: str) -> bool:
     quitting_code_words = ["QUIT", "Q"]
     player_quits = False
     if quitting_possible and decision in quitting_code_words:
@@ -21,7 +10,7 @@ def check_player_quits(quitting_possible: bool, decision: str):
     return player_quits
 
 
-def count_color_cards(player_cards: list, color: Color, trump_types: list):
+def count_color_cards(player_cards: list[Card], color: Color, trump_types: list[Type]) -> int:
     count = 0
     for card in player_cards:
         if card.card_color == color and card.card_type not in trump_types:
@@ -29,7 +18,7 @@ def count_color_cards(player_cards: list, color: Color, trump_types: list):
     return count
 
 
-def check_player_has_sau(sau_color: Color, player_cards: list) -> bool:
+def check_player_has_sau(sau_color: Color, player_cards: list[Card]) -> bool:
     player_has_sau = False
     for card in player_cards:
         if card.card_color == sau_color and card.card_type == Type.SAU:
@@ -37,7 +26,7 @@ def check_player_has_sau(sau_color: Color, player_cards: list) -> bool:
     return player_has_sau
 
 
-def check_sau_color_available(player_cards: list) -> bool:
+def check_sau_color_available(player_cards: list[Card]) -> bool:
     colors = (Color.EICHEL, Color.GRUEN, Color.SCHELLEN)
     eichel_count = 0
     gruen_count = 0
@@ -78,8 +67,8 @@ def check_sau_color_available(player_cards: list) -> bool:
 
 
 def check_available_game_decisions(
-    playable_games: list, prev_game: Game, player_cards: list
-) -> list:
+        playable_games: list[type[Game]], prev_game: Game | None, player_cards: list[Card]
+) -> list[str]:
     if prev_game is None:
         prev_game_rank = 0
     else:
@@ -101,8 +90,8 @@ def check_available_game_decisions(
 
 
 def check_available_sau_color_decisions(
-    player_cards: list, playable_colors: list
-) -> list:
+        player_cards: list[Card], playable_colors: list[Color]
+) -> list[Color]:
     for color in playable_colors.copy():
         player_has_sau = check_player_has_sau(
             player_cards=player_cards, sau_color=color
@@ -116,7 +105,7 @@ def check_available_sau_color_decisions(
 
 
 def convert_sau_color_value(decision: str) -> int:
-    sau_color_decision = decision
+    sau_color_decision: int
     match decision:
         case "1":
             sau_color_decision = 1
@@ -124,11 +113,13 @@ def convert_sau_color_value(decision: str) -> int:
             sau_color_decision = 2
         case "3":
             sau_color_decision = 4
+        case _:
+            sau_color_decision = -1
     return sau_color_decision
 
 
 def convert_sau_color_index(decision: str) -> int:
-    sau_color_decision = decision
+    sau_color_decision: int
     match decision:
         case "1":
             sau_color_decision = 0
@@ -136,6 +127,8 @@ def convert_sau_color_index(decision: str) -> int:
             sau_color_decision = 1
         case "3":
             sau_color_decision = 2
+        case _:
+            sau_color_decision = -1
     return sau_color_decision
 
 

@@ -9,12 +9,12 @@ class Color(Enum):
     EICHEL = 1
 
     @property
-    def name(self):
+    def name(self) -> str:
         names = {
             Color.EICHEL: "Eichel",
             Color.GRUEN: "Grün",
             Color.HERZ: "Herz",
-            Color.SCHELLEN: "Schellen",
+            Color.SCHELLEN: "Schellen"
         }
         return names[self]
 
@@ -30,7 +30,7 @@ class Type(IntEnum):
     OBER = 8
 
     @property
-    def name(self):
+    def name(self) -> str:
         names = {
             Type.SEVEN: "7",
             Type.EIGHT: "8",
@@ -39,12 +39,12 @@ class Type(IntEnum):
             Type.OBER: "Ober",
             Type.KOENIG: "König",
             Type.TEN: "10",
-            Type.SAU: "Sau",
+            Type.SAU: "Sau"
         }
         return names[self]
 
     @property
-    def points(self):
+    def points(self) -> int:
         points = {
             Type.SEVEN: 0,
             Type.EIGHT: 0,
@@ -59,24 +59,24 @@ class Type(IntEnum):
 
 
 class Card:
-    def __init__(self, card_color: Color, card_type: Type, card_rank: int):
+    def __init__(self, card_color: Color, card_type: Type, card_rank: float) -> None:
         self.card_color: Color = card_color
         self.card_type: Type = card_type
-        self.card_rank: int = card_rank
+        self.card_rank: float = card_rank
         self.card_name: str = f"{self.card_color.name} {self.card_type.name}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"({self.card_name})"
 
 
 class Cards:
-    def __init__(self):
-        self.full_deck = [
+    def __init__(self) -> None:
+        self.full_deck: list[Card] = [
             Card(card_color=card_color, card_type=card_type, card_rank=card_type.value)
             for card_type in Type
             for card_color in Color
         ]
-        self.deck = copy.deepcopy(self.full_deck)
+        self.deck: list[Card] = copy.deepcopy(self.full_deck)
 
     def reset_deck(self) -> None:
         self.deck = copy.deepcopy(self.full_deck)
