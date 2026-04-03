@@ -14,9 +14,10 @@ class Color(Enum):
             Color.EICHEL: "Eichel",
             Color.GRUEN: "Grün",
             Color.HERZ: "Herz",
-            Color.SCHELLEN: "Schellen"
+            Color.SCHELLEN: "Schellen",
         }
         return names[self]
+
 
 class Type(IntEnum):
     SEVEN = 1
@@ -38,7 +39,7 @@ class Type(IntEnum):
             Type.OBER: "Ober",
             Type.KOENIG: "König",
             Type.TEN: "10",
-            Type.SAU: "Sau"
+            Type.SAU: "Sau",
         }
         return names[self]
 
@@ -56,6 +57,7 @@ class Type(IntEnum):
         }
         return points[self]
 
+
 class Card:
     def __init__(self, card_color: Color, card_type: Type, card_rank: int):
         self.card_color: Color = card_color
@@ -69,8 +71,11 @@ class Card:
 
 class Cards:
     def __init__(self):
-        self.full_deck = [Card(card_color=card_color, card_type=card_type, card_rank=card_type.value)
-                          for card_type in Type for card_color in Color]
+        self.full_deck = [
+            Card(card_color=card_color, card_type=card_type, card_rank=card_type.value)
+            for card_type in Type
+            for card_color in Color
+        ]
         self.deck = copy.deepcopy(self.full_deck)
 
     def reset_deck(self) -> None:

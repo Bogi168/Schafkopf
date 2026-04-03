@@ -7,8 +7,20 @@ from handle_cards import find_strongest_card
 
 class Game(ABC):
     rank = 0
-    def __init__(self, trump_color, trump_types: list, cards: Cards, renderer: Renderer, players: list,
-                 game_chooser, base_price: int, call_price: int, alone_price: int, sau_color = None):
+
+    def __init__(
+        self,
+        trump_color,
+        trump_types: list,
+        cards: Cards,
+        renderer: Renderer,
+        players: list,
+        game_chooser,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
+        sau_color=None,
+    ):
         self.trump_color = trump_color
         self.trump_types = trump_types
         self.cards = cards
@@ -22,7 +34,11 @@ class Game(ABC):
         self.winners = []
 
         # lists
-        self.trumps = [card for card in self.cards.full_deck if card.card_type in trump_types or card.card_color == trump_color]
+        self.trumps = [
+            card
+            for card in self.cards.full_deck
+            if card.card_type in trump_types or card.card_color == trump_color
+        ]
         self.trumps.reverse()
         self.played_cards = []
 
@@ -96,9 +112,17 @@ class Game(ABC):
 
     def play_round(self):
         for player in self.players:
-            player.card_decision(game_mode=self, renderer=self.renderer, lead_card=self.lead_card,
-                                 played_cards=self.played_cards, trumps=self.trumps, call_sau=self.call_sau)
-        strongest_card = find_strongest_card(played_cards=self.played_cards, trumps=self.trumps)
+            player.card_decision(
+                game_mode=self,
+                renderer=self.renderer,
+                lead_card=self.lead_card,
+                played_cards=self.played_cards,
+                trumps=self.trumps,
+                call_sau=self.call_sau,
+            )
+        strongest_card = find_strongest_card(
+            played_cards=self.played_cards, trumps=self.trumps
+        )
         winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
@@ -135,7 +159,11 @@ class Game(ABC):
                 for player in team.players:
                     winners.append(player)
         else:
-            winner_teams = [team for team in most_point_teams if self.game_chooser not in team.players]
+            winner_teams = [
+                team
+                for team in most_point_teams
+                if self.game_chooser not in team.players
+            ]
             for team in winner_teams:
                 for player in team.players:
                     winners.append(player)
@@ -160,13 +188,14 @@ class Game(ABC):
         runners = True
         while runners:
             for index_runner in range(len(self.trumps)):
-                if self.check_team_has_trump(team=self.winners, trump=self.trumps[index_runner]):
+                if self.check_team_has_trump(
+                    team=self.winners, trump=self.trumps[index_runner]
+                ):
                     runners_count += 1
                 else:
                     runners = False
                     break
         return runners_count
-
 
     @abstractmethod
     def calculate_game_value(self):
@@ -179,12 +208,14 @@ class Game(ABC):
             loser.money -= game_value
             winners_money += game_value
         for winner in self.winners:
-            winner.money += winners_money/len(self.winners)
+            winner.money += winners_money / len(self.winners)
 
     def play_game(self):
         for player in self.players:
             player.player_cards = self.adjust_rank(player_cards=player.player_cards)
-            player.player_cards.sort(key=lambda sort_card: sort_card.card_rank, reverse=True)
+            player.player_cards.sort(
+                key=lambda sort_card: sort_card.card_rank, reverse=True
+            )
         self.team_1.players.append(self.game_chooser)
         self.create_teams()
         print(f"Team 1: {self.team_1.players}")
@@ -203,11 +234,28 @@ class Game(ABC):
 
 class Ramsch(Game):
     rank = 0.5
-    def __init__(self, cards: Cards, renderer: Renderer, players: list, game_chooser, base_price: int,
-                 call_price: int, alone_price: int):
-        super().__init__(trump_color=Color.HERZ, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer,
-                         players=players, game_chooser=game_chooser, base_price=base_price,
-                         call_price=call_price, alone_price=alone_price)
+
+    def __init__(
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list,
+        game_chooser,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
+    ):
+        super().__init__(
+            trump_color=Color.HERZ,
+            trump_types=[Type.OBER, Type.UNTER],
+            cards=cards,
+            renderer=renderer,
+            players=players,
+            game_chooser=game_chooser,
+            base_price=base_price,
+            call_price=call_price,
+            alone_price=alone_price,
+        )
 
     def create_teams(self):
         self.team_1.players.clear()
@@ -245,11 +293,30 @@ class Ramsch(Game):
 
 class Sauspiel(Game):
     rank = 1
-    def __init__(self, cards: Cards, renderer: Renderer, players: list, sau_color: Color, game_chooser,
-                 base_price: int, call_price: int, alone_price: int):
-        super().__init__(trump_color=Color.HERZ, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer,
-                         players=players, game_chooser=game_chooser, base_price=base_price, call_price=call_price,
-                         alone_price=alone_price, sau_color = sau_color)
+
+    def __init__(
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list,
+        sau_color: Color,
+        game_chooser,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
+    ):
+        super().__init__(
+            trump_color=Color.HERZ,
+            trump_types=[Type.OBER, Type.UNTER],
+            cards=cards,
+            renderer=renderer,
+            players=players,
+            game_chooser=game_chooser,
+            base_price=base_price,
+            call_price=call_price,
+            alone_price=alone_price,
+            sau_color=sau_color,
+        )
 
     def create_teams(self):
         self.teams.remove(self.team_3)
@@ -258,7 +325,9 @@ class Sauspiel(Game):
             for card in player.player_cards:
                 if card == self.call_sau:
                     self.team_1.players.append(player)
-        self.team_2.players = [player for player in self.players if player not in self.team_1.players]
+        self.team_2.players = [
+            player for player in self.players if player not in self.team_1.players
+        ]
 
     def calculate_game_value(self):
         game_value = 0
@@ -267,21 +336,44 @@ class Sauspiel(Game):
         winning_team = self.find_players_team(player=self.winners[0])
         if winning_team.points == 120:
             game_value += 2 * self.base_price
-        elif winning_team.points > 90 or (winning_team.points == 90 and self.game_chooser not in winning_team.players):
+        elif winning_team.points > 90 or (
+            winning_team.points == 90 and self.game_chooser not in winning_team.players
+        ):
             game_value += self.base_price
         return game_value
 
 
 class Wenz(Game):
     rank = 2
-    def __init__(self, cards: Cards, renderer: Renderer, players: list, game_chooser, base_price, call_price, alone_price):
-        super().__init__(trump_color=None, trump_types=[Type.UNTER], cards=cards, renderer=renderer, players=players,
-                         game_chooser=game_chooser , base_price=base_price, call_price=call_price, alone_price=alone_price)
+
+    def __init__(
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list,
+        game_chooser,
+        base_price,
+        call_price,
+        alone_price,
+    ):
+        super().__init__(
+            trump_color=None,
+            trump_types=[Type.UNTER],
+            cards=cards,
+            renderer=renderer,
+            players=players,
+            game_chooser=game_chooser,
+            base_price=base_price,
+            call_price=call_price,
+            alone_price=alone_price,
+        )
 
     def create_teams(self):
         self.teams.remove(self.team_3)
         self.teams.remove(self.team_4)
-        self.team_2.players = [player for player in self.players if player not in self.team_1.players]
+        self.team_2.players = [
+            player for player in self.players if player not in self.team_1.players
+        ]
 
     def adjust_rank(self, player_cards: list) -> list:
         for card in player_cards:
@@ -297,7 +389,9 @@ class Wenz(Game):
 
         if winning_team.points == 120:
             game_value += 2 * self.base_price
-        elif winning_team.points > 90 or (winning_team.points == 90 and self.game_chooser not in winning_team.players):
+        elif winning_team.points > 90 or (
+            winning_team.points == 90 and self.game_chooser not in winning_team.players
+        ):
             game_value += self.base_price
 
         if len(self.winners) == 3:
@@ -308,15 +402,36 @@ class Wenz(Game):
 
 class Solo(Game):
     rank = 3
-    def __init__(self, trump_color: Color, cards: Cards, renderer: Renderer, players: list, game_chooser, base_price, call_price, alone_price):
-        super().__init__(trump_color=trump_color, trump_types=[Type.OBER, Type.UNTER], cards=cards, renderer=renderer,
-                         players=players, game_chooser=game_chooser, base_price=base_price, call_price=call_price,
-                         alone_price=alone_price)
+
+    def __init__(
+        self,
+        trump_color: Color,
+        cards: Cards,
+        renderer: Renderer,
+        players: list,
+        game_chooser,
+        base_price,
+        call_price,
+        alone_price,
+    ):
+        super().__init__(
+            trump_color=trump_color,
+            trump_types=[Type.OBER, Type.UNTER],
+            cards=cards,
+            renderer=renderer,
+            players=players,
+            game_chooser=game_chooser,
+            base_price=base_price,
+            call_price=call_price,
+            alone_price=alone_price,
+        )
 
     def create_teams(self):
         self.teams.remove(self.team_3)
         self.teams.remove(self.team_4)
-        self.team_2.players = [player for player in self.players if player not in self.team_1.players]
+        self.team_2.players = [
+            player for player in self.players if player not in self.team_1.players
+        ]
 
     def calculate_game_value(self):
         game_value = 0
@@ -326,7 +441,9 @@ class Solo(Game):
 
         if winning_team.points == 120:
             game_value += 2 * self.base_price
-        elif winning_team.points > 90 or (winning_team.points == 90 and self.game_chooser not in winning_team.players):
+        elif winning_team.points > 90 or (
+            winning_team.points == 90 and self.game_chooser not in winning_team.players
+        ):
             game_value += self.base_price
 
         if len(self.winners) == 3:
