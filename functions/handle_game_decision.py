@@ -1,5 +1,5 @@
-from Cards import Card, Color, Type
-from Game import Game
+from Clases.Cards import Card, Color, Type
+from Clases.Game import Game
 
 
 def check_player_quits(quitting_possible: bool, decision: str) -> bool:
@@ -10,7 +10,9 @@ def check_player_quits(quitting_possible: bool, decision: str) -> bool:
     return player_quits
 
 
-def count_color_cards(player_cards: list[Card], color: Color, trump_types: list[Type]) -> int:
+def count_color_cards(
+    player_cards: list[Card], color: Color, trump_types: list[Type]
+) -> int:
     count = 0
     for card in player_cards:
         if card.card_color == color and card.card_type not in trump_types:
@@ -67,7 +69,7 @@ def check_sau_color_available(player_cards: list[Card]) -> bool:
 
 
 def check_available_game_decisions(
-        playable_games: list[type[Game]], prev_game: Game | None, player_cards: list[Card]
+    playable_games: list[type[Game]], prev_game: Game | None, player_cards: list[Card]
 ) -> list[str]:
     if prev_game is None:
         prev_game_rank = 0
@@ -90,7 +92,7 @@ def check_available_game_decisions(
 
 
 def check_available_sau_color_decisions(
-        player_cards: list[Card], playable_colors: list[Color]
+    player_cards: list[Card], playable_colors: list[Color]
 ) -> list[Color]:
     for color in playable_colors.copy():
         player_has_sau = check_player_has_sau(

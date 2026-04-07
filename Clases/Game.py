@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from Cards import Cards, Card, Type, Color
+from Clases.Cards import Cards, Card, Type, Color
 from Player import Player
 from Renderer import Renderer
 from Team import Team
-from handle_cards import find_strongest_card
-from rulebook import (
+from functions.handle_cards import find_strongest_card
+from functions.rulebook import (
     check_lead_card,
     check_player_owns_call_sau,
     check_lead_card_trump,
@@ -18,17 +18,17 @@ class Game(ABC):
     rank = 0
 
     def __init__(
-            self,
-            trump_color: Color | None,
-            trump_types: list[Type],
-            cards: Cards,
-            renderer: Renderer,
-            players: list[Player],
-            game_chooser: Player | None,
-            base_price: int,
-            call_price: int,
-            alone_price: int,
-            sau_color: Color | None = None,
+        self,
+        trump_color: Color | None,
+        trump_types: list[Type],
+        cards: Cards,
+        renderer: Renderer,
+        players: list[Player],
+        game_chooser: Player | None,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
+        sau_color: Color | None = None,
     ) -> None:
         self.trump_color = trump_color
         self.trump_types = trump_types
@@ -126,28 +126,36 @@ class Game(ABC):
             legal = True
             print("Lead-")
             if (
-                    isinstance(self, Sauspiel)
-                    and call_sau is not None
-                    and check_player_owns_call_sau(player_cards=player.player_cards, call_sau=call_sau)
-                    and decision.card_color == call_sau.card_color
-                    and decision != call_sau
+                isinstance(self, Sauspiel)
+                and call_sau is not None
+                and check_player_owns_call_sau(
+                    player_cards=player.player_cards, call_sau=call_sau
+                )
+                and decision.card_color == call_sau.card_color
+                and decision != call_sau
             ):
                 legal = False
         elif (
-                isinstance(self, Sauspiel)
-                and call_sau is not None
-                and check_player_owns_call_sau(player_cards=player.player_cards, call_sau=call_sau)
-                and self.lead_card is not None
-                and self.lead_card.card_color != call_sau.card_color
-                and decision == call_sau
+            isinstance(self, Sauspiel)
+            and call_sau is not None
+            and check_player_owns_call_sau(
+                player_cards=player.player_cards, call_sau=call_sau
+            )
+            and self.lead_card is not None
+            and self.lead_card.card_color != call_sau.card_color
+            and decision == call_sau
         ):
             legal = len(player.player_cards) == 1
         else:
             lead_card = self.lead_card
             assert lead_card is not None
-            bool_lead_trump = check_lead_card_trump(lead_card=lead_card, trumps=self.trumps)
+            bool_lead_trump = check_lead_card_trump(
+                lead_card=lead_card, trumps=self.trumps
+            )
             if bool_lead_trump:
-                trump_avail = trump_available(trumps=self.trumps, player_cards=player.player_cards)
+                trump_avail = trump_available(
+                    trumps=self.trumps, player_cards=player.player_cards
+                )
                 if trump_avail:
                     print("NoLead-LeadTrump-TrumpAvail-")
                     legal = decision_legal(decision=decision, legal_cards=self.trumps)
@@ -156,22 +164,25 @@ class Game(ABC):
                     legal = True
             else:
                 sim_col_avail = similar_color_available(
-                    lead_card=lead_card, player_cards=player.player_cards, trumps=self.trumps
+                    lead_card=lead_card,
+                    player_cards=player.player_cards,
+                    trumps=self.trumps,
                 )
                 if sim_col_avail:
                     legal_cards = [
                         sim_color
                         for sim_color in player.player_cards
                         if sim_color.card_color == lead_card.card_color
-                           and sim_color.card_name not in [trump.card_name for trump in self.trumps]
+                        and sim_color.card_name
+                        not in [trump.card_name for trump in self.trumps]
                     ]
                     if (
-                            isinstance(self, Sauspiel)
-                            and call_sau is not None
-                            and check_player_owns_call_sau(
-                        player_cards=player.player_cards, call_sau=call_sau
-                    )
-                            and lead_card.card_color == call_sau.card_color
+                        isinstance(self, Sauspiel)
+                        and call_sau is not None
+                        and check_player_owns_call_sau(
+                            player_cards=player.player_cards, call_sau=call_sau
+                        )
+                        and lead_card.card_color == call_sau.card_color
                     ):
                         legal_cards = [call_sau]
                     print("NoLead-NoLeadTrump-SimColAvail-")
@@ -187,7 +198,9 @@ class Game(ABC):
             player.card_decision(
                 renderer=self.renderer,
                 played_cards=self.played_cards,
-                move_validator=lambda d, p=player: self.is_move_legal(player=p, decision=d),
+                move_validator=lambda d, p=player: self.is_move_legal(
+                    player=p, decision=d
+                ),
             )
         strongest_card = find_strongest_card(
             played_cards=self.played_cards, trumps=self.trumps
@@ -298,14 +311,14 @@ class Ramsch(Game):
     rank = 0.5
 
     def __init__(
-            self,
-            cards: Cards,
-            renderer: Renderer,
-            players: list[Player],
-            game_chooser: Player | None,
-            base_price: int,
-            call_price: int,
-            alone_price: int,
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list[Player],
+        game_chooser: Player | None,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
     ) -> None:
         super().__init__(
             trump_color=Color.HERZ,
@@ -357,15 +370,15 @@ class Sauspiel(Game):
     rank = 1
 
     def __init__(
-            self,
-            cards: Cards,
-            renderer: Renderer,
-            players: list[Player],
-            sau_color: Color,
-            game_chooser: Player | None,
-            base_price: int,
-            call_price: int,
-            alone_price: int,
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list[Player],
+        sau_color: Color,
+        game_chooser: Player | None,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
     ) -> None:
         super().__init__(
             trump_color=Color.HERZ,
@@ -399,7 +412,7 @@ class Sauspiel(Game):
         if winning_team.points == 120:
             game_value += 2 * self.base_price
         elif winning_team.points > 90 or (
-                winning_team.points == 90 and self.game_chooser not in winning_team.players
+            winning_team.points == 90 and self.game_chooser not in winning_team.players
         ):
             game_value += self.base_price
         return game_value
@@ -409,14 +422,14 @@ class Wenz(Game):
     rank = 2
 
     def __init__(
-            self,
-            cards: Cards,
-            renderer: Renderer,
-            players: list[Player],
-            game_chooser: Player | None,
-            base_price: int,
-            call_price: int,
-            alone_price: int,
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list[Player],
+        game_chooser: Player | None,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
     ) -> None:
         super().__init__(
             trump_color=None,
@@ -452,7 +465,7 @@ class Wenz(Game):
         if winning_team.points == 120:
             game_value += 2 * self.base_price
         elif winning_team.points > 90 or (
-                winning_team.points == 90 and self.game_chooser not in winning_team.players
+            winning_team.points == 90 and self.game_chooser not in winning_team.players
         ):
             game_value += self.base_price
 
@@ -466,15 +479,15 @@ class Solo(Game):
     rank = 3
 
     def __init__(
-            self,
-            trump_color: Color,
-            cards: Cards,
-            renderer: Renderer,
-            players: list[Player],
-            game_chooser: Player | None,
-            base_price: int,
-            call_price: int,
-            alone_price: int,
+        self,
+        trump_color: Color,
+        cards: Cards,
+        renderer: Renderer,
+        players: list[Player],
+        game_chooser: Player | None,
+        base_price: int,
+        call_price: int,
+        alone_price: int,
     ) -> None:
         super().__init__(
             trump_color=trump_color,
@@ -504,7 +517,7 @@ class Solo(Game):
         if winning_team.points == 120:
             game_value += 2 * self.base_price
         elif winning_team.points > 90 or (
-                winning_team.points == 90 and self.game_chooser not in winning_team.players
+            winning_team.points == 90 and self.game_chooser not in winning_team.players
         ):
             game_value += self.base_price
 

@@ -1,16 +1,16 @@
-from Renderer import Renderer
-from Cards import Cards, Color
-from Player import Player
-from Game import Game, Sauspiel, Wenz, Solo, Ramsch
-from handle_players import choose_starter, sort_players
-from handle_game_decision import (
+from Clases.Renderer import Renderer
+from Clases.Cards import Cards, Color
+from Clases.Player import Player
+from Clases.Game import Game, Sauspiel, Wenz, Solo, Ramsch
+from functions.handle_players import choose_starter, sort_players
+from functions.handle_game_decision import (
     check_available_game_decisions,
     check_available_sau_color_decisions,
     convert_sau_color_value,
     convert_sau_color_index,
     check_player_quits,
 )
-from handle_cards import prepare_cards
+from functions.handle_cards import prepare_cards
 
 
 class Schafkopf:

@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from Cards import Card
+from Clases.Cards import Card
 
 
 class Renderer(ABC):
@@ -48,11 +48,15 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def ask_player_card_decision(self, player_name: str, player_cards: list[Card]) -> str:
+    def ask_player_card_decision(
+        self, player_name: str, player_cards: list[Card]
+    ) -> str:
         pass
 
     @abstractmethod
-    def reask_player_card_decision(self, player_name: str, player_cards: list[Card]) -> str:
+    def reask_player_card_decision(
+        self, player_name: str, player_cards: list[Card]
+    ) -> str:
         pass
 
 
@@ -100,12 +104,16 @@ class ConsoleRenderer(Renderer):
             "Your answer is not valid! Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): "
         )
 
-    def ask_player_card_decision(self, player_name: str, player_cards: list[Card]) -> str:
+    def ask_player_card_decision(
+        self, player_name: str, player_cards: list[Card]
+    ) -> str:
         return input(
             f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): "
         )
 
-    def reask_player_card_decision(self, player_name: str, player_cards: list[Card]) -> str:
+    def reask_player_card_decision(
+        self, player_name: str, player_cards: list[Card]
+    ) -> str:
         return input(
             f"{player_name}: That's not a legal move! Which card do you want to play? (1-{len(player_cards)}): "
         )

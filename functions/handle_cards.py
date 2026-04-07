@@ -1,6 +1,6 @@
 import random
-from Cards import Color, Card
-from Player import Player
+from Clases.Cards import Color, Card
+from Clases.Player import Player
 
 
 def shuffle_cards(cards: list[Card]) -> list[Card]:
@@ -71,22 +71,22 @@ def find_strongest_card(played_cards: list[Card], trumps: list[Card]) -> Card:
 
         # played_card != Trump -> strongest_card = Trump -> strongest_card = strongest_card
         if (
-                played_card.card_name not in trump_names_list
-                and strongest_card.card_name in trump_names_list
+            played_card.card_name not in trump_names_list
+            and strongest_card.card_name in trump_names_list
         ):
             pass
 
         # played_card = Trump -> strongest_card != Trump -> strongest_card = played_card
         elif (
-                played_card.card_name in trump_names_list
-                and strongest_card.card_name not in trump_names_list
+            played_card.card_name in trump_names_list
+            and strongest_card.card_name not in trump_names_list
         ):
             strongest_card = played_card
 
         # played_card = Trump -> strongest_card = Trump -> compare ranks
         elif (
-                played_card.card_name in trump_names_list
-                and strongest_card.card_name in trump_names_list
+            played_card.card_name in trump_names_list
+            and strongest_card.card_name in trump_names_list
         ):
             strongest_card = compare_card_rank(
                 first_card=strongest_card, second_card=played_card

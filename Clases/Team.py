@@ -1,4 +1,4 @@
-from Player import Player
+from Clases.Player import Player
 
 
 class Team:

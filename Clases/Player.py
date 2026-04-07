@@ -1,6 +1,6 @@
 from typing import Callable
 from Renderer import Renderer
-from Cards import Card
+from Clases.Cards import Card
 
 
 class Player:
@@ -22,10 +22,10 @@ class Player:
         ) <= len(self.player_cards)
 
     def card_decision(
-            self,
-            renderer: Renderer,
-            played_cards: list[Card],
-            move_validator: Callable[[Card], bool],
+        self,
+        renderer: Renderer,
+        played_cards: list[Card],
+        move_validator: Callable[[Card], bool],
     ) -> None:
         print(self.player_cards)
         index_decision = renderer.ask_player_card_decision(

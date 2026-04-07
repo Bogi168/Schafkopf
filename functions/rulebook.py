@@ -1,4 +1,4 @@
-from Cards import Card
+from Clases.Cards import Card
 
 
 def check_lead_card(lead_card: Card | None) -> bool:
@@ -16,7 +16,9 @@ def check_lead_card_trump(lead_card: Card, trumps: list[Card]) -> bool:
     return lead_card.card_name in [trump.card_name for trump in trumps]
 
 
-def similar_color_available(lead_card: Card, player_cards: list[Card], trumps: list[Card]) -> bool:
+def similar_color_available(
+    lead_card: Card, player_cards: list[Card], trumps: list[Card]
+) -> bool:
     if check_lead_card(lead_card=lead_card):
         return False
     for card in player_cards:
