@@ -1,6 +1,6 @@
 from typing import Callable
-from Renderer import Renderer
-from Clases.Cards import Card
+from Classes.Renderer import Renderer
+from Classes.Cards import Card
 
 
 class Player:

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from Clases.Cards import Cards, Card, Type, Color
-from Player import Player
-from Renderer import Renderer
-from Team import Team
+from Classes.Cards import Cards, Card, Type, Color
+from Classes.Player import Player
+from Classes.Renderer import Renderer
+from Classes.Team import Team
 from functions.handle_cards import find_strongest_card
 from functions.rulebook import (
     check_lead_card,
@@ -251,7 +251,8 @@ class Game(ABC):
                     winners.append(player)
         return winners
 
-    def check_player_has_trump(self, player: Player, trump: Card) -> bool:
+    @staticmethod
+    def check_player_has_trump(player: Player, trump: Card) -> bool:
         for card in player.player_cards:
             if card == trump:
                 return True

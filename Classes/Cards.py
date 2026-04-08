@@ -14,7 +14,7 @@ class Color(Enum):
             Color.EICHEL: "Eichel",
             Color.GRUEN: "Grün",
             Color.HERZ: "Herz",
-            Color.SCHELLEN: "Schellen"
+            Color.SCHELLEN: "Schellen",
         }
         return names[self]
 
@@ -30,6 +30,20 @@ class Type(IntEnum):
     OBER = 8
 
     @property
+    def rank(self) -> int:
+        ranks = {
+            Type.SEVEN: 1,
+            Type.EIGHT: 2,
+            Type.NINE: 3,
+            Type.KOENIG: 4,
+            Type.TEN: 5,
+            Type.SAU: 6,
+            Type.UNTER: 7,
+            Type.OBER: 8,
+        }
+        return ranks[self]
+
+    @property
     def name(self) -> str:
         names = {
             Type.SEVEN: "7",
@@ -39,7 +53,7 @@ class Type(IntEnum):
             Type.OBER: "Ober",
             Type.KOENIG: "König",
             Type.TEN: "10",
-            Type.SAU: "Sau"
+            Type.SAU: "Sau",
         }
         return names[self]
 
@@ -72,7 +86,7 @@ class Card:
 class Cards:
     def __init__(self) -> None:
         self.full_deck: list[Card] = [
-            Card(card_color=card_color, card_type=card_type, card_rank=card_type.value)
+            Card(card_color=card_color, card_type=card_type, card_rank=card_type.rank)
             for card_type in Type
             for card_color in Color
         ]

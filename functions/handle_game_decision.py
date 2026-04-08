@@ -1,5 +1,5 @@
-from Clases.Cards import Card, Color, Type
-from Clases.Game import Game
+from Classes.Cards import Card, Color, Type
+from Classes.Game import Game
 
 
 def check_player_quits(quitting_possible: bool, decision: str) -> bool:

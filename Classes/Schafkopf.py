@@ -1,8 +1,8 @@
-from Clases.Renderer import Renderer
-from Clases.Cards import Cards, Color
-from Clases.Player import Player
-from Clases.Game import Game, Sauspiel, Wenz, Solo, Ramsch
-from functions.handle_players import choose_starter, sort_players
+import random
+from Classes.Renderer import Renderer
+from Classes.Cards import Cards, Color, Type, Card
+from Classes.Player import Player
+from Classes.Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from functions.handle_game_decision import (
     check_available_game_decisions,
     check_available_sau_color_decisions,
@@ -45,6 +45,65 @@ class Schafkopf:
             decision = self.renderer.reask_player_game(player_name=player.player_name)
         if decision in ("YES", "Y"):
             self.game_choosers.append(player)
+
+    @staticmethod
+    def choose_starter(players: list[Player]) -> Player:
+        starter = random.choice(players)
+        return starter
+
+    @staticmethod
+    def sort_players(players: list[Player], starter: Player) -> list[Player]:
+        found_beginner = False
+        while not found_beginner:
+            player = players[0]
+            if not player == starter:
+                players.append(player)
+                players.pop(0)
+            else:
+                found_beginner = True
+        return players
+
+    def adjust_rank(self) -> None:
+        trumps: list[Card] = [
+            card
+            for card in self.cards.full_deck
+            if card.card_type in [Type.OBER, Type.UNTER]
+            or card.card_color == Color.HERZ
+        ]
+        for player in self.players:
+            for card in player.player_cards:
+                if card.card_name in [trump.card_name for trump in trumps]:
+                    card.card_rank += 100
+                    match card.card_color:
+                        case Color.EICHEL:
+                            card.card_rank += 0.8
+                        case Color.GRUEN:
+                            card.card_rank += 0.6
+                        case Color.HERZ:
+                            card.card_rank += 0.4
+                        case Color.SCHELLEN:
+                            card.card_rank += 0.2
+                elif card.card_name not in [trump.card_name for trump in trumps]:
+                    match card.card_color:
+                        case Color.EICHEL:
+                            card.card_rank += 80
+                        case Color.GRUEN:
+                            card.card_rank += 60
+                        case Color.HERZ:
+                            card.card_rank += 40
+                        case Color.SCHELLEN:
+                            card.card_rank += 20
+                player.player_cards.sort(
+                    key=lambda sort_card: sort_card.card_rank, reverse=True
+                )
+
+    def reset_rank(self) -> None:
+        for player in self.players:
+            for card in player.player_cards:
+                card.card_rank = card.card_type.value
+            player.player_cards.sort(
+                key=lambda sort_card: sort_card.card_rank, reverse=True
+            )
 
     def choose_game_decision(
         self, player: Player, prev_game: Game | None, quitting_possible: bool = False
@@ -159,12 +218,14 @@ class Schafkopf:
 
     def main(self) -> None:
         self.players = self._create_players()
-        self.starter = choose_starter(players=self.players)
-        self.players = sort_players(players=self.players, starter=self.starter)
+        self.starter = self.choose_starter(players=self.players)
+        self.players = self.sort_players(players=self.players, starter=self.starter)
         self.cards.deck = prepare_cards(players=self.players, deck=self.cards.deck)
+        self.adjust_rank()
         for player in self.players:
             print(player.player_cards)
             self._ask_player_game_decision(player=player)
         self.players_choose_game()
+        self.reset_rank()
         self.game_mode.play_game()
         self.cards.reset_deck()
