@@ -343,14 +343,14 @@ class Game(ABC):
                 return True
         return False
 
-    def count_runners(self) -> int:
+    def count_runners(self, minimum_runners: int = 3) -> int:
         for team in self.teams:
             runners_count = 0
             for trump in self.trumps:
                 if self.check_team_has_trump(team=team.players, trump=trump):
                     runners_count += 1
                 else:
-                    if runners_count >= 3:
+                    if runners_count >= minimum_runners:
                         return runners_count
         return 0
 
@@ -545,6 +545,9 @@ class Wenz(Game):
             if card.card_type == Type.OBER:
                 card.card_rank = 3.5
         return super().adjust_rank(player_cards)
+
+    def count_runners(self, minimum_runners: int = 2) -> int:
+        return super().count_runners(minimum_runners=minimum_runners)
 
     def calculate_game_value(self) -> int:
         game_value = 0
