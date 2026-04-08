@@ -3,14 +3,6 @@ from Cards import Cards, Card, Type, Color
 from Player import Player
 from Renderer import Renderer
 from Team import Team
-from rulebook import (
-    check_lead_card,
-    check_player_owns_call_sau,
-    check_lead_card_trump,
-    similar_color_available,
-    trump_available,
-    decision_legal,
-)
 
 
 class Game(ABC):
@@ -117,8 +109,42 @@ class Game(ABC):
                         card.card_rank += 20
         return player_cards
 
+    def check_lead_card(self) -> bool:
+        return self.lead_card is None
+
+    def check_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
+        for card in player_cards:
+            if card == self.call_sau:
+                return True
+        return False
+
+    def check_lead_card_trump(self) -> bool:
+        return self.lead_card.card_name in [trump.card_name for trump in self.trumps]
+
+    def similar_color_available(self, player_cards: list[Card]) -> bool:
+        if self.check_lead_card():
+            return False
+        for card in player_cards:
+            if self.lead_card.card_color == card.card_color and card.card_name not in [
+                trump.card_name for trump in self.trumps
+            ]:
+                return True
+        return False
+
+    def trump_available(self, player_cards: list[Card]) -> bool:
+        for card in player_cards:
+            if card.card_name in [trump.card_name for trump in self.trumps]:
+                return True
+        return False
+
+    @staticmethod
+    def decision_legal(decision: Card, legal_cards: list[Card]) -> bool:
+        return decision.card_name in [
+            legal_card.card_name for legal_card in legal_cards
+        ]
+
     def is_move_legal(self, player: Player, decision: Card) -> bool:
-        lead = check_lead_card(lead_card=self.lead_card)
+        lead = self.check_lead_card()
         call_sau = self.call_sau
         if lead:
             # Fehlt: Davonlaufen
@@ -127,9 +153,7 @@ class Game(ABC):
             if (
                 isinstance(self, Sauspiel)
                 and call_sau is not None
-                and check_player_owns_call_sau(
-                    player_cards=player.player_cards, call_sau=call_sau
-                )
+                and self.check_player_owns_call_sau(player_cards=player.player_cards)
                 and decision.card_color == call_sau.card_color
                 and decision != call_sau
             ):
@@ -137,9 +161,7 @@ class Game(ABC):
         elif (
             isinstance(self, Sauspiel)
             and call_sau is not None
-            and check_player_owns_call_sau(
-                player_cards=player.player_cards, call_sau=call_sau
-            )
+            and self.check_player_owns_call_sau(player_cards=player.player_cards)
             and self.lead_card is not None
             and self.lead_card.card_color != call_sau.card_color
             and decision == call_sau
@@ -148,24 +170,20 @@ class Game(ABC):
         else:
             lead_card = self.lead_card
             assert lead_card is not None
-            bool_lead_trump = check_lead_card_trump(
-                lead_card=lead_card, trumps=self.trumps
-            )
+            bool_lead_trump = self.check_lead_card_trump()
             if bool_lead_trump:
-                trump_avail = trump_available(
-                    trumps=self.trumps, player_cards=player.player_cards
-                )
+                trump_avail = self.trump_available(player_cards=player.player_cards)
                 if trump_avail:
                     print("NoLead-LeadTrump-TrumpAvail-")
-                    legal = decision_legal(decision=decision, legal_cards=self.trumps)
+                    legal = self.decision_legal(
+                        decision=decision, legal_cards=self.trumps
+                    )
                 else:
                     print("NoLead-LeadTrump-NoTrumpAvail-")
                     legal = True
             else:
-                sim_col_avail = similar_color_available(
-                    lead_card=lead_card,
-                    player_cards=player.player_cards,
-                    trumps=self.trumps,
+                sim_col_avail = self.similar_color_available(
+                    player_cards=player.player_cards
                 )
                 if sim_col_avail:
                     legal_cards = [
@@ -178,14 +196,16 @@ class Game(ABC):
                     if (
                         isinstance(self, Sauspiel)
                         and call_sau is not None
-                        and check_player_owns_call_sau(
-                            player_cards=player.player_cards, call_sau=call_sau
+                        and self.check_player_owns_call_sau(
+                            player_cards=player.player_cards
                         )
                         and lead_card.card_color == call_sau.card_color
                     ):
                         legal_cards = [call_sau]
                     print("NoLead-NoLeadTrump-SimColAvail-")
-                    legal = decision_legal(decision=decision, legal_cards=legal_cards)
+                    legal = self.decision_legal(
+                        decision=decision, legal_cards=legal_cards
+                    )
                 else:
                     print("NoLead-NoLeadTrump-NoSimColAvail-")
                     legal = True
@@ -277,14 +297,14 @@ class Game(ABC):
             print(f"{team.team_name} has {team.points} points")
         return most_point_teams
 
-    def check_multiple_most_point_teams(self) -> bool:
-        most_point_teams = self.identify_most_points_teams()
+    @staticmethod
+    def check_multiple_most_point_teams(most_point_teams: list[Team]) -> bool:
         return len(most_point_teams) != 1
 
     def identify_game_winners(self) -> list[Player]:
         most_point_teams = self.identify_most_points_teams()
         winners: list[Player] = []
-        if not self.check_multiple_most_point_teams():
+        if not self.check_multiple_most_point_teams(most_point_teams=most_point_teams):
             for team in most_point_teams:
                 for player in team.players:
                     winners.append(player)
