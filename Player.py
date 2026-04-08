@@ -14,6 +14,13 @@ class Player:
     def __repr__(self) -> str:
         return self.player_name
 
+    @property
+    def points(self):
+        points = 0
+        for card in self.collected_cards:
+            points += card.card_type.points
+        return points
+
     def bool_valid_card_number(self, index_decision: str) -> bool:
         return index_decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(
             index_decision

@@ -13,6 +13,5 @@ class Team:
     def points(self) -> int:
         points = 0
         for player in self.players:
-            for player_card in player.collected_cards:
-                points += player_card.card_type.points
+            points += player.points
         return points

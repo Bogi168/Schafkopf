@@ -31,6 +31,7 @@ class Game(ABC):
         self.call_price = call_price
         self.alone_price = alone_price
         self.sau_color = sau_color
+        self.runners_amount = 0
         self.winners: list[Player] = []
 
         self.trumps: list[Card] = [
@@ -332,7 +333,7 @@ class Game(ABC):
     @staticmethod
     def check_player_has_trump(player: Player, trump: Card) -> bool:
         for card in player.player_cards:
-            if card == trump:
+            if card.card_name == trump.card_name:
                 return True
         return False
 
@@ -342,14 +343,16 @@ class Game(ABC):
                 return True
         return False
 
-    def count_winners_runners(self) -> int:
-        runners_count = 0
-        for trump in self.trumps:
-            if self.check_team_has_trump(team=self.winners, trump=trump):
-                runners_count += 1
-            else:
-                break
-        return runners_count
+    def count_runners(self) -> int:
+        for team in self.teams:
+            runners_count = 0
+            for trump in self.trumps:
+                if self.check_team_has_trump(team=team.players, trump=trump):
+                    runners_count += 1
+                else:
+                    if runners_count >= 3:
+                        return runners_count
+        return 0
 
     @abstractmethod
     def calculate_game_value(self) -> int:
@@ -378,6 +381,8 @@ class Game(ABC):
             )
         self.team_1.players.append(self.game_chooser)
         self.create_teams()
+        self.runners_amount = self.count_runners()
+        print(f"There are {self.runners_amount} runners")
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
         self.winners = self.identify_game_winners()
@@ -492,7 +497,7 @@ class Sauspiel(Game):
     def calculate_game_value(self) -> int:
         game_value = 0
         game_value += self.call_price
-        game_value += self.count_winners_runners() * self.base_price
+        game_value += self.runners_amount * self.base_price
         winning_team = self.find_players_team(player=self.winners[0])
         if winning_team.points == 120:
             game_value += 2 * self.base_price
@@ -544,7 +549,7 @@ class Wenz(Game):
     def calculate_game_value(self) -> int:
         game_value = 0
         game_value += self.alone_price
-        game_value += self.count_winners_runners() * self.base_price
+        game_value += self.runners_amount * self.base_price
         winning_team = self.find_players_team(player=self.winners[0])
 
         if winning_team.points == 120:
@@ -593,7 +598,7 @@ class Solo(Game):
     def calculate_game_value(self) -> int:
         game_value = 0
         game_value += self.alone_price
-        game_value += self.count_winners_runners() * self.base_price
+        game_value += self.runners_amount * self.base_price
         winning_team = self.find_players_team(player=self.winners[0])
 
         if winning_team.points == 120:
