@@ -143,11 +143,12 @@ class Game(ABC):
             legal_card.card_name for legal_card in legal_cards
         ]
 
-    @staticmethod
-    def count_similar_color_cards(player_cards: list[Card], color: Color) -> int:
+    def count_similar_color_cards(self, player_cards: list[Card], color: Color) -> int:
         color_count = 0
         for card in player_cards:
-            if card.card_color == color:
+            if card.card_color == color and card.card_name not in [
+                trump.card_name for trump in self.trumps
+            ]:
                 color_count += 1
         return color_count
 
@@ -155,22 +156,20 @@ class Game(ABC):
         lead = self.check_lead_card()
         call_sau = self.call_sau
         if lead:
-            print("Lead-")
+            call_sau_color_count = self.count_similar_color_cards(
+                player_cards=player.player_cards, color=call_sau.card_color
+            )
             legal = True
             if (
                 isinstance(self, Sauspiel)
                 and call_sau is not None
                 and self.check_player_owns_call_sau(player_cards=player.player_cards)
                 and decision.card_color == call_sau.card_color
+                and decision.card_name not in [trump.card_name for trump in self.trumps]
                 and decision != call_sau
+                and call_sau_color_count < 4
             ):
-                call_sau_color_count = self.count_similar_color_cards(
-                    player_cards=player.player_cards, color=call_sau.card_color
-                )
-                if call_sau_color_count >= 4:
-                    legal = True
-                else:
-                    legal = False
+                legal = False
         elif (
             isinstance(self, Sauspiel)
             and call_sau is not None
@@ -187,12 +186,10 @@ class Game(ABC):
             if bool_lead_trump:
                 trump_avail = self.trump_available(player_cards=player.player_cards)
                 if trump_avail:
-                    print("NoLead-LeadTrump-TrumpAvail-")
                     legal = self.decision_legal(
                         decision=decision, legal_cards=self.trumps
                     )
                 else:
-                    print("NoLead-LeadTrump-NoTrumpAvail-")
                     legal = True
             else:
                 sim_col_avail = self.similar_color_available(
@@ -215,14 +212,11 @@ class Game(ABC):
                         and lead_card.card_color == call_sau.card_color
                     ):
                         legal_cards = [call_sau]
-                    print("NoLead-NoLeadTrump-SimColAvail-")
                     legal = self.decision_legal(
                         decision=decision, legal_cards=legal_cards
                     )
                 else:
-                    print("NoLead-NoLeadTrump-NoSimColAvail-")
                     legal = True
-        print(f"The Move is {legal}")
         return legal
 
     @staticmethod
@@ -285,14 +279,17 @@ class Game(ABC):
                     player=p, decision=d
                 ),
             )
+            print(f"The played cards are: {self.played_cards}")
         strongest_card = self.find_strongest_card()
         winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
+        print(
+            f"{self.players[winner_index].player_name} collected {self.players[winner_index].player_cards[-4:-1]}"
+            + "\n" * 2
+        )
         starter = self.players[winner_index]
         self.sort_players(starter=starter)
-        for player in self.players:
-            print(f"{player.player_name} has collected {player.collected_cards}")
         self.played_cards.clear()
 
     def identify_most_points_teams(self) -> list[Team]:

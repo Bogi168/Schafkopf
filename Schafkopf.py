@@ -1,7 +1,7 @@
 import random
 from Renderer import Renderer
 from Cards import Cards, Color, Type, Card
-from Player import Player
+from Player import Player, Bot
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 
 
@@ -28,7 +28,7 @@ class Schafkopf:
             player_name = self.renderer.reask_player_name()
         players = [Player(player_name=player_name)]
         for i in range(3):
-            players.append(Player(f"Bot {i + 1}"))
+            players.append(Bot(f"Bot {i + 1}"))
         return players
 
     def _ask_player_game_decision(self, player: Player) -> None:
