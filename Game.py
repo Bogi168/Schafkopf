@@ -602,5 +602,4 @@ class Solo(Game):
             winning_team.points == 90 and self.game_chooser not in winning_team.players
         ):
             game_value += self.base_price
-
         return game_value
