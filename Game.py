@@ -155,8 +155,8 @@ class Game(ABC):
         lead = self.check_lead_card()
         call_sau = self.call_sau
         if lead:
-            legal = True
             print("Lead-")
+            legal = True
             if (
                 isinstance(self, Sauspiel)
                 and call_sau is not None
