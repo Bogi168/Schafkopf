@@ -156,9 +156,6 @@ class Game(ABC):
         lead = self.check_lead_card()
         call_sau = self.call_sau
         if lead:
-            call_sau_color_count = self.count_similar_color_cards(
-                player_cards=player.player_cards, color=call_sau.card_color
-            )
             legal = True
             if (
                 isinstance(self, Sauspiel)
@@ -167,7 +164,10 @@ class Game(ABC):
                 and decision.card_color == call_sau.card_color
                 and decision.card_name not in [trump.card_name for trump in self.trumps]
                 and decision != call_sau
-                and call_sau_color_count < 4
+                and self.count_similar_color_cards(
+                    player_cards=player.player_cards, color=call_sau.card_color
+                )
+                < 4
             ):
                 legal = False
         elif (
@@ -285,7 +285,7 @@ class Game(ABC):
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
         print(
-            f"{self.players[winner_index].player_name} collected {self.players[winner_index].player_cards[-4:-1]}"
+            f"{self.players[winner_index].player_name} collected {self.players[winner_index].collected_cards[-4:]}"
             + "\n" * 2
         )
         starter = self.players[winner_index]
@@ -357,12 +357,18 @@ class Game(ABC):
 
     def distribute_money(self, game_value: int) -> None:
         losers = [loser for loser in self.players if loser not in self.winners]
-        winners_money = 0
-        for loser in losers:
-            loser.money -= game_value
-            winners_money += game_value
-        for winner in self.winners:
-            winner.money += winners_money / len(self.winners)
+        if len(self.winners) == 1:
+            for index in range(len(losers)):
+                losers[index].money -= game_value
+                self.winners[0].money += game_value
+        elif len(self.winners) == 2:
+            for index in range(len(self.winners)):
+                losers[index].money -= game_value
+                self.winners[index].money += game_value
+        elif len(self.winners) == 3:
+            for index in range(len(self.winners)):
+                losers[0].money -= game_value
+                self.winners[index].money += game_value
 
     def play_game(self) -> None:
         for player in self.players:
@@ -379,7 +385,7 @@ class Game(ABC):
         self.distribute_money(game_value=game_value)
         print(f"The game winners are: {self.winners}")
         for player in self.players:
-            print(f"{player} has {round(player.money)} cents")
+            print(f"{player} has {player.money} cents")
 
 
 class Ramsch(Game):
@@ -430,14 +436,18 @@ class Ramsch(Game):
                             winners.append(player)
         return winners
 
+    def count_virgins(self) -> int:
+        virgins_count = 0
+        for player in self.players:
+            if len(player.collected_cards) == 0:
+                virgins_count += 1
+        return virgins_count
+
     def calculate_game_value(self) -> int:
-        game_value = 0
-        if len(self.winners) == 4:
-            game_value = 0
-        elif len(self.winners) == 3:
-            game_value = self.alone_price * 3
-        elif len(self.winners) == 2 or len(self.winners) == 1:
-            game_value = self.alone_price
+        game_value = self.alone_price
+        virgins_count = self.count_virgins()
+        for x in range(virgins_count):
+            game_value *= 2
         return game_value
 
 
@@ -544,9 +554,6 @@ class Wenz(Game):
         ):
             game_value += self.base_price
 
-        if len(self.winners) == 3:
-            game_value = game_value * 3
-
         return game_value
 
 
@@ -596,6 +603,4 @@ class Solo(Game):
         ):
             game_value += self.base_price
 
-        if len(self.winners) == 3:
-            game_value = game_value * 3
         return game_value

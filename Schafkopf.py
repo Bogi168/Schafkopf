@@ -63,7 +63,7 @@ class Schafkopf:
     def deal_cards(self, deck: list[Card], players: list[Player]) -> list[Card]:
         deck = self.shuffle_cards(cards=deck)
         for player_num in range(len(players)):
-            for _ in range(8):
+            for _ in range(4):
                 card = deck[-1]
                 players[player_num].player_cards.append(card)
                 deck.pop(-1)
@@ -76,6 +76,8 @@ class Schafkopf:
         for player in players:
             player.player_cards.clear()
             player.collected_cards.clear()
+        deck = self.deal_cards(deck=deck, players=players)
+        # Fehlt: Legen
         deck = self.deal_cards(deck=deck, players=players)
         return deck
 
