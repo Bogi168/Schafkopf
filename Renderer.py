@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from Classes.Cards import Card
+from Cards import Card
 
 
 class Renderer(ABC):

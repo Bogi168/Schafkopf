@@ -1,4 +1,4 @@
-from Classes.Cards import Card
+from Cards import Card
 
 
 def check_lead_card(lead_card: Card | None) -> bool:

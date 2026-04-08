@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from Classes.Cards import Cards, Card, Type, Color
-from Classes.Player import Player
-from Classes.Renderer import Renderer
-from Classes.Team import Team
-from functions.handle_cards import find_strongest_card
-from functions.rulebook import (
+from Cards import Cards, Card, Type, Color
+from Player import Player
+from Renderer import Renderer
+from Team import Team
+from rulebook import (
     check_lead_card,
     check_player_owns_call_sau,
     check_lead_card_trump,
@@ -193,6 +192,57 @@ class Game(ABC):
         print(f"The Move is {legal}")
         return legal
 
+    @staticmethod
+    def compare_card_rank(first_card: Card, second_card: Card) -> Card:
+        if first_card.card_rank > second_card.card_rank:
+            return first_card
+        else:
+            return second_card
+
+    def find_strongest_card(self) -> Card:
+        trumps = self.trumps
+        played_cards = self.played_cards
+        lead_card = played_cards[0]
+        strongest_card = lead_card
+        for played_card in played_cards:
+
+            trump_names_list = [trump.card_name for trump in trumps]
+
+            # played_card != Trump -> strongest_card == Trump -> strongest_card = strongest_card
+            if (
+                played_card.card_name not in trump_names_list
+                and strongest_card.card_name in trump_names_list
+            ):
+                pass
+
+            # played_card == Trump -> strongest_card != Trump -> strongest_card = played_card
+            elif (
+                played_card.card_name in trump_names_list
+                and strongest_card.card_name not in trump_names_list
+            ):
+                strongest_card = played_card
+
+            # played_card == Trump -> strongest_card == Trump -> compare ranks
+            elif (
+                played_card.card_name in trump_names_list
+                and strongest_card.card_name in trump_names_list
+            ):
+                strongest_card = self.compare_card_rank(
+                    first_card=strongest_card, second_card=played_card
+                )
+
+            # strongest_card + played_card != Trump -> played_card_color != lead_card_color -> strongest_card = strongest_card
+            elif played_card.card_color != lead_card.card_color:
+                pass
+
+            # strongest_card + played_card != Trump -> played_card_color == lead_card_color -> compare ranks
+            else:
+                strongest_card = self.compare_card_rank(
+                    first_card=strongest_card, second_card=played_card
+                )
+
+        return strongest_card
+
     def play_round(self) -> None:
         for player in self.players:
             player.card_decision(
@@ -202,9 +252,7 @@ class Game(ABC):
                     player=p, decision=d
                 ),
             )
-        strongest_card = find_strongest_card(
-            played_cards=self.played_cards, trumps=self.trumps
-        )
+        strongest_card = self.find_strongest_card()
         winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
@@ -294,10 +342,6 @@ class Game(ABC):
             )
         self.team_1.players.append(self.game_chooser)
         self.create_teams()
-        print(f"Team 1: {self.team_1.players}")
-        print(f"Team 2: {self.team_2.players}")
-        print(f"Team 3: {self.team_3.players}")
-        print(f"Team 4: {self.team_4.players}")
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
         self.winners = self.identify_game_winners()

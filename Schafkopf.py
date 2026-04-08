@@ -1,16 +1,8 @@
 import random
-from Classes.Renderer import Renderer
-from Classes.Cards import Cards, Color, Type, Card
-from Classes.Player import Player
-from Classes.Game import Game, Sauspiel, Wenz, Solo, Ramsch
-from functions.handle_game_decision import (
-    check_available_game_decisions,
-    check_available_sau_color_decisions,
-    convert_sau_color_value,
-    convert_sau_color_index,
-    check_player_quits,
-)
-from functions.handle_cards import prepare_cards
+from Renderer import Renderer
+from Cards import Cards, Color, Type, Card
+from Player import Player
+from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 
 
 class Schafkopf:
@@ -63,6 +55,30 @@ class Schafkopf:
                 found_beginner = True
         return players
 
+    @staticmethod
+    def shuffle_cards(cards: list[Card]) -> list[Card]:
+        random.shuffle(cards)
+        return cards
+
+    def deal_cards(self, deck: list[Card], players: list[Player]) -> list[Card]:
+        deck = self.shuffle_cards(cards=deck)
+        for player_num in range(len(players)):
+            for _ in range(8):
+                card = deck[-1]
+                players[player_num].player_cards.append(card)
+                deck.pop(-1)
+            players[player_num].player_cards.sort(
+                key=lambda sort_card: sort_card.card_rank, reverse=True
+            )
+        return deck
+
+    def prepare_cards(self, players: list[Player], deck: list[Card]) -> list[Card]:
+        for player in players:
+            player.player_cards.clear()
+            player.collected_cards.clear()
+        deck = self.deal_cards(deck=deck, players=players)
+        return deck
+
     def adjust_rank(self) -> None:
         trumps: list[Card] = [
             card
@@ -105,18 +121,152 @@ class Schafkopf:
                 key=lambda sort_card: sort_card.card_rank, reverse=True
             )
 
+    @staticmethod
+    def check_player_quits(quitting_possible: bool, decision: str) -> bool:
+        quitting_code_words = ["QUIT", "Q"]
+        player_quits = False
+        if quitting_possible and decision in quitting_code_words:
+            player_quits = True
+        return player_quits
+
+    @staticmethod
+    def count_color_cards(
+        player_cards: list[Card], color: Color, trump_types: list[Type]
+    ) -> int:
+        count = 0
+        for card in player_cards:
+            if card.card_color == color and card.card_type not in trump_types:
+                count += 1
+        return count
+
+    @staticmethod
+    def check_player_has_sau(sau_color: Color, player_cards: list[Card]) -> bool:
+        player_has_sau = False
+        for card in player_cards:
+            if card.card_color == sau_color and card.card_type == Type.SAU:
+                player_has_sau = True
+        return player_has_sau
+
+    def check_sau_color_available(self, player_cards: list[Card]) -> bool:
+        colors = (Color.EICHEL, Color.GRUEN, Color.SCHELLEN)
+        eichel_count = 0
+        gruen_count = 0
+        schellen_count = 0
+
+        for card_color in colors:
+            match card_color:
+                case Color.EICHEL:
+                    eichel_count = self.count_color_cards(
+                        player_cards=player_cards,
+                        color=card_color,
+                        trump_types=[Type.OBER, Type.UNTER],
+                    )
+                case Color.GRUEN:
+                    gruen_count = self.count_color_cards(
+                        player_cards=player_cards,
+                        color=card_color,
+                        trump_types=[Type.OBER, Type.UNTER],
+                    )
+                case Color.SCHELLEN:
+                    schellen_count = self.count_color_cards(
+                        player_cards=player_cards,
+                        color=card_color,
+                        trump_types=[Type.OBER, Type.UNTER],
+                    )
+
+        for color in colors:
+            if self.check_player_has_sau(color, player_cards=player_cards):
+                match color:
+                    case Color.EICHEL:
+                        eichel_count = 0
+                    case Color.GRUEN:
+                        gruen_count = 0
+                    case Color.SCHELLEN:
+                        schellen_count = 0
+
+        return eichel_count + gruen_count + schellen_count != 0
+
+    def check_available_game_decisions(
+        self,
+        playable_games: list[type[Game]],
+        prev_game: Game | None,
+        player_cards: list[Card],
+    ) -> list[str]:
+        if prev_game is None:
+            prev_game_rank = 0
+        else:
+            prev_game_rank = prev_game.rank
+
+        if prev_game_rank != 0:
+            available_game_ranks = [
+                str(game.rank) for game in playable_games if game.rank > prev_game_rank
+            ]
+        else:
+            color_available = self.check_sau_color_available(player_cards=player_cards)
+            if color_available:
+                available_game_ranks = [str(game.rank) for game in playable_games]
+            else:
+                available_game_ranks = [
+                    str(game.rank) for game in playable_games if game.rank != 1
+                ]
+        return available_game_ranks
+
+    def check_available_sau_color_decisions(
+        self, player_cards: list[Card], playable_colors: list[Color]
+    ) -> list[Color]:
+        for color in playable_colors.copy():
+            player_has_sau = self.check_player_has_sau(
+                player_cards=player_cards, sau_color=color
+            )
+            color_count = self.count_color_cards(
+                player_cards=player_cards,
+                color=color,
+                trump_types=[Type.OBER, Type.UNTER],
+            )
+            if color_count == 0 or player_has_sau:
+                playable_colors.remove(color)
+        return playable_colors
+
+    @staticmethod
+    def convert_sau_color_value(decision: str) -> int:
+        sau_color_decision: int
+        match decision:
+            case "1":
+                sau_color_decision = 1
+            case "2":
+                sau_color_decision = 2
+            case "3":
+                sau_color_decision = 4
+            case _:
+                sau_color_decision = -1
+        return sau_color_decision
+
+    @staticmethod
+    def convert_sau_color_index(decision: str) -> int:
+        sau_color_decision: int
+        match decision:
+            case "1":
+                sau_color_decision = 0
+            case "2":
+                sau_color_decision = 1
+            case "3":
+                sau_color_decision = 2
+            case _:
+                sau_color_decision = -1
+        return sau_color_decision
+
     def choose_game_decision(
         self, player: Player, prev_game: Game | None, quitting_possible: bool = False
     ) -> str:
         player_name = player.player_name
         player_cards = player.player_cards
-        available_decisions = check_available_game_decisions(
+        available_decisions = self.check_available_game_decisions(
             playable_games=self.playable_games,
             prev_game=prev_game,
             player_cards=player_cards,
         )
         decision = self.renderer.player_choose_game(player_name)
-        while decision not in available_decisions and not check_player_quits(
+        while decision not in available_decisions and not self.check_player_quits(
             quitting_possible=quitting_possible, decision=decision
         ):
             decision = self.renderer.player_rechoose_game(player_name=player_name)
@@ -129,21 +279,25 @@ class Schafkopf:
                 pass
             case "1":
                 sau_colors = [Color.EICHEL, Color.GRUEN, Color.SCHELLEN]
-                available_colors = check_available_sau_color_decisions(
+                available_colors = self.check_available_sau_color_decisions(
                     player_cards=player_cards, playable_colors=sau_colors.copy()
                 )
                 sau_color_decision = self.renderer.player_choose_sau_color()
-                sau_color_value = convert_sau_color_value(decision=sau_color_decision)
-                sau_color_index = convert_sau_color_index(decision=sau_color_decision)
+                sau_color_value = self.convert_sau_color_value(
+                    decision=sau_color_decision
+                )
+                sau_color_index = self.convert_sau_color_index(
+                    decision=sau_color_decision
+                )
                 while (
                     sau_color_value not in [color.value for color in sau_colors]
                     or sau_colors[sau_color_index] not in available_colors
                 ):
                     sau_color_decision = self.renderer.player_rechoose_sau_color()
-                    sau_color_value = convert_sau_color_value(
+                    sau_color_value = self.convert_sau_color_value(
                         decision=sau_color_decision
                     )
-                    sau_color_index = convert_sau_color_index(
+                    sau_color_index = self.convert_sau_color_index(
                         decision=sau_color_decision
                     )
                 sau_color = sau_colors[sau_color_index]
@@ -220,7 +374,7 @@ class Schafkopf:
         self.players = self._create_players()
         self.starter = self.choose_starter(players=self.players)
         self.players = self.sort_players(players=self.players, starter=self.starter)
-        self.cards.deck = prepare_cards(players=self.players, deck=self.cards.deck)
+        self.cards.deck = self.prepare_cards(players=self.players, deck=self.cards.deck)
         self.adjust_rank()
         for player in self.players:
             print(player.player_cards)
