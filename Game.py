@@ -143,11 +143,18 @@ class Game(ABC):
             legal_card.card_name for legal_card in legal_cards
         ]
 
+    @staticmethod
+    def count_similar_color_cards(player_cards: list[Card], color: Color) -> int:
+        color_count = 0
+        for card in player_cards:
+            if card.card_color == color:
+                color_count += 1
+        return color_count
+
     def is_move_legal(self, player: Player, decision: Card) -> bool:
         lead = self.check_lead_card()
         call_sau = self.call_sau
         if lead:
-            # Fehlt: Davonlaufen
             legal = True
             print("Lead-")
             if (
@@ -157,7 +164,13 @@ class Game(ABC):
                 and decision.card_color == call_sau.card_color
                 and decision != call_sau
             ):
-                legal = False
+                call_sau_color_count = self.count_similar_color_cards(
+                    player_cards=player.player_cards, color=call_sau.card_color
+                )
+                if call_sau_color_count >= 4:
+                    legal = True
+                else:
+                    legal = False
         elif (
             isinstance(self, Sauspiel)
             and call_sau is not None
