@@ -37,7 +37,8 @@ class Game(ABC):
         self.trumps: list[Card] = [
             card
             for card in self.cards.full_deck
-            if card.card_type in trump_types or card.card_color == trump_color
+            if card.card_type in trump_types
+            or (trump_color is not None and card.card_color == trump_color)
         ]
         self.trumps.reverse()
         self.played_cards: list[Card] = []
@@ -85,7 +86,7 @@ class Game(ABC):
                 player_team = team
         return player_team
 
-    def adjust_rank(self, player_cards: list[Card]) -> list[Card]:
+    def adjust_card_rank(self, player_cards: list[Card]) -> list[Card]:
         for card in player_cards:
             if card in self.trumps:
                 card.card_rank += 100
@@ -148,35 +149,40 @@ class Game(ABC):
         return color_count
 
     def is_move_legal(self, player: Player, decision: Card) -> bool:
-        lead = self.is_lead_card_null()
-        call_sau = self.call_sau
-        if lead:
-            legal = True
+
+        if len(player.player_cards) == 1:
+            return True
+
+        player_has_lead = self.is_lead_card_null()
+        if player_has_lead:
             if (
                 isinstance(self, Sauspiel)
-                and call_sau is not None
+                and self.call_sau is not None
                 and self.is_player_owns_call_sau(player_cards=player.player_cards)
-                and decision.card_color == call_sau.card_color
+                and decision.card_color == self.call_sau.card_color
                 and decision not in self.trumps
-                and decision != call_sau
+                and decision != self.call_sau
                 and self.count_similar_color_cards(
-                    player_cards=player.player_cards, color=call_sau.card_color
+                    player_cards=player.player_cards, color=self.call_sau.card_color
                 )
                 < 4
             ):
-                legal = False
-        elif (
+                return False
+            else:
+                return True
+
+        if (
             isinstance(self, Sauspiel)
-            and call_sau is not None
+            and self.call_sau is not None
             and self.is_player_owns_call_sau(player_cards=player.player_cards)
             and self.lead_card is not None
-            and self.lead_card.card_color != call_sau.card_color
-            and decision == call_sau
+            and self.lead_card.card_color != self.call_sau.card_color
+            and decision == self.call_sau
         ):
-            legal = len(player.player_cards) == 1
+            return False
+
         else:
-            lead_card = self.lead_card
-            assert lead_card is not None
+            assert self.lead_card is not None
             bool_lead_trump = self.is_lead_card_is_trump()
             if bool_lead_trump:
                 trump_avail = self.is_player_has_trump_available(
@@ -196,18 +202,18 @@ class Game(ABC):
                     legal_cards = [
                         sim_color
                         for sim_color in player.player_cards
-                        if sim_color.card_color == lead_card.card_color
+                        if sim_color.card_color == self.lead_card.card_color
                         and sim_color not in self.trumps
                     ]
                     if (
                         isinstance(self, Sauspiel)
-                        and call_sau is not None
+                        and self.call_sau is not None
                         and self.is_player_owns_call_sau(
                             player_cards=player.player_cards
                         )
-                        and lead_card.card_color == call_sau.card_color
+                        and self.lead_card.card_color == self.call_sau.card_color
                     ):
-                        legal_cards = [call_sau]
+                        legal_cards = [self.call_sau]
                     legal = self.is_decision_in_legal_cards(
                         decision=decision, legal_cards=legal_cards
                     )
@@ -223,10 +229,8 @@ class Game(ABC):
             return second_card
 
     def find_strongest_card(self) -> Card:
-        played_cards = self.played_cards
-        lead_card = played_cards[0]
-        strongest_card = lead_card
-        for played_card in played_cards:
+        strongest_card = self.lead_card
+        for played_card in self.played_cards:
 
             # played_card != Trump -> strongest_card == Trump -> strongest_card = strongest_card
             if played_card not in self.trumps and strongest_card in self.trumps:
@@ -243,7 +247,7 @@ class Game(ABC):
                 )
 
             # strongest_card + played_card != Trump -> played_card_color != lead_card_color -> strongest_card = strongest_card
-            elif played_card.card_color != lead_card.card_color:
+            elif played_card.card_color != self.lead_card.card_color:
                 pass
 
             # strongest_card + played_card != Trump -> played_card_color == lead_card_color -> compare ranks
@@ -361,7 +365,9 @@ class Game(ABC):
 
     def play_game(self) -> None:
         for player in self.players:
-            player.player_cards = self.adjust_rank(player_cards=player.player_cards)
+            player.player_cards = self.adjust_card_rank(
+                player_cards=player.player_cards
+            )
             player.player_cards.sort(
                 key=lambda sort_card: sort_card.card_rank, reverse=True
             )
@@ -525,11 +531,11 @@ class Wenz(Game):
             player for player in self.players if player not in self.team_1.players
         ]
 
-    def adjust_rank(self, player_cards: list[Card]) -> list[Card]:
+    def adjust_card_rank(self, player_cards: list[Card]) -> list[Card]:
         for card in player_cards:
             if card.card_type == Type.OBER:
                 card.card_rank = 3.5
-        return super().adjust_rank(player_cards)
+        return super().adjust_card_rank(player_cards)
 
     def count_runners(self, minimum_runners: int = 2) -> int:
         return super().count_runners(minimum_runners=minimum_runners)
