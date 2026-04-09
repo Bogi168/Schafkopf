@@ -110,34 +110,34 @@ class Game(ABC):
                         card.card_rank += 20
         return player_cards
 
-    def check_lead_card(self) -> bool:
+    def is_lead_card_null(self) -> bool:
         return self.lead_card is None
 
-    def check_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
+    def is_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
         for card in player_cards:
             if card == self.call_sau:
                 return True
         return False
 
-    def check_lead_card_trump(self) -> bool:
+    def is_lead_card_is_trump(self) -> bool:
         return self.lead_card in self.trumps
 
-    def similar_color_available(self, player_cards: list[Card]) -> bool:
-        if self.check_lead_card():
+    def is_player_has_lead_card_color_available(self, player_cards: list[Card]) -> bool:
+        if self.is_lead_card_null():
             return False
         for card in player_cards:
             if self.lead_card.card_color == card.card_color and card not in self.trumps:
                 return True
         return False
 
-    def trump_available(self, player_cards: list[Card]) -> bool:
+    def is_player_has_trump_available(self, player_cards: list[Card]) -> bool:
         for card in player_cards:
             if card in self.trumps:
                 return True
         return False
 
     @staticmethod
-    def decision_legal(decision: Card, legal_cards: list[Card]) -> bool:
+    def is_decision_in_legal_cards(decision: Card, legal_cards: list[Card]) -> bool:
         return decision in legal_cards
 
     def count_similar_color_cards(self, player_cards: list[Card], color: Color) -> int:
@@ -148,14 +148,14 @@ class Game(ABC):
         return color_count
 
     def is_move_legal(self, player: Player, decision: Card) -> bool:
-        lead = self.check_lead_card()
+        lead = self.is_lead_card_null()
         call_sau = self.call_sau
         if lead:
             legal = True
             if (
                 isinstance(self, Sauspiel)
                 and call_sau is not None
-                and self.check_player_owns_call_sau(player_cards=player.player_cards)
+                and self.is_player_owns_call_sau(player_cards=player.player_cards)
                 and decision.card_color == call_sau.card_color
                 and decision not in self.trumps
                 and decision != call_sau
@@ -168,7 +168,7 @@ class Game(ABC):
         elif (
             isinstance(self, Sauspiel)
             and call_sau is not None
-            and self.check_player_owns_call_sau(player_cards=player.player_cards)
+            and self.is_player_owns_call_sau(player_cards=player.player_cards)
             and self.lead_card is not None
             and self.lead_card.card_color != call_sau.card_color
             and decision == call_sau
@@ -177,17 +177,19 @@ class Game(ABC):
         else:
             lead_card = self.lead_card
             assert lead_card is not None
-            bool_lead_trump = self.check_lead_card_trump()
+            bool_lead_trump = self.is_lead_card_is_trump()
             if bool_lead_trump:
-                trump_avail = self.trump_available(player_cards=player.player_cards)
+                trump_avail = self.is_player_has_trump_available(
+                    player_cards=player.player_cards
+                )
                 if trump_avail:
-                    legal = self.decision_legal(
+                    legal = self.is_decision_in_legal_cards(
                         decision=decision, legal_cards=self.trumps
                     )
                 else:
                     legal = True
             else:
-                sim_col_avail = self.similar_color_available(
+                sim_col_avail = self.is_player_has_lead_card_color_available(
                     player_cards=player.player_cards
                 )
                 if sim_col_avail:
@@ -200,13 +202,13 @@ class Game(ABC):
                     if (
                         isinstance(self, Sauspiel)
                         and call_sau is not None
-                        and self.check_player_owns_call_sau(
+                        and self.is_player_owns_call_sau(
                             player_cards=player.player_cards
                         )
                         and lead_card.card_color == call_sau.card_color
                     ):
                         legal_cards = [call_sau]
-                    legal = self.decision_legal(
+                    legal = self.is_decision_in_legal_cards(
                         decision=decision, legal_cards=legal_cards
                     )
                 else:
@@ -290,13 +292,13 @@ class Game(ABC):
         return most_point_teams
 
     @staticmethod
-    def check_multiple_most_point_teams(most_point_teams: list[Team]) -> bool:
+    def is_multiple_most_point_teams(most_point_teams: list[Team]) -> bool:
         return len(most_point_teams) != 1
 
     def identify_game_winners(self) -> list[Player]:
         most_point_teams = self.identify_most_points_teams()
         winners: list[Player] = []
-        if not self.check_multiple_most_point_teams(most_point_teams=most_point_teams):
+        if not self.is_multiple_most_point_teams(most_point_teams=most_point_teams):
             for team in most_point_teams:
                 for player in team.players:
                     winners.append(player)
@@ -312,15 +314,15 @@ class Game(ABC):
         return winners
 
     @staticmethod
-    def check_player_has_trump(player: Player, trump: Card) -> bool:
+    def is_player_has_trump(player: Player, trump: Card) -> bool:
         for card in player.player_cards:
             if card == trump:
                 return True
         return False
 
-    def check_team_has_trump(self, team: list[Player], trump: Card) -> bool:
+    def is_team_has_trump(self, team: list[Player], trump: Card) -> bool:
         for player in team:
-            if self.check_player_has_trump(player=player, trump=trump):
+            if self.is_player_has_trump(player=player, trump=trump):
                 return True
         return False
 
@@ -328,7 +330,7 @@ class Game(ABC):
         for team in self.teams:
             runners_count = 0
             for trump in self.trumps:
-                if self.check_team_has_trump(team=team.players, trump=trump):
+                if self.is_team_has_trump(team=team.players, trump=trump):
                     runners_count += 1
                 else:
                     if runners_count >= minimum_runners:

@@ -21,7 +21,7 @@ class Player:
             points += card.card_type.points
         return points
 
-    def bool_valid_card_number(self, index_decision: str) -> bool:
+    def is_decision_valid_number(self, index_decision: str) -> bool:
         return index_decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(
             index_decision
         ) <= len(self.player_cards)
@@ -36,11 +36,11 @@ class Player:
         index_decision = renderer.ask_player_card_decision(
             player_name=self.player_name, player_cards=self.player_cards
         )
-        while not self.bool_valid_card_number(index_decision=index_decision):
+        while not self.is_decision_valid_number(index_decision=index_decision):
             index_decision = renderer.reask_player_card_decision(
                 player_name=self.player_name, player_cards=self.player_cards
             )
-            if self.bool_valid_card_number(index_decision=index_decision):
+            if self.is_decision_valid_number(index_decision=index_decision):
                 break
         decision = self.player_cards[int(index_decision) - 1]
         legal = move_validator(decision)
@@ -48,7 +48,7 @@ class Player:
             index_decision = renderer.reask_player_card_decision(
                 self.player_name, player_cards=self.player_cards
             )
-            if not self.bool_valid_card_number(index_decision):
+            if not self.is_decision_valid_number(index_decision):
                 legal = False
             else:
                 decision = self.player_cards[int(index_decision) - 1]

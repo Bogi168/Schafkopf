@@ -124,7 +124,7 @@ class Schafkopf:
             )
 
     @staticmethod
-    def check_player_quits(quitting_possible: bool, decision: str) -> bool:
+    def is_player_quits(quitting_possible: bool, decision: str) -> bool:
         quitting_code_words = ["QUIT", "Q"]
         player_quits = False
         if quitting_possible and decision in quitting_code_words:
@@ -142,14 +142,14 @@ class Schafkopf:
         return count
 
     @staticmethod
-    def check_player_has_sau(sau_color: Color, player_cards: list[Card]) -> bool:
+    def is_player_has_sau(sau_color: Color, player_cards: list[Card]) -> bool:
         player_has_sau = False
         for card in player_cards:
             if card.card_color == sau_color and card.card_type == Type.SAU:
                 player_has_sau = True
         return player_has_sau
 
-    def check_sau_color_available(self, player_cards: list[Card]) -> bool:
+    def is_sauspiel_playable(self, player_cards: list[Card]) -> bool:
         colors = (Color.EICHEL, Color.GRUEN, Color.SCHELLEN)
         eichel_count = 0
         gruen_count = 0
@@ -177,7 +177,7 @@ class Schafkopf:
                     )
 
         for color in colors:
-            if self.check_player_has_sau(color, player_cards=player_cards):
+            if self.is_player_has_sau(color, player_cards=player_cards):
                 match color:
                     case Color.EICHEL:
                         eichel_count = 0
@@ -204,7 +204,7 @@ class Schafkopf:
                 str(game.rank) for game in playable_games if game.rank > prev_game_rank
             ]
         else:
-            color_available = self.check_sau_color_available(player_cards=player_cards)
+            color_available = self.is_sauspiel_playable(player_cards=player_cards)
             if color_available:
                 available_game_ranks = [str(game.rank) for game in playable_games]
             else:
@@ -217,7 +217,7 @@ class Schafkopf:
         self, player_cards: list[Card], playable_colors: list[Color]
     ) -> list[Color]:
         for color in playable_colors.copy():
-            player_has_sau = self.check_player_has_sau(
+            player_has_sau = self.is_player_has_sau(
                 player_cards=player_cards, sau_color=color
             )
             color_count = self.count_color_cards(
@@ -268,7 +268,7 @@ class Schafkopf:
             player_cards=player_cards,
         )
         decision = self.renderer.player_choose_game(player_name)
-        while decision not in available_decisions and not self.check_player_quits(
+        while decision not in available_decisions and not self.is_player_quits(
             quitting_possible=quitting_possible, decision=decision
         ):
             decision = self.renderer.player_rechoose_game(player_name=player_name)
