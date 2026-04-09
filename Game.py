@@ -334,7 +334,10 @@ class Game(ABC):
                     runners_count += 1
                 else:
                     if runners_count >= minimum_runners:
+                        print(f"There are {runners_count} runners")
                         return runners_count
+                    else:
+                        runners_count = 0
         return 0
 
     @abstractmethod
