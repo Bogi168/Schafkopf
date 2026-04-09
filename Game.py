@@ -87,7 +87,7 @@ class Game(ABC):
 
     def adjust_rank(self, player_cards: list[Card]) -> list[Card]:
         for card in player_cards:
-            if card.card_name in [trump.card_name for trump in self.trumps]:
+            if card in self.trumps:
                 card.card_rank += 100
                 match card.card_color:
                     case Color.EICHEL:
@@ -120,36 +120,30 @@ class Game(ABC):
         return False
 
     def check_lead_card_trump(self) -> bool:
-        return self.lead_card.card_name in [trump.card_name for trump in self.trumps]
+        return self.lead_card in self.trumps
 
     def similar_color_available(self, player_cards: list[Card]) -> bool:
         if self.check_lead_card():
             return False
         for card in player_cards:
-            if self.lead_card.card_color == card.card_color and card.card_name not in [
-                trump.card_name for trump in self.trumps
-            ]:
+            if self.lead_card.card_color == card.card_color and card not in self.trumps:
                 return True
         return False
 
     def trump_available(self, player_cards: list[Card]) -> bool:
         for card in player_cards:
-            if card.card_name in [trump.card_name for trump in self.trumps]:
+            if card in self.trumps:
                 return True
         return False
 
     @staticmethod
     def decision_legal(decision: Card, legal_cards: list[Card]) -> bool:
-        return decision.card_name in [
-            legal_card.card_name for legal_card in legal_cards
-        ]
+        return decision in legal_cards
 
     def count_similar_color_cards(self, player_cards: list[Card], color: Color) -> int:
         color_count = 0
         for card in player_cards:
-            if card.card_color == color and card.card_name not in [
-                trump.card_name for trump in self.trumps
-            ]:
+            if card.card_color == color and card not in self.trumps:
                 color_count += 1
         return color_count
 
@@ -163,7 +157,7 @@ class Game(ABC):
                 and call_sau is not None
                 and self.check_player_owns_call_sau(player_cards=player.player_cards)
                 and decision.card_color == call_sau.card_color
-                and decision.card_name not in [trump.card_name for trump in self.trumps]
+                and decision not in self.trumps
                 and decision != call_sau
                 and self.count_similar_color_cards(
                     player_cards=player.player_cards, color=call_sau.card_color
@@ -201,8 +195,7 @@ class Game(ABC):
                         sim_color
                         for sim_color in player.player_cards
                         if sim_color.card_color == lead_card.card_color
-                        and sim_color.card_name
-                        not in [trump.card_name for trump in self.trumps]
+                        and sim_color not in self.trumps
                     ]
                     if (
                         isinstance(self, Sauspiel)
@@ -228,33 +221,21 @@ class Game(ABC):
             return second_card
 
     def find_strongest_card(self) -> Card:
-        trumps = self.trumps
         played_cards = self.played_cards
         lead_card = played_cards[0]
         strongest_card = lead_card
         for played_card in played_cards:
 
-            trump_names_list = [trump.card_name for trump in trumps]
-
             # played_card != Trump -> strongest_card == Trump -> strongest_card = strongest_card
-            if (
-                played_card.card_name not in trump_names_list
-                and strongest_card.card_name in trump_names_list
-            ):
+            if played_card not in self.trumps and strongest_card in self.trumps:
                 pass
 
             # played_card == Trump -> strongest_card != Trump -> strongest_card = played_card
-            elif (
-                played_card.card_name in trump_names_list
-                and strongest_card.card_name not in trump_names_list
-            ):
+            elif played_card in self.trumps and strongest_card not in self.trumps:
                 strongest_card = played_card
 
             # played_card == Trump -> strongest_card == Trump -> compare ranks
-            elif (
-                played_card.card_name in trump_names_list
-                and strongest_card.card_name in trump_names_list
-            ):
+            elif played_card in self.trumps and strongest_card in self.trumps:
                 strongest_card = self.compare_card_rank(
                     first_card=strongest_card, second_card=played_card
                 )
@@ -333,7 +314,7 @@ class Game(ABC):
     @staticmethod
     def check_player_has_trump(player: Player, trump: Card) -> bool:
         for card in player.player_cards:
-            if card.card_name == trump.card_name:
+            if card == trump:
                 return True
         return False
 
@@ -382,7 +363,6 @@ class Game(ABC):
         self.team_1.players.append(self.game_chooser)
         self.create_teams()
         self.runners_amount = self.count_runners()
-        print(f"There are {self.runners_amount} runners")
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
         self.winners = self.identify_game_winners()

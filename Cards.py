@@ -1,5 +1,4 @@
 from enum import Enum, IntEnum
-import copy
 
 
 class Color(Enum):
@@ -90,7 +89,9 @@ class Cards:
             for card_type in Type
             for card_color in Color
         ]
-        self.deck: list[Card] = copy.deepcopy(self.full_deck)
+        self.deck: list[Card] = self.full_deck.copy()
 
     def reset_deck(self) -> None:
-        self.deck = copy.deepcopy(self.full_deck)
+        self.deck = self.full_deck.copy()
+        for card in self.deck:
+            card.card_rank = card.card_type.value

@@ -90,7 +90,7 @@ class Schafkopf:
         ]
         for player in self.players:
             for card in player.player_cards:
-                if card.card_name in [trump.card_name for trump in trumps]:
+                if card in trumps:
                     card.card_rank += 100
                     match card.card_color:
                         case Color.EICHEL:
@@ -101,7 +101,7 @@ class Schafkopf:
                             card.card_rank += 0.4
                         case Color.SCHELLEN:
                             card.card_rank += 0.2
-                elif card.card_name not in [trump.card_name for trump in trumps]:
+                elif card not in trumps:
                     match card.card_color:
                         case Color.EICHEL:
                             card.card_rank += 80
