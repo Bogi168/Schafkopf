@@ -40,7 +40,7 @@ class Game(ABC):
             if card.card_type in trump_types
             or (trump_color is not None and card.card_color == trump_color)
         ]
-        self.trumps.reverse()
+        self.trumps.sort(key=self.get_card_power, reverse=True)
         self.played_cards: list[Card] = []
 
         self.team_1 = Team(team_name="Team 1")
@@ -86,30 +86,45 @@ class Game(ABC):
                 player_team = team
         return player_team
 
-    def adjust_card_rank(self, player_cards: list[Card]) -> list[Card]:
-        for card in player_cards:
-            if card in self.trumps:
-                card.card_rank += 100
-                match card.card_color:
-                    case Color.EICHEL:
-                        card.card_rank += 0.8
-                    case Color.GRUEN:
-                        card.card_rank += 0.6
-                    case Color.HERZ:
-                        card.card_rank += 0.4
-                    case Color.SCHELLEN:
-                        card.card_rank += 0.2
+    def get_card_power(self, card: Card) -> int:
+        power = 0
+        trump_type_power = 1000
+        trump_color_power = 100
+        eichel_power = 80
+        gruen_power = 60
+        herz_power = 40
+        schellen_power = 20
+
+        if (
+            self.trump_color is not None
+            and card.card_type not in self.trump_types
+            and card.card_color == self.trump_color
+        ):
+            power = trump_color_power + card.card_type.value
+            return power
+
+        match card.card_color:
+            case Color.EICHEL:
+                power = eichel_power + card.card_type.value
+            case Color.GRUEN:
+                power = gruen_power + card.card_type.value
+            case Color.HERZ:
+                power = herz_power + card.card_type.value
+            case Color.SCHELLEN:
+                power = schellen_power + card.card_type.value
+
+        for trump_type in self.trump_types:
+            if card.card_type == trump_type:
+                power += trump_type_power
+                return power
             else:
-                match card.card_color:
-                    case Color.EICHEL:
-                        card.card_rank += 80
-                    case Color.GRUEN:
-                        card.card_rank += 60
-                    case Color.HERZ:
-                        card.card_rank += 40
-                    case Color.SCHELLEN:
-                        card.card_rank += 20
-        return player_cards
+                trump_type_power -= 100
+
+        return power
+
+    def sort_player_hands(self):
+        for player in self.players:
+            player.player_cards.sort(key=self.get_card_power, reverse=True)
 
     def is_lead_card_null(self) -> bool:
         return self.lead_card is None
@@ -221,9 +236,8 @@ class Game(ABC):
                     legal = True
         return legal
 
-    @staticmethod
-    def compare_card_rank(first_card: Card, second_card: Card) -> Card:
-        if first_card.card_rank > second_card.card_rank:
+    def compare_card_rank(self, first_card: Card, second_card: Card) -> Card:
+        if self.get_card_power(card=first_card) > self.get_card_power(second_card):
             return first_card
         else:
             return second_card
@@ -324,24 +338,27 @@ class Game(ABC):
                 return True
         return False
 
-    def is_team_has_trump(self, team: list[Player], trump: Card) -> bool:
-        for player in team:
+    def is_team_has_trump(self, team_players: list[Player], trump: Card) -> bool:
+        for player in team_players:
             if self.is_player_has_trump(player=player, trump=trump):
                 return True
         return False
 
-    def count_runners(self, minimum_runners: int = 3) -> int:
+    def count_team_runners(self, team: Team) -> int:
+        runners_count = 0
+        for trump in self.trumps:
+            if self.is_team_has_trump(team_players=team.players, trump=trump):
+                runners_count += 1
+            else:
+                print(f"There are {runners_count} runners")
+                return runners_count
+        return runners_count
+
+    def count_game_runners(self, minimum_runners: int = 3) -> int:
         for team in self.teams:
-            runners_count = 0
-            for trump in self.trumps:
-                if self.is_team_has_trump(team=team.players, trump=trump):
-                    runners_count += 1
-                else:
-                    if runners_count >= minimum_runners:
-                        print(f"There are {runners_count} runners")
-                        return runners_count
-                    else:
-                        runners_count = 0
+            runners_count = self.count_team_runners(team=team)
+            if runners_count >= minimum_runners:
+                return runners_count
         return 0
 
     @abstractmethod
@@ -364,16 +381,10 @@ class Game(ABC):
                 self.winners[index].money += game_value
 
     def play_game(self) -> None:
-        for player in self.players:
-            player.player_cards = self.adjust_card_rank(
-                player_cards=player.player_cards
-            )
-            player.player_cards.sort(
-                key=lambda sort_card: sort_card.card_rank, reverse=True
-            )
+        self.sort_player_hands()
         self.team_1.players.append(self.game_chooser)
         self.create_teams()
-        self.runners_amount = self.count_runners()
+        self.runners_amount = self.count_game_runners()
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
         self.winners = self.identify_game_winners()
@@ -531,14 +542,14 @@ class Wenz(Game):
             player for player in self.players if player not in self.team_1.players
         ]
 
-    def adjust_card_rank(self, player_cards: list[Card]) -> list[Card]:
-        for card in player_cards:
-            if card.card_type == Type.OBER:
-                card.card_rank = 3.5
-        return super().adjust_card_rank(player_cards)
+    def get_card_power(self, card: Card) -> int:
+        power = super().get_card_power(card=card)
+        if card.card_type == Type.OBER:
+            power -= 5
+        return power
 
-    def count_runners(self, minimum_runners: int = 2) -> int:
-        return super().count_runners(minimum_runners=minimum_runners)
+    def count_game_runners(self, minimum_runners: int = 2) -> int:
+        return super().count_game_runners(minimum_runners=minimum_runners)
 
     def calculate_game_value(self) -> int:
         game_value = 0

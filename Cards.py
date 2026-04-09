@@ -22,25 +22,11 @@ class Type(IntEnum):
     SEVEN = 1
     EIGHT = 2
     NINE = 3
-    KOENIG = 4
-    TEN = 5
-    SAU = 6
-    UNTER = 7
-    OBER = 8
-
-    @property
-    def rank(self) -> int:
-        ranks = {
-            Type.SEVEN: 1,
-            Type.EIGHT: 2,
-            Type.NINE: 3,
-            Type.KOENIG: 4,
-            Type.TEN: 5,
-            Type.SAU: 6,
-            Type.UNTER: 7,
-            Type.OBER: 8,
-        }
-        return ranks[self]
+    KOENIG = 6
+    TEN = 7
+    SAU = 8
+    UNTER = 9
+    OBER = 10
 
     @property
     def name(self) -> str:
@@ -72,10 +58,9 @@ class Type(IntEnum):
 
 
 class Card:
-    def __init__(self, card_color: Color, card_type: Type, card_rank: float) -> None:
+    def __init__(self, card_color: Color, card_type: Type) -> None:
         self.card_color: Color = card_color
         self.card_type: Type = card_type
-        self.card_rank: float = card_rank
         self.card_name: str = f"{self.card_color.name} {self.card_type.name}"
 
     def __repr__(self) -> str:
@@ -85,7 +70,7 @@ class Card:
 class Cards:
     def __init__(self) -> None:
         self.full_deck: list[Card] = [
-            Card(card_color=card_color, card_type=card_type, card_rank=card_type.rank)
+            Card(card_color=card_color, card_type=card_type)
             for card_type in Type
             for card_color in Color
         ]
@@ -93,5 +78,3 @@ class Cards:
 
     def reset_deck(self) -> None:
         self.deck = self.full_deck.copy()
-        for card in self.deck:
-            card.card_rank = card.card_type.value

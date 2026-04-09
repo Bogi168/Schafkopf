@@ -67,9 +67,6 @@ class Schafkopf:
                 card = deck[-1]
                 players[player_num].player_cards.append(card)
                 deck.pop(-1)
-            players[player_num].player_cards.sort(
-                key=lambda sort_card: sort_card.card_rank, reverse=True
-            )
         return deck
 
     def prepare_cards(self, players: list[Player], deck: list[Card]) -> list[Card]:
@@ -81,39 +78,44 @@ class Schafkopf:
         deck = self.deal_cards(deck=deck, players=players)
         return deck
 
-    def adjust_rank(self) -> None:
-        trumps: list[Card] = [
-            card
-            for card in self.cards.full_deck
-            if card.card_type in [Type.OBER, Type.UNTER]
-            or card.card_color == Color.HERZ
-        ]
+    def get_card_rank(self, card: Card) -> int:
+        power = 0
+        trump_type_power = 1000
+        trump_color_power = 100
+        eichel_power = 80
+        gruen_power = 60
+        herz_power = 40
+        schellen_power = 20
+
+        trump_color = Color.HERZ
+        trump_types = [Type.OBER, Type.UNTER]
+
+        if card.card_type not in trump_types and card.card_color == trump_color:
+            power = trump_color_power + card.card_type.value
+            return power
+
+        match card.card_color:
+            case Color.EICHEL:
+                power = eichel_power + card.card_type.value
+            case Color.GRUEN:
+                power = gruen_power + card.card_type.value
+            case Color.HERZ:
+                power = herz_power + card.card_type.value
+            case Color.SCHELLEN:
+                power = schellen_power + card.card_type.value
+
+        for trump_type in trump_types:
+            if card.card_type == trump_type:
+                power += trump_type_power
+                return power
+            else:
+                trump_type_power -= 100
+
+        return power
+
+    def sort_player_hands(self) -> None:
         for player in self.players:
-            for card in player.player_cards:
-                if card in trumps:
-                    card.card_rank += 100
-                    match card.card_color:
-                        case Color.EICHEL:
-                            card.card_rank += 0.8
-                        case Color.GRUEN:
-                            card.card_rank += 0.6
-                        case Color.HERZ:
-                            card.card_rank += 0.4
-                        case Color.SCHELLEN:
-                            card.card_rank += 0.2
-                elif card not in trumps:
-                    match card.card_color:
-                        case Color.EICHEL:
-                            card.card_rank += 80
-                        case Color.GRUEN:
-                            card.card_rank += 60
-                        case Color.HERZ:
-                            card.card_rank += 40
-                        case Color.SCHELLEN:
-                            card.card_rank += 20
-                player.player_cards.sort(
-                    key=lambda sort_card: sort_card.card_rank, reverse=True
-                )
+            player.player_cards.sort(key=self.get_card_rank, reverse=True)
 
     def reset_rank(self) -> None:
         for player in self.players:
@@ -377,7 +379,7 @@ class Schafkopf:
         self.starter = self.choose_starter(players=self.players)
         self.players = self.sort_players(players=self.players, starter=self.starter)
         self.cards.deck = self.prepare_cards(players=self.players, deck=self.cards.deck)
-        self.adjust_rank()
+        self.sort_player_hands()
         for player in self.players:
             print(player.player_cards)
             self._ask_player_game_decision(player=player)
