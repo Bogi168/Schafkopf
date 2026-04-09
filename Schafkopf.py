@@ -78,7 +78,9 @@ class Schafkopf:
         deck = self.deal_cards(deck=deck, players=players)
         return deck
 
-    def get_card_rank(self, card: Card) -> int:
+    # sort cards for a Sauspiel -> easier to make game decisions
+    @staticmethod
+    def get_card_power(card: Card) -> int:
         power = 0
         trump_type_power = 1000
         trump_color_power = 100
@@ -115,15 +117,7 @@ class Schafkopf:
 
     def sort_player_hands(self) -> None:
         for player in self.players:
-            player.player_cards.sort(key=self.get_card_rank, reverse=True)
-
-    def reset_rank(self) -> None:
-        for player in self.players:
-            for card in player.player_cards:
-                card.card_rank = card.card_type.value
-            player.player_cards.sort(
-                key=lambda sort_card: sort_card.card_rank, reverse=True
-            )
+            player.player_cards.sort(key=self.get_card_power, reverse=True)
 
     @staticmethod
     def is_player_quits(quitting_possible: bool, decision: str) -> bool:
@@ -384,6 +378,5 @@ class Schafkopf:
             print(player.player_cards)
             self._ask_player_game_decision(player=player)
         self.players_choose_game()
-        self.reset_rank()
         self.game_mode.play_game()
         self.cards.reset_deck()
