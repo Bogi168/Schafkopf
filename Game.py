@@ -43,11 +43,7 @@ class Game(ABC):
         self.trumps.sort(key=self.get_card_power, reverse=True)
         self.played_cards: list[Card] = []
 
-        self.team_1 = Team(team_name="Team 1")
-        self.team_2 = Team(team_name="Team 2")
-        self.team_3 = Team(team_name="Team 3")
-        self.team_4 = Team(team_name="Team 4")
-        self.teams: list[Team] = [self.team_1, self.team_2, self.team_3, self.team_4]
+        self.teams: list[Team] = []
 
     @property
     def call_sau(self) -> Card | None:
@@ -294,7 +290,7 @@ class Game(ABC):
         self.sort_players(starter=starter)
         self.played_cards.clear()
 
-    def identify_most_points_teams(self) -> list[Team]:
+    def get_most_points_teams(self) -> list[Team]:
         most_point_teams: list[Team] = []
         most_point_team_points = 0
         for team in self.teams:
@@ -314,7 +310,7 @@ class Game(ABC):
         return len(most_point_teams) != 1
 
     def identify_game_winners(self) -> list[Player]:
-        most_point_teams = self.identify_most_points_teams()
+        most_point_teams = self.get_most_points_teams()
         winners: list[Player] = []
         if not self.is_multiple_most_point_teams(most_point_teams=most_point_teams):
             for team in most_point_teams:
@@ -382,7 +378,6 @@ class Game(ABC):
 
     def play_game(self) -> None:
         self.sort_player_hands()
-        self.team_1.players.append(self.game_chooser)
         self.create_teams()
         self.runners_amount = self.count_game_runners()
         for rounds in range(len(self.players[0].player_cards)):
@@ -421,13 +416,14 @@ class Ramsch(Game):
         )
 
     def create_teams(self) -> None:
-        self.team_1.players.clear()
         for index in range(len(self.players)):
-            self.teams[index].players.append(self.players[index])
+            team = Team(team_name=f"Team {index + 1}")
+            team.players.append(self.players[index])
+            self.teams.append(team)
 
     def identify_game_winners(self) -> list[Player]:
         winners: list[Player] = []
-        most_point_teams = self.identify_most_points_teams()
+        most_point_teams = self.get_most_points_teams()
         if len(most_point_teams) != 1:
             for team in self.teams:
                 if team not in most_point_teams:
@@ -486,27 +482,36 @@ class Sauspiel(Game):
         )
 
     def create_teams(self) -> None:
-        self.teams.remove(self.team_3)
-        self.teams.remove(self.team_4)
+        team_1 = Team(team_name="Team 1")
+        team_1.players.append(self.game_chooser)
         for player in self.players:
             for card in player.player_cards:
                 if card == self.call_sau:
-                    self.team_1.players.append(player)
-        self.team_2.players = [
-            player for player in self.players if player not in self.team_1.players
+                    team_1.players.append(player)
+        team_2 = Team(team_name="Team 2")
+        team_2.players = [
+            player for player in self.players if player not in team_1.players
         ]
+        self.teams.append(team_1)
+        self.teams.append(team_2)
 
     def calculate_game_value(self) -> int:
+        black_threshold = 120
+        schneider_threshold = 90
         game_value = 0
         game_value += self.call_price
         game_value += self.runners_amount * self.base_price
         winning_team = self.find_players_team(player=self.winners[0])
-        if winning_team.points == 120:
-            game_value += 2 * self.base_price
-        elif winning_team.points > 90 or (
-            winning_team.points == 90 and self.game_chooser not in winning_team.players
+
+        if winning_team.points > schneider_threshold or (
+            winning_team.points == schneider_threshold
+            and self.game_chooser not in winning_team.players
         ):
             game_value += self.base_price
+
+        if winning_team.points == black_threshold:
+            game_value += self.base_price
+
         return game_value
 
 
@@ -536,11 +541,14 @@ class Wenz(Game):
         )
 
     def create_teams(self) -> None:
-        self.teams.remove(self.team_3)
-        self.teams.remove(self.team_4)
-        self.team_2.players = [
-            player for player in self.players if player not in self.team_1.players
+        team_1 = Team(team_name="Team 1")
+        team_1.players.append(self.game_chooser)
+        team_2 = Team(team_name="Team 2")
+        team_2.players = [
+            player for player in self.players if player not in team_1.players
         ]
+        self.teams.append(team_1)
+        self.teams.append(team_2)
 
     def get_card_power(self, card: Card) -> int:
         power = super().get_card_power(card=card)
@@ -552,16 +560,20 @@ class Wenz(Game):
         return super().count_game_runners(minimum_runners=minimum_runners)
 
     def calculate_game_value(self) -> int:
+        black_threshold = 120
+        schneider_threshold = 90
         game_value = 0
         game_value += self.alone_price
         game_value += self.runners_amount * self.base_price
         winning_team = self.find_players_team(player=self.winners[0])
 
-        if winning_team.points == 120:
-            game_value += 2 * self.base_price
-        elif winning_team.points > 90 or (
-            winning_team.points == 90 and self.game_chooser not in winning_team.players
+        if winning_team.points > schneider_threshold or (
+            winning_team.points == schneider_threshold
+            and self.game_chooser not in winning_team.players
         ):
+            game_value += self.base_price
+
+        if winning_team.points == black_threshold:
             game_value += self.base_price
 
         return game_value
@@ -594,22 +606,30 @@ class Solo(Game):
         )
 
     def create_teams(self) -> None:
-        self.teams.remove(self.team_3)
-        self.teams.remove(self.team_4)
-        self.team_2.players = [
-            player for player in self.players if player not in self.team_1.players
+        team_1 = Team(team_name="Team 1")
+        team_1.players.append(self.game_chooser)
+        team_2 = Team(team_name="Team 2")
+        team_2.players = [
+            player for player in self.players if player not in team_1.players
         ]
+        self.teams.append(team_1)
+        self.teams.append(team_2)
 
     def calculate_game_value(self) -> int:
+        black_threshold = 120
+        schneider_threshold = 90
         game_value = 0
         game_value += self.alone_price
         game_value += self.runners_amount * self.base_price
         winning_team = self.find_players_team(player=self.winners[0])
 
-        if winning_team.points == 120:
-            game_value += 2 * self.base_price
-        elif winning_team.points > 90 or (
-            winning_team.points == 90 and self.game_chooser not in winning_team.players
+        if winning_team.points > schneider_threshold or (
+            winning_team.points == schneider_threshold
+            and self.game_chooser not in winning_team.players
         ):
             game_value += self.base_price
+
+        if winning_team.points == black_threshold:
+            game_value += self.base_price
+
         return game_value
