@@ -10,6 +10,13 @@ from Card_Power_Calculator import (
     Wenz_Card_Power_Calculator,
     Solo_Card_Power_Calculator,
 )
+from Card_Decision_Validator import (
+    Card_Decision_Validator,
+    Ramsch_Card_Decision_Validator,
+    Sauspiel_Card_Decision_Validator,
+    Wenz_Card_Decision_Validator,
+    Solo_Card_Decision_Validator,
+)
 
 
 class Game(ABC):
@@ -22,6 +29,7 @@ class Game(ABC):
         cards: Cards,
         renderer: Renderer,
         card_power_calculator: Card_Power_Calculator,
+        card_decision_validator: Card_Decision_Validator,
         players: list[Player],
         game_chooser: Player | None,
         base_price: int,
@@ -34,6 +42,7 @@ class Game(ABC):
         self.cards = cards
         self.renderer = renderer
         self.card_power_calculator = card_power_calculator
+        self.card_decision_validator = card_decision_validator
         self.players = players
         self.game_chooser = game_chooser
         self.base_price = base_price
@@ -53,15 +62,6 @@ class Game(ABC):
         ]
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.played_cards: list[Card] = []
-
-    @property
-    def call_sau(self) -> Card | None:
-        call_sau = None
-        for player in self.players:
-            for card in player.player_cards:
-                if card.card_color == self.sau_color and card.card_type == Type.SAU:
-                    call_sau = card
-        return call_sau
 
     @property
     def lead_card(self) -> Card | None:
@@ -97,123 +97,13 @@ class Game(ABC):
                 key=self.card_power_calculator.get_card_power, reverse=True
             )
 
-    def is_lead_card_null(self) -> bool:
-        return self.lead_card is None
-
-    def is_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
-        for card in player_cards:
-            if card == self.call_sau:
-                return True
-        return False
-
-    def is_lead_card_is_trump(self) -> bool:
-        return self.lead_card in self.trumps
-
-    def is_player_has_lead_card_color_available(self, player_cards: list[Card]) -> bool:
-        if self.is_lead_card_null():
-            return False
-        for card in player_cards:
-            if self.lead_card.card_color == card.card_color and card not in self.trumps:
-                return True
-        return False
-
-    def is_player_has_trump_available(self, player_cards: list[Card]) -> bool:
-        for card in player_cards:
-            if card in self.trumps:
-                return True
-        return False
-
-    @staticmethod
-    def is_decision_in_legal_cards(decision: Card, legal_cards: list[Card]) -> bool:
-        return decision in legal_cards
-
-    def count_similar_color_cards(self, player_cards: list[Card], color: Color) -> int:
-        color_count = 0
-        for card in player_cards:
-            if card.card_color == color and card not in self.trumps:
-                color_count += 1
-        return color_count
-
-    def is_move_legal(self, player: Player, decision: Card) -> bool:
-
-        if len(player.player_cards) == 1:
-            return True
-
-        player_has_lead = self.is_lead_card_null()
-        if player_has_lead:
-            if (
-                isinstance(self, Sauspiel)
-                and self.call_sau is not None
-                and self.is_player_owns_call_sau(player_cards=player.player_cards)
-                and decision.card_color == self.call_sau.card_color
-                and decision not in self.trumps
-                and decision != self.call_sau
-                and self.count_similar_color_cards(
-                    player_cards=player.player_cards, color=self.call_sau.card_color
-                )
-                < 4
-            ):
-                return False
-            else:
-                return True
-
-        if (
-            isinstance(self, Sauspiel)
-            and self.call_sau is not None
-            and self.is_player_owns_call_sau(player_cards=player.player_cards)
-            and self.lead_card is not None
-            and self.lead_card.card_color != self.call_sau.card_color
-            and decision == self.call_sau
-        ):
-            return False
-
-        else:
-            assert self.lead_card is not None
-            bool_lead_trump = self.is_lead_card_is_trump()
-            if bool_lead_trump:
-                trump_avail = self.is_player_has_trump_available(
-                    player_cards=player.player_cards
-                )
-                if trump_avail:
-                    legal = self.is_decision_in_legal_cards(
-                        decision=decision, legal_cards=self.trumps
-                    )
-                else:
-                    legal = True
-            else:
-                sim_col_avail = self.is_player_has_lead_card_color_available(
-                    player_cards=player.player_cards
-                )
-                if sim_col_avail:
-                    legal_cards = [
-                        sim_color
-                        for sim_color in player.player_cards
-                        if sim_color.card_color == self.lead_card.card_color
-                        and sim_color not in self.trumps
-                    ]
-                    if (
-                        isinstance(self, Sauspiel)
-                        and self.call_sau is not None
-                        and self.is_player_owns_call_sau(
-                            player_cards=player.player_cards
-                        )
-                        and self.lead_card.card_color == self.call_sau.card_color
-                    ):
-                        legal_cards = [self.call_sau]
-                    legal = self.is_decision_in_legal_cards(
-                        decision=decision, legal_cards=legal_cards
-                    )
-                else:
-                    legal = True
-        return legal
-
     def play_round(self) -> None:
         for player in self.players:
             player.card_decision(
                 renderer=self.renderer,
                 played_cards=self.played_cards,
-                move_validator=lambda d, p=player: self.is_move_legal(
-                    player=p, decision=d
+                move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
+                    player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card
                 ),
             )
             print(f"The played cards are: {self.played_cards}")
@@ -350,6 +240,7 @@ class Ramsch(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=Ramsch_Card_Power_Calculator(),
+            card_decision_validator=Ramsch_Card_Decision_Validator(),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
@@ -416,6 +307,13 @@ class Sauspiel(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=Sauspiel_Card_Power_Calculator(),
+            card_decision_validator=Sauspiel_Card_Decision_Validator(
+                call_sau=[
+                    card
+                    for card in cards.full_deck
+                    if card.card_color == sau_color and card.card_type == Type.SAU
+                ][0]
+            ),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
@@ -423,6 +321,13 @@ class Sauspiel(Game):
             alone_price=alone_price,
             sau_color=sau_color,
         )
+
+    @property
+    def call_sau(self) -> Card | None:
+        for card in self.cards.full_deck:
+            if card.card_color == self.sau_color and card.card_type == Type.SAU:
+                return card
+        return None
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
@@ -477,6 +382,7 @@ class Wenz(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=Wenz_Card_Power_Calculator(),
+            card_decision_validator=Wenz_Card_Decision_Validator(),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
@@ -537,6 +443,7 @@ class Solo(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=Solo_Card_Power_Calculator(trump_color=trump_color),
+            card_decision_validator=Solo_Card_Decision_Validator(),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
