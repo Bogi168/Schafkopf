@@ -5,6 +5,8 @@ from Player import Player, Bot
 from Card_Power_Calculator import Sauspiel_Card_Power_Calculator
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from text import (
+    ask_games_amount,
+    reask_games_amount,
     ask_player_name,
     reask_player_name,
     ask_player_game,
@@ -61,7 +63,7 @@ class Schafkopf:
         return starter
 
     @staticmethod
-    def sort_players(players: list[Player], starter: Player) -> list[Player]:
+    def get_sorted_players(players: list[Player], starter: Player) -> list[Player]:
         found_beginner = False
         while not found_beginner:
             player = players[0]
@@ -77,23 +79,26 @@ class Schafkopf:
         random.shuffle(cards)
         return cards
 
-    def deal_cards(self, deck: list[Card], players: list[Player]) -> list[Card]:
-        deck = self.shuffle_cards(cards=deck)
-        for player_num in range(len(players)):
-            for _ in range(4):
-                card = deck[-1]
-                players[player_num].player_cards.append(card)
-                deck.pop(-1)
-        return deck
+    def deal_cards(self, cards_amount_per_player: int) -> None:
+        self.shuffle_cards(cards=self.cards.deck)
+        for player in self.players:
+            for _ in range(cards_amount_per_player):
+                card = self.cards.deck[-1]
+                player.player_cards.append(card)
+                self.cards.deck.pop(-1)
 
-    def prepare_cards(self, players: list[Player], deck: list[Card]) -> list[Card]:
-        for player in players:
+    def prepare_cards(self) -> None:
+        for player in self.players:
             player.player_cards.clear()
             player.collected_cards.clear()
-        deck = self.deal_cards(deck=deck, players=players)
+        self.cards.reset_deck()
+        cards_per_dealing_round = len(self.cards.deck) // 2
+        cards_per_player_per_dealing_round = cards_per_dealing_round // len(
+            self.players
+        )
+        self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
         # Fehlt: Legen
-        deck = self.deal_cards(deck=deck, players=players)
-        return deck
+        self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
 
     # sort cards for a Sauspiel -> easier to make game decisions
     def sort_player_hands(self) -> None:
@@ -367,12 +372,18 @@ class Schafkopf:
     def main(self) -> None:
         self.players = self._create_players()
         self.starter = self.choose_starter(players=self.players)
-        self.players = self.sort_players(players=self.players, starter=self.starter)
-        self.cards.deck = self.prepare_cards(players=self.players, deck=self.cards.deck)
-        self.sort_player_hands()
-        for player in self.players:
-            print(player.player_cards)
-            self._ask_player_game_decision(player=player)
-        self.players_choose_game()
-        self.game_mode.play_game()
-        self.cards.reset_deck()
+        games_amount: str = self.renderer.ask_decision(ask_games_amount())
+        while not games_amount.isdigit() or not int(games_amount) > 0:
+            games_amount: str = self.renderer.ask_decision(reask_games_amount())
+        for game_num in range(int(games_amount)):
+            self.players = self.get_sorted_players(
+                players=self.players, starter=self.starter
+            )
+            self.prepare_cards()
+            self.sort_player_hands()
+            for player in self.players:
+                print(player.player_cards)
+                self._ask_player_game_decision(player=player)
+            self.players_choose_game()
+            self.game_mode.play_game()
+            self.starter = self.players[1]
