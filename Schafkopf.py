@@ -2,6 +2,7 @@ import random
 from Renderer import Renderer
 from Cards import Cards, Color, Type, Card
 from Player import Player, Bot
+from Card_Power_Calculator import Sauspiel_Card_Power_Calculator
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 
 
@@ -79,45 +80,12 @@ class Schafkopf:
         return deck
 
     # sort cards for a Sauspiel -> easier to make game decisions
-    @staticmethod
-    def get_card_power(card: Card) -> int:
-        power = 0
-        trump_type_power = 1000
-        trump_color_power = 100
-        eichel_power = 80
-        gruen_power = 60
-        herz_power = 40
-        schellen_power = 20
-
-        trump_color = Color.HERZ
-        trump_types = [Type.OBER, Type.UNTER]
-
-        if card.card_type not in trump_types and card.card_color == trump_color:
-            power = trump_color_power + card.card_type.value
-            return power
-
-        match card.card_color:
-            case Color.EICHEL:
-                power = eichel_power + card.card_type.value
-            case Color.GRUEN:
-                power = gruen_power + card.card_type.value
-            case Color.HERZ:
-                power = herz_power + card.card_type.value
-            case Color.SCHELLEN:
-                power = schellen_power + card.card_type.value
-
-        for trump_type in trump_types:
-            if card.card_type == trump_type:
-                power += trump_type_power
-                return power
-            else:
-                trump_type_power -= 100
-
-        return power
-
     def sort_player_hands(self) -> None:
+        card_power_calculator = Sauspiel_Card_Power_Calculator()
         for player in self.players:
-            player.player_cards.sort(key=self.get_card_power, reverse=True)
+            player.player_cards.sort(
+                key=card_power_calculator.get_card_power, reverse=True
+            )
 
     @staticmethod
     def is_player_quits(quitting_possible: bool, decision: str) -> bool:

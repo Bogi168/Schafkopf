@@ -15,7 +15,7 @@ class Player:
         return self.player_name
 
     @property
-    def points(self):
+    def points(self) -> int:
         points = 0
         for card in self.collected_cards:
             points += card.card_type.points

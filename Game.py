@@ -3,6 +3,13 @@ from Cards import Cards, Card, Type, Color
 from Player import Player
 from Renderer import Renderer
 from Team import Team
+from Card_Power_Calculator import (
+    Card_Power_Calculator,
+    Ramsch_Card_Power_Calculator,
+    Sauspiel_Card_Power_Calculator,
+    Wenz_Card_Power_Calculator,
+    Solo_Card_Power_Calculator,
+)
 
 
 class Game(ABC):
@@ -14,6 +21,7 @@ class Game(ABC):
         trump_types: list[Type],
         cards: Cards,
         renderer: Renderer,
+        card_power_calculator: Card_Power_Calculator,
         players: list[Player],
         game_chooser: Player | None,
         base_price: int,
@@ -25,14 +33,17 @@ class Game(ABC):
         self.trump_types = trump_types
         self.cards = cards
         self.renderer = renderer
+        self.card_power_calculator = card_power_calculator
         self.players = players
         self.game_chooser = game_chooser
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
         self.sau_color = sau_color
+
         self.runners_amount = 0
         self.winners: list[Player] = []
+        self.teams: list[Team] = []
 
         self.trumps: list[Card] = [
             card
@@ -40,10 +51,8 @@ class Game(ABC):
             if card.card_type in trump_types
             or (trump_color is not None and card.card_color == trump_color)
         ]
-        self.trumps.sort(key=self.get_card_power, reverse=True)
+        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.played_cards: list[Card] = []
-
-        self.teams: list[Team] = []
 
     @property
     def call_sau(self) -> Card | None:
@@ -82,45 +91,11 @@ class Game(ABC):
                 player_team = team
         return player_team
 
-    def get_card_power(self, card: Card) -> int:
-        power = 0
-        trump_type_power = 1000
-        trump_color_power = 100
-        eichel_power = 80
-        gruen_power = 60
-        herz_power = 40
-        schellen_power = 20
-
-        if (
-            self.trump_color is not None
-            and card.card_type not in self.trump_types
-            and card.card_color == self.trump_color
-        ):
-            power = trump_color_power + card.card_type.value
-            return power
-
-        match card.card_color:
-            case Color.EICHEL:
-                power = eichel_power + card.card_type.value
-            case Color.GRUEN:
-                power = gruen_power + card.card_type.value
-            case Color.HERZ:
-                power = herz_power + card.card_type.value
-            case Color.SCHELLEN:
-                power = schellen_power + card.card_type.value
-
-        for trump_type in self.trump_types:
-            if card.card_type == trump_type:
-                power += trump_type_power
-                return power
-            else:
-                trump_type_power -= 100
-
-        return power
-
     def sort_player_hands(self):
         for player in self.players:
-            player.player_cards.sort(key=self.get_card_power, reverse=True)
+            player.player_cards.sort(
+                key=self.card_power_calculator.get_card_power, reverse=True
+            )
 
     def is_lead_card_null(self) -> bool:
         return self.lead_card is None
@@ -232,42 +207,6 @@ class Game(ABC):
                     legal = True
         return legal
 
-    def compare_card_rank(self, first_card: Card, second_card: Card) -> Card:
-        if self.get_card_power(card=first_card) > self.get_card_power(second_card):
-            return first_card
-        else:
-            return second_card
-
-    def find_strongest_card(self) -> Card:
-        strongest_card = self.lead_card
-        for played_card in self.played_cards:
-
-            # played_card != Trump -> strongest_card == Trump -> strongest_card = strongest_card
-            if played_card not in self.trumps and strongest_card in self.trumps:
-                pass
-
-            # played_card == Trump -> strongest_card != Trump -> strongest_card = played_card
-            elif played_card in self.trumps and strongest_card not in self.trumps:
-                strongest_card = played_card
-
-            # played_card == Trump -> strongest_card == Trump -> compare ranks
-            elif played_card in self.trumps and strongest_card in self.trumps:
-                strongest_card = self.compare_card_rank(
-                    first_card=strongest_card, second_card=played_card
-                )
-
-            # strongest_card + played_card != Trump -> played_card_color != lead_card_color -> strongest_card = strongest_card
-            elif played_card.card_color != self.lead_card.card_color:
-                pass
-
-            # strongest_card + played_card != Trump -> played_card_color == lead_card_color -> compare ranks
-            else:
-                strongest_card = self.compare_card_rank(
-                    first_card=strongest_card, second_card=played_card
-                )
-
-        return strongest_card
-
     def play_round(self) -> None:
         for player in self.players:
             player.card_decision(
@@ -278,7 +217,9 @@ class Game(ABC):
                 ),
             )
             print(f"The played cards are: {self.played_cards}")
-        strongest_card = self.find_strongest_card()
+        strongest_card = self.card_power_calculator.get_strongest_played_card(
+            played_cards=self.played_cards, trumps=self.trumps
+        )
         winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
@@ -408,6 +349,7 @@ class Ramsch(Game):
             trump_types=[Type.OBER, Type.UNTER],
             cards=cards,
             renderer=renderer,
+            card_power_calculator=Ramsch_Card_Power_Calculator(),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
@@ -473,6 +415,7 @@ class Sauspiel(Game):
             trump_types=[Type.OBER, Type.UNTER],
             cards=cards,
             renderer=renderer,
+            card_power_calculator=Sauspiel_Card_Power_Calculator(),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
@@ -533,6 +476,7 @@ class Wenz(Game):
             trump_types=[Type.UNTER],
             cards=cards,
             renderer=renderer,
+            card_power_calculator=Wenz_Card_Power_Calculator(),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
@@ -549,12 +493,6 @@ class Wenz(Game):
         ]
         self.teams.append(team_1)
         self.teams.append(team_2)
-
-    def get_card_power(self, card: Card) -> int:
-        power = super().get_card_power(card=card)
-        if card.card_type == Type.OBER:
-            power -= 5
-        return power
 
     def count_game_runners(self, minimum_runners: int = 2) -> int:
         return super().count_game_runners(minimum_runners=minimum_runners)
@@ -598,6 +536,7 @@ class Solo(Game):
             trump_types=[Type.OBER, Type.UNTER],
             cards=cards,
             renderer=renderer,
+            card_power_calculator=Solo_Card_Power_Calculator(trump_color=trump_color),
             players=players,
             game_chooser=game_chooser,
             base_price=base_price,
