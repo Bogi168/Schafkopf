@@ -35,7 +35,6 @@ class Game(ABC):
         base_price: int,
         call_price: int,
         alone_price: int,
-        sau_color: Color | None = None,
     ) -> None:
         self.trump_color = trump_color
         self.trump_types = trump_types
@@ -48,7 +47,6 @@ class Game(ABC):
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
-        self.sau_color = sau_color
 
         self.runners_amount = 0
         self.winners: list[Player] = []
@@ -319,8 +317,8 @@ class Sauspiel(Game):
             base_price=base_price,
             call_price=call_price,
             alone_price=alone_price,
-            sau_color=sau_color,
         )
+        self.sau_color = sau_color
 
     @property
     def call_sau(self) -> Card | None:

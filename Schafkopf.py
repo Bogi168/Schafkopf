@@ -4,6 +4,18 @@ from Cards import Cards, Color, Type, Card
 from Player import Player, Bot
 from Card_Power_Calculator import Sauspiel_Card_Power_Calculator
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
+from text import (
+    ask_player_name,
+    reask_player_name,
+    ask_player_game,
+    reask_player_game,
+    player_choose_game,
+    player_rechoose_game,
+    player_choose_sau_color,
+    player_rechoose_sau_color,
+    player_choose_solo_color,
+    player_rechoose_solo_color,
+)
 
 
 class Schafkopf:
@@ -24,18 +36,22 @@ class Schafkopf:
         self.alone_price = alone_price
 
     def _create_players(self) -> list[Player]:
-        player_name = self.renderer.ask_player_name()
+        player_name = self.renderer.ask_player_name(ask_player_name())
         if player_name == "":
-            player_name = self.renderer.reask_player_name()
+            player_name = self.renderer.ask_player_name(reask_player_name())
         players = [Player(player_name=player_name)]
         for i in range(3):
             players.append(Bot(f"Bot {i + 1}"))
         return players
 
     def _ask_player_game_decision(self, player: Player) -> None:
-        decision = self.renderer.ask_player_game(player_name=player.player_name)
+        decision = self.renderer.ask_player_decision(
+            ask_player_game(player_name=player.player_name)
+        )
         while decision not in ("YES", "Y", "NO", "N"):
-            decision = self.renderer.reask_player_game(player_name=player.player_name)
+            decision = self.renderer.ask_player_decision(
+                reask_player_game(player_name=player.player_name)
+            )
         if decision in ("YES", "Y"):
             self.game_choosers.append(player)
 
@@ -231,11 +247,15 @@ class Schafkopf:
             prev_game=prev_game,
             player_cards=player_cards,
         )
-        decision = self.renderer.player_choose_game(player_name)
+        decision = self.renderer.ask_player_decision(
+            player_choose_game(player_name=player_name)
+        )
         while decision not in available_decisions and not self.is_player_quits(
             quitting_possible=quitting_possible, decision=decision
         ):
-            decision = self.renderer.player_rechoose_game(player_name=player_name)
+            decision = self.renderer.ask_player_decision(
+                player_rechoose_game(player_name=player_name)
+            )
         if decision == "QUIT":
             decision = "Q"
         if decision != "Q":
@@ -248,7 +268,9 @@ class Schafkopf:
                 available_colors = self.check_available_sau_color_decisions(
                     player_cards=player_cards, playable_colors=sau_colors.copy()
                 )
-                sau_color_decision = self.renderer.player_choose_sau_color()
+                sau_color_decision = self.renderer.ask_player_decision(
+                    player_choose_sau_color(player_name=player_name)
+                )
                 sau_color_value = self.convert_sau_color_value(
                     decision=sau_color_decision
                 )
@@ -259,7 +281,9 @@ class Schafkopf:
                     sau_color_value not in [color.value for color in sau_colors]
                     or sau_colors[sau_color_index] not in available_colors
                 ):
-                    sau_color_decision = self.renderer.player_rechoose_sau_color()
+                    sau_color_decision = self.renderer.ask_player_decision(
+                        player_rechoose_sau_color(player_name=player_name)
+                    )
                     sau_color_value = self.convert_sau_color_value(
                         decision=sau_color_decision
                     )
@@ -288,9 +312,13 @@ class Schafkopf:
                     alone_price=self.alone_price,
                 )
             case "3":
-                trump_color = self.renderer.player_choose_solo_color()
+                trump_color = self.renderer.ask_player_decision(
+                    player_choose_solo_color(player_name=player_name)
+                )
                 while trump_color not in ("1", "2", "3", "4"):
-                    trump_color = self.renderer.player_rechoose_solo_color()
+                    trump_color = self.renderer.ask_player_decision(
+                        player_rechoose_solo_color(player_name=player_name)
+                    )
                 match trump_color:
                     case "1":
                         trump_color = Color.EICHEL
