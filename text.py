@@ -12,7 +12,7 @@ def show_player_cards(player_name: str, player_cards: list[Card]):
 
 
 def show_played_card(player_name: str, decision: Card):
-    return f"{player_name} played the card: {decision}"
+    return f"\n{player_name} played the card: {decision}"
 
 
 def show_played_cards(played_cards: list[Card]):
