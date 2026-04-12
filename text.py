@@ -1,60 +1,41 @@
 from Cards import Card
 
 
-# inputs
-def ask_games_amount() -> str:
-    return "\nEnter the amount of games: "
+# regular text
+def show_player_cards(player_name: str, player_cards: list[Card]):
+    player_card_names = [card.card_name for card in player_cards]
+    prepared_list = [
+        f"{i}: {player_card_name}"
+        for i, player_card_name in enumerate(player_card_names, start=1)
+    ]
+    return f"\n{player_name}: {" | ".join(prepared_list)}"
 
 
-def reask_games_amount() -> str:
-    return "Your answer is not valid! Enter the amount of games: "
+# text for inputs
+error_message: str = "Your answer is not valid!"
+
+prompt_player_name: str = "\nEnter your name: "
+prompt_games_amount: str = "Enter the amount of games: "
 
 
-def ask_player_name() -> str:
-    return "\nEnter your name: "
+def prompt_ask_to_choose_game(player_name: str) -> str:
+    return f"{player_name}: Do you want to choose a game (Y/N): "
 
 
-def reask_player_name() -> str:
-    return "The name you entered is not valid! Enter your name: "
+def prompt_choose_game(player_name: str, quitting_possible: bool) -> str:
+    if quitting_possible:
+        return f"{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo) (Q to quit): "
+    else:
+        return f"{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): "
 
 
-def ask_player_game(player_name: str) -> str:
-    return f"\n{player_name}: Do you want to choose a game (Y/N): "
+def prompt_choose_sau_color(player_name: str) -> str:
+    return f"{player_name}: Which color? (1: Eichel, 2: Grün, 3: Schellen): "
 
 
-def reask_player_game(player_name: str) -> str:
-    return (
-        f"{player_name}: Your answer is not valid! Do you want to choose a game (Y/N): "
-    )
+def prompt_choose_solo_color(player_name: str) -> str:
+    return f"{player_name}: Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): "
 
 
-def player_choose_game(player_name: str) -> str:
-    return f"\n{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): "
-
-
-def player_rechoose_game(player_name: str) -> str:
-    return f"{player_name}: Your answer is not valid! Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): "
-
-
-def player_choose_sau_color(player_name: str) -> str:
-    return f"\n{player_name}: Which color? (1: Eichel, 2: Grün, 3: Schellen): "
-
-
-def player_rechoose_sau_color(player_name: str) -> str:
-    return f"{player_name}: Your answer is not valid! Which color? (1: Eichel, 2: Grün, 3: Schellen): "
-
-
-def player_choose_solo_color(player_name: str) -> str:
-    return f"\n{player_name}: Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): "
-
-
-def player_rechoose_solo_color(player_name: str) -> str:
-    return f"{player_name}: Your answer is not valid! Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): "
-
-
-def ask_player_card_decision(player_name: str, player_cards: list[Card]) -> str:
-    return f"\n{player_name}: Which card do you want to play? (1-{len(player_cards)}): "
-
-
-def reask_player_card_decision(player_name: str, player_cards: list[Card]) -> str:
-    return f"{player_name}: That's not a legal move! Which card do you want to play? (1-{len(player_cards)}): "
+def prompt_ask_player_card_decision(player_name: str, player_cards: list[Card]) -> str:
+    return f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): "

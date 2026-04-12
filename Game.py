@@ -175,7 +175,6 @@ class Game(ABC):
             if self.is_team_has_trump(team_players=team.players, trump=trump):
                 runners_count += 1
             else:
-                print(f"There are {runners_count} runners")
                 return runners_count
         return runners_count
 

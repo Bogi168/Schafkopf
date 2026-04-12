@@ -61,10 +61,10 @@ class Card:
     def __init__(self, card_color: Color, card_type: Type) -> None:
         self.card_color: Color = card_color
         self.card_type: Type = card_type
-        self.card_name: str = f"{self.card_color.name} {self.card_type.name}"
+        self.card_name: str = f"({self.card_color.name} {self.card_type.name})"
 
     def __repr__(self) -> str:
-        return f"({self.card_name})"
+        return f"{self.card_name}"
 
 
 class Cards:

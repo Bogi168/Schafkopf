@@ -1,7 +1,7 @@
 from typing import Callable
 from Renderer import Renderer
 from Cards import Card
-from text import ask_player_card_decision, reask_player_card_decision
+from text import error_message, prompt_ask_player_card_decision, show_player_cards
 import random
 
 
@@ -33,33 +33,21 @@ class Player:
         played_cards: list[Card],
         move_validator: Callable[[Card], bool],
     ) -> None:
-        print(self.player_cards)
-        index_decision = renderer.ask_player_decision(
-            ask_player_card_decision(
+        renderer.render(
+            message=show_player_cards(
                 player_name=self.player_name, player_cards=self.player_cards
             )
         )
-        while not self.is_decision_valid_number(index_decision=index_decision):
-            index_decision = renderer.ask_player_decision(
-                reask_player_card_decision(
-                    player_name=self.player_name, player_cards=self.player_cards
-                )
-            )
-            if self.is_decision_valid_number(index_decision=index_decision):
-                break
+        index_decision = renderer.ask_with_validation(
+            prompt=prompt_ask_player_card_decision(
+                player_name=self.player_name, player_cards=self.player_cards
+            ),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip(),
+            validator=lambda x: self.is_decision_valid_number(x)
+            and move_validator(self.player_cards[int(x) - 1]),
+        )
         decision = self.player_cards[int(index_decision) - 1]
-        legal = move_validator(decision)
-        while not legal:
-            index_decision = renderer.ask_player_decision(
-                reask_player_card_decision(
-                    self.player_name, player_cards=self.player_cards
-                )
-            )
-            if not self.is_decision_valid_number(index_decision):
-                legal = False
-            else:
-                decision = self.player_cards[int(index_decision) - 1]
-                legal = move_validator(decision)
         played_cards.append(decision)
         self.player_cards.remove(decision)
 
