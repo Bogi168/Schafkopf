@@ -11,8 +11,17 @@ def show_player_cards(player_name: str, player_cards: list[Card]):
     return f"\n{player_name}: {" | ".join(prepared_list)}"
 
 
+def show_played_card(player_name: str, decision: Card):
+    return f"{player_name} played the card: {decision}"
+
+
+def show_played_cards(played_cards: list[Card]):
+    played_card_names = [card.card_name for card in played_cards]
+    return f"The played cards are: {" | ".join(played_card_names)}"
+
+
 # text for inputs
-error_message: str = "Your answer is not valid!"
+error_message: str = "Your input is not valid!"
 
 prompt_player_name: str = "\nEnter your name: "
 prompt_games_amount: str = "Enter the amount of games: "

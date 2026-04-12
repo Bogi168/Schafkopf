@@ -1,7 +1,12 @@
 from typing import Callable
 from Renderer import Renderer
 from Cards import Card
-from text import error_message, prompt_ask_player_card_decision, show_player_cards
+from text import (
+    error_message,
+    prompt_ask_player_card_decision,
+    show_player_cards,
+    show_played_card,
+)
 import random
 
 
@@ -69,5 +74,7 @@ class Bot(Player):
                 legal_cards.append(card)
         decision = random.choice(legal_cards)
         played_cards.append(decision)
-        print(f"{self.player_name} played the card: {decision}")
+        renderer.render(
+            message=show_played_card(player_name=self.player_name, decision=decision)
+        )
         self.player_cards.remove(decision)

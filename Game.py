@@ -17,6 +17,7 @@ from Card_Decision_Validator import (
     Wenz_Card_Decision_Validator,
     Solo_Card_Decision_Validator,
 )
+from text import show_played_cards
 
 
 class Game(ABC):
@@ -104,7 +105,9 @@ class Game(ABC):
                     player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card
                 ),
             )
-            print(f"The played cards are: {self.played_cards}")
+            self.renderer.render(
+                message=show_played_cards(played_cards=self.played_cards)
+            )
         strongest_card = self.card_power_calculator.get_strongest_played_card(
             played_cards=self.played_cards, trumps=self.trumps
         )
