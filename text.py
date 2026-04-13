@@ -1,6 +1,9 @@
-from Cards import Card
-from Team import Team
-from Player import Player
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Cards import Card
+    from Player import Player, Team
 
 
 # regular text
@@ -23,23 +26,26 @@ def show_played_cards(played_cards: list[Card]):
 
 
 def show_collector_of_cards(player_name: str, collected_cards: list[Card]):
-    return f"\n{player_name} collected {collected_cards[-4:]}\n"
+    collected_cards_names = [
+        collected_card.card_name for collected_card in collected_cards
+    ]
+    return f"\n{player_name} collected {", ".join(collected_cards_names[-4:])}\n"
 
 
 def tell_most_point_teams(most_point_teams: list[Team]):
     most_point_team_names = [team.team_name for team in most_point_teams]
     if len(most_point_teams) == 1:
-        return f"The most point team is: {most_point_teams[0].team_name}"
+        return f"The team with the most points is: {most_point_teams[0].team_name}"
     else:
-        return f"The most point teams are: {", ".join(most_point_team_names)}"
+        return f"The teams with the most points are: {", ".join(most_point_team_names)}"
 
 
 def tell_team_players(team_name: str, players: list[Player]):
     player_names = [player.player_name for player in players]
     if len(players) == 1:
-        return f"The only player in {team_name} is {player_names[0]}"
+        return f"The only player in {team_name} is: {player_names[0]}"
     else:
-        return f"The players in {team_name} are {", ".join(player_names)}"
+        return f"The players in {team_name} are: {", ".join(player_names)}"
 
 
 def tell_team_points(team_name: str, points: int):
@@ -49,9 +55,9 @@ def tell_team_points(team_name: str, points: int):
 def tell_winners(winners: list[Player]):
     winner_names = [winner.player_name for winner in winners]
     if len(winners) == 1:
-        return f"The only game winner is {winner_names[0]}"
+        return f"\nThe only game winner is: {winner_names[0]}\n"
     else:
-        return f"The game winners are {", ".join(winner_names)}"
+        return f"\nThe game winners are: {", ".join(winner_names)}\n"
 
 
 def tell_player_money(player_name: str, money: int):
@@ -71,9 +77,9 @@ def prompt_ask_to_choose_game(player_name: str) -> str:
 
 def prompt_choose_game(player_name: str, quitting_possible: bool) -> str:
     if quitting_possible:
-        return f"{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo) (Q to quit): "
+        return f"\n{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo) (Q to quit): "
     else:
-        return f"{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): "
+        return f"\n{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): "
 
 
 def prompt_choose_sau_color(player_name: str) -> str:

@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from Cards import Cards, Card, Type, Color
-from Player import Player
+from Player import Player, Team
 from Renderer import Renderer
-from Team import Team
 from Card_Power_Calculator import (
     Card_Power_Calculator,
     Ramsch_Card_Power_Calculator,
@@ -147,12 +146,12 @@ class Game(ABC):
         )
         for team in most_point_teams:
             self.renderer.render(
+                message=tell_team_points(team_name=team.team_name, points=team.points)
+            )
+            self.renderer.render(
                 message=tell_team_players(
                     team_name=team.team_name, players=team.players
                 )
-            )
-            self.renderer.render(
-                message=tell_team_points(team_name=team.team_name, points=team.points)
             )
         return most_point_teams
 

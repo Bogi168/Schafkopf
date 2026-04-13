@@ -213,7 +213,8 @@ class Schafkopf:
 
     def choose_game_decision(
         self, player: Player, prev_game: Game | None, quitting_possible: bool = False
-    ) -> str:
+    ) -> Game | None:
+        game = None
         player_name = player.player_name
         player_cards = player.player_cards
         available_decisions = self.check_available_game_decisions(
@@ -261,7 +262,7 @@ class Schafkopf:
                     validator=lambda x: x in valid_inputs,
                 )
                 sau_color = color_mapping[sau_color_decision]
-                self.game = Sauspiel(
+                game = Sauspiel(
                     cards=self.cards,
                     renderer=self.renderer,
                     players=self.players,
@@ -272,7 +273,7 @@ class Schafkopf:
                     sau_color=sau_color,
                 )
             case "2":
-                self.game = Wenz(
+                game = Wenz(
                     cards=self.cards,
                     renderer=self.renderer,
                     players=self.players,
@@ -300,7 +301,7 @@ class Schafkopf:
                     case _:
                         trump_color = Color.HERZ
 
-                self.game = Solo(
+                game = Solo(
                     trump_color=trump_color,
                     cards=self.cards,
                     renderer=self.renderer,
@@ -310,11 +311,12 @@ class Schafkopf:
                     call_price=self.call_price,
                     alone_price=self.alone_price,
                 )
-        return decision
+        return game
 
-    def players_choose_game(self) -> None:
+    def players_choose_game(self) -> Game:
+        game: None | Game = None
         if len(self.game_choosers) == 0:
-            self.game = Ramsch(
+            game = Ramsch(
                 cards=self.cards,
                 renderer=self.renderer,
                 players=self.players,
@@ -325,16 +327,17 @@ class Schafkopf:
             )
         else:
             for player in self.game_choosers:
-                if self.game is None:
-                    self.choose_game_decision(player=player, prev_game=self.game)
-                elif self.game.rank == 3:
-                    pass
-                elif self.game.rank > 1:
-                    self.choose_game_decision(
-                        player=player, prev_game=self.game, quitting_possible=True
+                if game is None:
+                    game = self.choose_game_decision(player=player, prev_game=game)
+                elif game.rank == Solo.rank:
+                    break
+                elif game.rank > Sauspiel.rank:
+                    game = self.choose_game_decision(
+                        player=player, prev_game=game, quitting_possible=True
                     )
                 else:
-                    self.choose_game_decision(player=player, prev_game=self.game)
+                    game = self.choose_game_decision(player=player, prev_game=game)
+        return game
 
     def main(self) -> None:
         self.players = self._create_players()
@@ -359,6 +362,7 @@ class Schafkopf:
                     )
                 )
                 self._ask_player_game_decision(player=player)
-            self.players_choose_game()
-            self.game.play_game()
+            game = self.players_choose_game()
+            assert game is not None
+            game.play_game()
             self.starter = self.players[1]
