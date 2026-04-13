@@ -143,6 +143,7 @@ class Ramsch(Game):
         base_price: int,
         call_price: int,
         alone_price: int,
+        amount_game_value_doublers: int,
     ) -> None:
         super().__init__(
             cards=cards,
@@ -155,6 +156,7 @@ class Ramsch(Game):
                 alone_price=alone_price,
                 players=players,
                 renderer=renderer,
+                amount_game_value_doublers=amount_game_value_doublers,
                 game_chooser=game_chooser,
             ),
             players=players,
@@ -190,6 +192,7 @@ class Sauspiel(Game):
         base_price: int,
         call_price: int,
         alone_price: int,
+        amount_game_value_doublers: int,
     ) -> None:
         super().__init__(
             cards=cards,
@@ -208,6 +211,7 @@ class Sauspiel(Game):
                 alone_price=alone_price,
                 players=players,
                 renderer=renderer,
+                amount_game_value_doublers=amount_game_value_doublers,
                 game_chooser=game_chooser,
             ),
             players=players,
@@ -258,6 +262,7 @@ class Wenz(Game):
         base_price: int,
         call_price: int,
         alone_price: int,
+        amount_game_value_doublers: int,
     ) -> None:
         super().__init__(
             cards=cards,
@@ -270,6 +275,7 @@ class Wenz(Game):
                 alone_price=alone_price,
                 players=players,
                 renderer=renderer,
+                amount_game_value_doublers=amount_game_value_doublers,
                 game_chooser=game_chooser,
             ),
             players=players,
@@ -306,6 +312,7 @@ class Solo(Game):
         base_price: int,
         call_price: int,
         alone_price: int,
+        amount_game_value_doublers: int,
     ) -> None:
         super().__init__(
             cards=cards,
@@ -318,6 +325,7 @@ class Solo(Game):
                 alone_price=alone_price,
                 players=players,
                 renderer=renderer,
+                amount_game_value_doublers=amount_game_value_doublers,
                 game_chooser=game_chooser,
             ),
             players=players,

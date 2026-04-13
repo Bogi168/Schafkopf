@@ -74,6 +74,10 @@ prompt_games_amount: str = "Enter the amount of games: "
 prompt_play_again_message: str = "\nDo you want to play again? (Y/N): "
 
 
+def prompt_ask_to_double_game_value(player_name: str):
+    return f"{player_name}: Do you want to double the game value? (Y/N): "
+
+
 def prompt_ask_to_choose_game(player_name: str) -> str:
     return f"{player_name}: Do you want to choose a game (Y/N): "
 

@@ -9,6 +9,7 @@ from text import (
     prompt_games_amount,
     prompt_player_name,
     prompt_play_again_message,
+    prompt_ask_to_double_game_value,
     prompt_ask_to_choose_game,
     prompt_choose_game,
     prompt_choose_sau_color,
@@ -27,6 +28,7 @@ class Schafkopf:
         self.starter: Player | None = None
         self.game_choosers: list[Player] = []
         self.game_chooser: Player | None = None
+        self.amount_game_value_doublers = 0
 
         self.cards = Cards()
         self.renderer = renderer
@@ -45,6 +47,16 @@ class Schafkopf:
         for i in range(3):
             players.append(Bot(f"Bot {i + 1}"))
         return players
+
+    def ask_player_double_game_value(self, player_name: str) -> None:
+        decision = self.renderer.ask_with_validation(
+            prompt=prompt_ask_to_double_game_value(player_name=player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip().upper(),
+            validator=lambda x: x in ("Y", "YES", "N", "NO"),
+        )
+        if decision in ("Y", "YES"):
+            self.amount_game_value_doublers += 1
 
     def _ask_player_game_decision(self, player: Player) -> None:
         decision = self.renderer.ask_with_validation(
@@ -96,11 +108,19 @@ class Schafkopf:
             self.players
         )
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
-        # Fehlt: Legen
+        self.sort_player_hands()
+        self.amount_game_value_doublers = 0
+        for player in self.players:
+            self.renderer.render(
+                message=show_player_cards(
+                    player_name=player.player_name, player_cards=player.player_cards
+                )
+            )
+            self.ask_player_double_game_value(player_name=player.player_name)
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
+        self.sort_player_hands()
 
     def prepare_players(self):
-        self.sort_player_hands()
         self.players = self.get_sorted_players(
             players=self.players, starter=self.starter
         )
@@ -286,6 +306,7 @@ class Schafkopf:
                     base_price=self.base_price,
                     call_price=self.call_price,
                     alone_price=self.alone_price,
+                    amount_game_value_doublers=self.amount_game_value_doublers,
                     sau_color=sau_color,
                 )
             case "2":
@@ -297,6 +318,7 @@ class Schafkopf:
                     base_price=self.base_price,
                     call_price=self.call_price,
                     alone_price=self.alone_price,
+                    amount_game_value_doublers=self.amount_game_value_doublers,
                 )
             case "3":
                 trump_color = self.renderer.ask_with_validation(
@@ -326,6 +348,7 @@ class Schafkopf:
                     base_price=self.base_price,
                     call_price=self.call_price,
                     alone_price=self.alone_price,
+                    amount_game_value_doublers=self.amount_game_value_doublers,
                 )
         return game
 
@@ -340,6 +363,7 @@ class Schafkopf:
                 base_price=self.base_price,
                 call_price=self.call_price,
                 alone_price=self.alone_price,
+                amount_game_value_doublers=self.amount_game_value_doublers,
             )
         else:
             for player in self.game_choosers:
@@ -371,8 +395,8 @@ class Schafkopf:
             preprocess=lambda x: x.strip(),
         )
         for game_num in range(int(games_amount)):
-            self.prepare_cards()
             self.prepare_players()
+            self.prepare_cards()
             for player in self.players:
                 self.renderer.render(
                     message=show_player_cards(

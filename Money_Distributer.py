@@ -2,7 +2,11 @@ from abc import ABC, abstractmethod
 from Renderer import Renderer
 from Cards import Card
 from Player import Team, Player
-from text import tell_most_point_teams, tell_team_points, tell_team_players
+from text import (
+    tell_most_point_teams,
+    tell_team_points,
+    tell_team_players,
+)
 
 
 class Money_Distributer(ABC):
@@ -13,6 +17,7 @@ class Money_Distributer(ABC):
         alone_price: int,
         renderer: Renderer,
         players: list[Player],
+        amount_game_value_doublers: int,
         game_chooser: Player,
     ) -> None:
         self.base_price = base_price
@@ -24,6 +29,7 @@ class Money_Distributer(ABC):
         self.game_chooser: Player = game_chooser
         self.winners: list[Player] = []
         self.runners_amount: int = 0
+        self.amount_game_value_doublers: int = amount_game_value_doublers
 
     def get_players_team(self, player: Player) -> Team | None:
         player_team = None
@@ -156,7 +162,11 @@ class Ramsch_Money_Distributer(Money_Distributer):
     def calculate_game_value(self) -> int:
         game_value = self.alone_price
         virgins_count = self.count_virgins()
+
         for x in range(virgins_count):
+            game_value *= 2
+
+        for _ in range(self.amount_game_value_doublers):
             game_value *= 2
         return game_value
 
@@ -178,6 +188,9 @@ class Sauspiel_Money_Distributer(Money_Distributer):
 
         if winning_team.points == black_threshold:
             game_value += self.base_price
+
+        for _ in range(self.amount_game_value_doublers):
+            game_value *= 2
 
         return game_value
 
@@ -205,28 +218,13 @@ class Wenz_Money_Distributer(Money_Distributer):
         if winning_team.points == black_threshold:
             game_value += self.base_price
 
+        for _ in range(self.amount_game_value_doublers):
+            game_value *= 2
+
         return game_value
 
 
 class Solo_Money_Distributer(Money_Distributer):
-    def __init__(
-        self,
-        base_price: int,
-        call_price: int,
-        alone_price: int,
-        renderer: Renderer,
-        players: list[Player],
-        game_chooser: Player,
-    ):
-        super().__init__(
-            base_price=base_price,
-            call_price=call_price,
-            alone_price=alone_price,
-            renderer=renderer,
-            players=players,
-            game_chooser=game_chooser,
-        )
-
     def calculate_game_value(self) -> int:
         black_threshold = 120
         schneider_threshold = 90
@@ -243,5 +241,8 @@ class Solo_Money_Distributer(Money_Distributer):
 
         if winning_team.points == black_threshold:
             game_value += self.base_price
+
+        for _ in range(self.amount_game_value_doublers):
+            game_value *= 2
 
         return game_value
