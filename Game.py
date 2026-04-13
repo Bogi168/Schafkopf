@@ -17,7 +17,15 @@ from Card_Decision_Validator import (
     Wenz_Card_Decision_Validator,
     Solo_Card_Decision_Validator,
 )
-from text import show_played_cards
+from text import (
+    show_played_cards,
+    show_collector_of_cards,
+    tell_most_point_teams,
+    tell_team_points,
+    tell_team_players,
+    tell_winners,
+    tell_player_money,
+)
 
 
 class Game(ABC):
@@ -114,9 +122,11 @@ class Game(ABC):
         winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[winner_index].collected_cards.append(card)
-        print(
-            f"{self.players[winner_index].player_name} collected {self.players[winner_index].collected_cards[-4:]}"
-            + "\n" * 2
+        self.renderer.render(
+            message=show_collector_of_cards(
+                player_name=self.players[winner_index].player_name,
+                collected_cards=self.players[winner_index].collected_cards,
+            )
         )
         starter = self.players[winner_index]
         self.sort_players(starter=starter)
@@ -132,9 +142,18 @@ class Game(ABC):
                 most_point_teams.append(team)
             elif team.points == most_point_team_points:
                 most_point_teams.append(team)
-        print(f"The most point teams are: {most_point_teams}")
+        self.renderer.render(
+            message=tell_most_point_teams(most_point_teams=most_point_teams)
+        )
         for team in most_point_teams:
-            print(f"{team.team_name} has {team.points} points")
+            self.renderer.render(
+                message=tell_team_players(
+                    team_name=team.team_name, players=team.players
+                )
+            )
+            self.renderer.render(
+                message=tell_team_points(team_name=team.team_name, points=team.points)
+            )
         return most_point_teams
 
     @staticmethod
@@ -216,9 +235,13 @@ class Game(ABC):
         self.winners = self.identify_game_winners()
         game_value = self.calculate_game_value()
         self.distribute_money(game_value=game_value)
-        print(f"The game winners are: {self.winners}")
+        self.renderer.render(message=tell_winners(winners=self.winners))
         for player in self.players:
-            print(f"{player} has {player.money} cents")
+            self.renderer.render(
+                message=tell_player_money(
+                    player_name=player.player_name, money=player.money
+                )
+            )
 
 
 class Ramsch(Game):

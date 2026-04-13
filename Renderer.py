@@ -12,14 +12,6 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def ask_player_name(self, message: str) -> str:
-        pass
-
-    @abstractmethod
-    def ask_player_decision(self, message: str) -> str:
-        pass
-
-    @abstractmethod
     def ask_with_validation(
         self,
         prompt: str,
@@ -36,12 +28,6 @@ class ConsoleRenderer(Renderer):
 
     def ask_decision(self, message: str) -> str:
         return input(message)
-
-    def ask_player_name(self, message) -> str:
-        return input(message).capitalize()
-
-    def ask_player_decision(self, message) -> str:
-        return input(message).upper()
 
     def ask_with_validation(
         self,
