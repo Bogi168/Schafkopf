@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from click import prompt
-
 if TYPE_CHECKING:
     from Cards import Card
     from Player import Player, Team

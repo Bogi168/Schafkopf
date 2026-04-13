@@ -38,8 +38,6 @@ class Game(ABC):
 
     def __init__(
         self,
-        trump_color: Color | None,
-        trump_types: list[Type],
         cards: Cards,
         renderer: Renderer,
         card_power_calculator: Card_Power_Calculator,
@@ -48,8 +46,6 @@ class Game(ABC):
         players: list[Player],
         game_chooser: Player | None,
     ) -> None:
-        self.trump_color = trump_color
-        self.trump_types = trump_types
         self.cards = cards
         self.renderer = renderer
         self.card_power_calculator = card_power_calculator
@@ -57,16 +53,10 @@ class Game(ABC):
         self.money_distributer = money_distributer
         self.players = players
         self.game_chooser = game_chooser
+        self.trump_types: list[Type] = []
         self.teams: list[Team] = []
-
-        self.trumps: list[Card] = [
-            card
-            for card in self.cards.full_deck
-            if card.card_type in trump_types
-            or (trump_color is not None and card.card_color == trump_color)
-        ]
-        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.played_cards: list[Card] = []
+        self.trumps: list[Card] = []
 
     @property
     def lead_card(self) -> Card | None:
@@ -155,8 +145,6 @@ class Ramsch(Game):
         alone_price: int,
     ) -> None:
         super().__init__(
-            trump_color=Color.HERZ,
-            trump_types=[Type.OBER, Type.UNTER],
             cards=cards,
             renderer=renderer,
             card_power_calculator=Ramsch_Card_Power_Calculator(),
@@ -172,6 +160,14 @@ class Ramsch(Game):
             players=players,
             game_chooser=game_chooser,
         )
+        self.trump_color = Color.HERZ
+        self.trump_types = [Type.OBER, Type.UNTER]
+        self.trumps: list[Card] = [
+            card
+            for card in self.cards.full_deck
+            if card.card_type in self.trump_types or card.card_color == self.trump_color
+        ]
+        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
 
     def create_teams(self) -> None:
         for index in range(len(self.players)):
@@ -196,8 +192,6 @@ class Sauspiel(Game):
         alone_price: int,
     ) -> None:
         super().__init__(
-            trump_color=Color.HERZ,
-            trump_types=[Type.OBER, Type.UNTER],
             cards=cards,
             renderer=renderer,
             card_power_calculator=Sauspiel_Card_Power_Calculator(),
@@ -219,6 +213,14 @@ class Sauspiel(Game):
             players=players,
             game_chooser=game_chooser,
         )
+        self.trump_color = Color.HERZ
+        self.trump_types = [Type.OBER, Type.UNTER]
+        self.trumps: list[Card] = [
+            card
+            for card in self.cards.full_deck
+            if card.card_type in self.trump_types or card.card_color == self.trump_color
+        ]
+        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.sau_color = sau_color
 
     @property
@@ -258,8 +260,6 @@ class Wenz(Game):
         alone_price: int,
     ) -> None:
         super().__init__(
-            trump_color=None,
-            trump_types=[Type.UNTER],
             cards=cards,
             renderer=renderer,
             card_power_calculator=Wenz_Card_Power_Calculator(),
@@ -275,6 +275,11 @@ class Wenz(Game):
             players=players,
             game_chooser=game_chooser,
         )
+        self.trump_types = [Type.UNTER]
+        self.trumps: list[Card] = [
+            card for card in self.cards.full_deck if card.card_type in self.trump_types
+        ]
+        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
@@ -303,8 +308,6 @@ class Solo(Game):
         alone_price: int,
     ) -> None:
         super().__init__(
-            trump_color=trump_color,
-            trump_types=[Type.OBER, Type.UNTER],
             cards=cards,
             renderer=renderer,
             card_power_calculator=Solo_Card_Power_Calculator(trump_color=trump_color),
@@ -320,6 +323,14 @@ class Solo(Game):
             players=players,
             game_chooser=game_chooser,
         )
+        self.trump_color: Color = trump_color
+        self.trump_types = [Type.OBER, Type.UNTER]
+        self.trumps: list[Card] = [
+            card
+            for card in self.cards.full_deck
+            if card.card_type in self.trump_types or card.card_color == self.trump_color
+        ]
+        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
