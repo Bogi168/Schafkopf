@@ -347,7 +347,7 @@ class Schafkopf:
                     game = self.choose_game_decision(player=player, prev_game=game)
                 elif game.rank == Solo.rank:
                     break
-                elif game.rank >= Sauspiel.rank:
+                elif game.rank > Sauspiel.rank:
                     game = self.choose_game_decision(
                         player=player, prev_game=game, quitting_possible=True
                     )
