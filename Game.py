@@ -244,7 +244,7 @@ class Game(ABC):
 
 
 class Ramsch(Game):
-    rank = 0.5
+    rank = 1
 
     def __init__(
         self,
@@ -310,7 +310,7 @@ class Ramsch(Game):
 
 
 class Sauspiel(Game):
-    rank = 1
+    rank = 2
 
     def __init__(
         self,
@@ -386,7 +386,7 @@ class Sauspiel(Game):
 
 
 class Wenz(Game):
-    rank = 2
+    rank = 4
 
     def __init__(
         self,
@@ -446,7 +446,7 @@ class Wenz(Game):
 
 
 class Solo(Game):
-    rank = 3
+    rank = 6
 
     def __init__(
         self,

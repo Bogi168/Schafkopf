@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from click import prompt
+
 if TYPE_CHECKING:
     from Cards import Card
     from Player import Player, Team
@@ -64,11 +66,14 @@ def tell_player_money(player_name: str, money: int):
     return f"{player_name} has {money} cents"
 
 
+words_of_thanks = "\nThank you for playing!"
+
 # text for inputs
 error_message: str = "Your input is not valid!"
 
 prompt_player_name: str = "\nEnter your name: "
 prompt_games_amount: str = "Enter the amount of games: "
+prompt_play_again_message: str = "\nDo you want to play again? (Y/N): "
 
 
 def prompt_ask_to_choose_game(player_name: str) -> str:
