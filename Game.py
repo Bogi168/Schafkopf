@@ -16,12 +16,18 @@ from Card_Decision_Validator import (
     Wenz_Card_Decision_Validator,
     Solo_Card_Decision_Validator,
 )
+
+from Money_Distributer import (
+    Money_Distributer,
+    Ramsch_Money_Distributer,
+    Sauspiel_Money_Distributer,
+    Wenz_Money_Distributer,
+    Solo_Money_Distributer,
+)
+
 from text import (
     show_played_cards,
     show_collector_of_cards,
-    tell_most_point_teams,
-    tell_team_points,
-    tell_team_players,
     tell_winners,
     tell_player_money,
 )
@@ -38,11 +44,9 @@ class Game(ABC):
         renderer: Renderer,
         card_power_calculator: Card_Power_Calculator,
         card_decision_validator: Card_Decision_Validator,
+        money_distributer: Money_Distributer,
         players: list[Player],
         game_chooser: Player | None,
-        base_price: int,
-        call_price: int,
-        alone_price: int,
     ) -> None:
         self.trump_color = trump_color
         self.trump_types = trump_types
@@ -50,14 +54,9 @@ class Game(ABC):
         self.renderer = renderer
         self.card_power_calculator = card_power_calculator
         self.card_decision_validator = card_decision_validator
+        self.money_distributer = money_distributer
         self.players = players
         self.game_chooser = game_chooser
-        self.base_price = base_price
-        self.call_price = call_price
-        self.alone_price = alone_price
-
-        self.runners_amount = 0
-        self.winners: list[Player] = []
         self.teams: list[Team] = []
 
         self.trumps: list[Card] = [
@@ -89,13 +88,6 @@ class Game(ABC):
                 self.players.pop(0)
             else:
                 found_beginner = True
-
-    def find_players_team(self, player: Player) -> Team | None:
-        player_team = None
-        for team in self.teams:
-            if player in team.players:
-                player_team = team
-        return player_team
 
     def sort_player_hands(self):
         for player in self.players:
@@ -131,110 +123,16 @@ class Game(ABC):
         self.sort_players(starter=starter)
         self.played_cards.clear()
 
-    def get_most_points_teams(self) -> list[Team]:
-        most_point_teams: list[Team] = []
-        most_point_team_points = 0
-        for team in self.teams:
-            if team.points > most_point_team_points:
-                most_point_team_points = team.points
-                most_point_teams.clear()
-                most_point_teams.append(team)
-            elif team.points == most_point_team_points:
-                most_point_teams.append(team)
-        self.renderer.render(
-            message=tell_most_point_teams(most_point_teams=most_point_teams)
-        )
-        for team in most_point_teams:
-            self.renderer.render(
-                message=tell_team_points(team_name=team.team_name, points=team.points)
-            )
-            self.renderer.render(
-                message=tell_team_players(
-                    team_name=team.team_name, players=team.players
-                )
-            )
-        return most_point_teams
-
-    @staticmethod
-    def is_multiple_most_point_teams(most_point_teams: list[Team]) -> bool:
-        return len(most_point_teams) != 1
-
-    def identify_game_winners(self) -> list[Player]:
-        most_point_teams = self.get_most_points_teams()
-        winners: list[Player] = []
-        if not self.is_multiple_most_point_teams(most_point_teams=most_point_teams):
-            for team in most_point_teams:
-                for player in team.players:
-                    winners.append(player)
-        else:
-            winner_teams = [
-                team
-                for team in most_point_teams
-                if self.game_chooser not in team.players
-            ]
-            for team in winner_teams:
-                for player in team.players:
-                    winners.append(player)
-        return winners
-
-    @staticmethod
-    def is_player_has_trump(player: Player, trump: Card) -> bool:
-        for card in player.player_cards:
-            if card == trump:
-                return True
-        return False
-
-    def is_team_has_trump(self, team_players: list[Player], trump: Card) -> bool:
-        for player in team_players:
-            if self.is_player_has_trump(player=player, trump=trump):
-                return True
-        return False
-
-    def count_team_runners(self, team: Team) -> int:
-        runners_count = 0
-        for trump in self.trumps:
-            if self.is_team_has_trump(team_players=team.players, trump=trump):
-                runners_count += 1
-            else:
-                return runners_count
-        return runners_count
-
-    def count_game_runners(self, minimum_runners: int = 3) -> int:
-        for team in self.teams:
-            runners_count = self.count_team_runners(team=team)
-            if runners_count >= minimum_runners:
-                return runners_count
-        return 0
-
-    @abstractmethod
-    def calculate_game_value(self) -> int:
-        pass
-
-    def distribute_money(self, game_value: int) -> None:
-        losers = [loser for loser in self.players if loser not in self.winners]
-        if len(self.winners) == 1:
-            for index in range(len(losers)):
-                losers[index].money -= game_value
-                self.winners[0].money += game_value
-        elif len(self.winners) == 2:
-            for index in range(len(self.winners)):
-                losers[index].money -= game_value
-                self.winners[index].money += game_value
-        elif len(self.winners) == 3:
-            for index in range(len(self.winners)):
-                losers[0].money -= game_value
-                self.winners[index].money += game_value
-
     def play_game(self) -> None:
         self.sort_player_hands()
         self.create_teams()
-        self.runners_amount = self.count_game_runners()
+        self.money_distributer.count_game_runners(trumps=self.trumps)
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
-        self.winners = self.identify_game_winners()
-        game_value = self.calculate_game_value()
-        self.distribute_money(game_value=game_value)
-        self.renderer.render(message=tell_winners(winners=self.winners))
+        winners = self.money_distributer.identify_game_winners()
+        game_value = self.money_distributer.calculate_game_value()
+        self.money_distributer.distribute_money(game_value=game_value)
+        self.renderer.render(message=tell_winners(winners=winners))
         for player in self.players:
             self.renderer.render(
                 message=tell_player_money(
@@ -263,11 +161,16 @@ class Ramsch(Game):
             renderer=renderer,
             card_power_calculator=Ramsch_Card_Power_Calculator(),
             card_decision_validator=Ramsch_Card_Decision_Validator(),
+            money_distributer=Ramsch_Money_Distributer(
+                base_price=base_price,
+                call_price=call_price,
+                alone_price=alone_price,
+                players=players,
+                renderer=renderer,
+                game_chooser=game_chooser,
+            ),
             players=players,
             game_chooser=game_chooser,
-            base_price=base_price,
-            call_price=call_price,
-            alone_price=alone_price,
         )
 
     def create_teams(self) -> None:
@@ -275,38 +178,7 @@ class Ramsch(Game):
             team = Team(team_name=f"Team {index + 1}")
             team.players.append(self.players[index])
             self.teams.append(team)
-
-    def identify_game_winners(self) -> list[Player]:
-        winners: list[Player] = []
-        most_point_teams = self.get_most_points_teams()
-        if len(most_point_teams) != 1:
-            for team in self.teams:
-                if team not in most_point_teams:
-                    for player in team.players:
-                        winners.append(player)
-        else:
-            if most_point_teams[0].points >= 91:
-                winners.append(most_point_teams[0].players[0])
-            else:
-                for team in self.teams:
-                    if team not in most_point_teams:
-                        for player in team.players:
-                            winners.append(player)
-        return winners
-
-    def count_virgins(self) -> int:
-        virgins_count = 0
-        for player in self.players:
-            if len(player.collected_cards) == 0:
-                virgins_count += 1
-        return virgins_count
-
-    def calculate_game_value(self) -> int:
-        game_value = self.alone_price
-        virgins_count = self.count_virgins()
-        for x in range(virgins_count):
-            game_value *= 2
-        return game_value
+        self.money_distributer.teams = self.teams
 
 
 class Sauspiel(Game):
@@ -336,11 +208,16 @@ class Sauspiel(Game):
                     if card.card_color == sau_color and card.card_type == Type.SAU
                 ][0]
             ),
+            money_distributer=Sauspiel_Money_Distributer(
+                base_price=base_price,
+                call_price=call_price,
+                alone_price=alone_price,
+                players=players,
+                renderer=renderer,
+                game_chooser=game_chooser,
+            ),
             players=players,
             game_chooser=game_chooser,
-            base_price=base_price,
-            call_price=call_price,
-            alone_price=alone_price,
         )
         self.sau_color = sau_color
 
@@ -364,25 +241,7 @@ class Sauspiel(Game):
         ]
         self.teams.append(team_1)
         self.teams.append(team_2)
-
-    def calculate_game_value(self) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
-        game_value = 0
-        game_value += self.call_price
-        game_value += self.runners_amount * self.base_price
-        winning_team = self.find_players_team(player=self.winners[0])
-
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
-            and self.game_chooser not in winning_team.players
-        ):
-            game_value += self.base_price
-
-        if winning_team.points == black_threshold:
-            game_value += self.base_price
-
-        return game_value
+        self.money_distributer.teams = self.teams
 
 
 class Wenz(Game):
@@ -405,11 +264,16 @@ class Wenz(Game):
             renderer=renderer,
             card_power_calculator=Wenz_Card_Power_Calculator(),
             card_decision_validator=Wenz_Card_Decision_Validator(),
+            money_distributer=Wenz_Money_Distributer(
+                base_price=base_price,
+                call_price=call_price,
+                alone_price=alone_price,
+                players=players,
+                renderer=renderer,
+                game_chooser=game_chooser,
+            ),
             players=players,
             game_chooser=game_chooser,
-            base_price=base_price,
-            call_price=call_price,
-            alone_price=alone_price,
         )
 
     def create_teams(self) -> None:
@@ -421,28 +285,7 @@ class Wenz(Game):
         ]
         self.teams.append(team_1)
         self.teams.append(team_2)
-
-    def count_game_runners(self, minimum_runners: int = 2) -> int:
-        return super().count_game_runners(minimum_runners=minimum_runners)
-
-    def calculate_game_value(self) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
-        game_value = 0
-        game_value += self.alone_price
-        game_value += self.runners_amount * self.base_price
-        winning_team = self.find_players_team(player=self.winners[0])
-
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
-            and self.game_chooser not in winning_team.players
-        ):
-            game_value += self.base_price
-
-        if winning_team.points == black_threshold:
-            game_value += self.base_price
-
-        return game_value
+        self.money_distributer.teams = self.teams
 
 
 class Solo(Game):
@@ -466,11 +309,16 @@ class Solo(Game):
             renderer=renderer,
             card_power_calculator=Solo_Card_Power_Calculator(trump_color=trump_color),
             card_decision_validator=Solo_Card_Decision_Validator(),
+            money_distributer=Solo_Money_Distributer(
+                base_price=base_price,
+                call_price=call_price,
+                alone_price=alone_price,
+                players=players,
+                renderer=renderer,
+                game_chooser=game_chooser,
+            ),
             players=players,
             game_chooser=game_chooser,
-            base_price=base_price,
-            call_price=call_price,
-            alone_price=alone_price,
         )
 
     def create_teams(self) -> None:
@@ -482,22 +330,4 @@ class Solo(Game):
         ]
         self.teams.append(team_1)
         self.teams.append(team_2)
-
-    def calculate_game_value(self) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
-        game_value = 0
-        game_value += self.alone_price
-        game_value += self.runners_amount * self.base_price
-        winning_team = self.find_players_team(player=self.winners[0])
-
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
-            and self.game_chooser not in winning_team.players
-        ):
-            game_value += self.base_price
-
-        if winning_team.points == black_threshold:
-            game_value += self.base_price
-
-        return game_value
+        self.money_distributer.teams = self.teams
