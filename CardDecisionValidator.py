@@ -2,7 +2,7 @@ from Cards import Type, Color, Card
 from Player import Player
 
 
-class Card_Decision_Validator:
+class CardDecisionValidator:
     def __init__(self) -> None:
         self.trump_types: list[Type] = []
 
@@ -138,13 +138,13 @@ class Card_Decision_Validator:
         )
 
 
-class Ramsch_Card_Decision_Validator(Card_Decision_Validator):
+class RamschCardDecisionValidator(CardDecisionValidator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
 
 
-class Sauspiel_Card_Decision_Validator(Card_Decision_Validator):
+class SauspielCardDecisionValidator(CardDecisionValidator):
     def __init__(self, call_sau: Card | None) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
@@ -212,13 +212,13 @@ class Sauspiel_Card_Decision_Validator(Card_Decision_Validator):
             )
 
 
-class Wenz_Card_Decision_Validator(Card_Decision_Validator):
+class WenzCardDecisionValidator(CardDecisionValidator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.UNTER]
 
 
-class Solo_Card_Decision_Validator(Card_Decision_Validator):
+class SoloCardDecisionValidator(CardDecisionValidator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]

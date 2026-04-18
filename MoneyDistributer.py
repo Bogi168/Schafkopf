@@ -9,7 +9,7 @@ from text import (
 )
 
 
-class Money_Distributer(ABC):
+class MoneyDistributer(ABC):
     def __init__(
         self,
         base_price: int,
@@ -112,7 +112,7 @@ class Money_Distributer(ABC):
                 winners[index].money += game_value
 
 
-class Ramsch_Money_Distributer(Money_Distributer):
+class RamschMoneyDistributer(MoneyDistributer):
     def __init__(
         self,
         alone_price: int,
@@ -168,7 +168,7 @@ class Ramsch_Money_Distributer(Money_Distributer):
         return game_value
 
 
-class Sauspiel_Money_Distributer(Money_Distributer):
+class SauspielMoneyDistributer(MoneyDistributer):
 
     def __init__(
         self,
@@ -242,7 +242,7 @@ class Sauspiel_Money_Distributer(Money_Distributer):
         return game_value
 
 
-class Wenz_Money_Distributer(Money_Distributer):
+class WenzMoneyDistributer(MoneyDistributer):
 
     def __init__(
         self,
@@ -316,7 +316,7 @@ class Wenz_Money_Distributer(Money_Distributer):
         return game_value
 
 
-class Solo_Money_Distributer(Money_Distributer):
+class SoloMoneyDistributer(MoneyDistributer):
 
     def __init__(
         self,

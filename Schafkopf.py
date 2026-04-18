@@ -2,8 +2,8 @@ import random
 from Renderer import Renderer
 from Cards import Cards, Card
 from Player import Player, Bot
-from Card_Power_Calculator import Sauspiel_Card_Power_Calculator
-from Game_Decision_Validator import Game_Decision_Validator
+from CardPowerCalculator import SauspielCardPowerCalculator
+from GameDecisionValidator import GameDecisionValidator
 from text import (
     error_message,
     prompt_games_amount,
@@ -27,7 +27,7 @@ class Schafkopf:
 
         self.cards = Cards()
         self.renderer = renderer
-        self.game_decision_validator: Game_Decision_Validator | None = None
+        self.game_decision_validator: GameDecisionValidator | None = None
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
@@ -124,7 +124,7 @@ class Schafkopf:
 
     # sort cards for a Sauspiel -> easier to make game decisions
     def sort_player_hands(self) -> None:
-        card_power_calculator = Sauspiel_Card_Power_Calculator()
+        card_power_calculator = SauspielCardPowerCalculator()
         for player in self.players:
             player.player_cards.sort(
                 key=card_power_calculator.get_card_power, reverse=True
@@ -155,7 +155,7 @@ class Schafkopf:
                     )
                 )
                 self._ask_player_game_decision(player=player)
-            self.game_decision_validator = Game_Decision_Validator(
+            self.game_decision_validator = GameDecisionValidator(
                 renderer=self.renderer,
                 cards=self.cards,
                 players=self.players,

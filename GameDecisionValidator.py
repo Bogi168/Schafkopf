@@ -10,7 +10,7 @@ from text import (
 )
 
 
-class Game_Decision_Validator:
+class GameDecisionValidator:
     def __init__(
         self,
         renderer: Renderer,

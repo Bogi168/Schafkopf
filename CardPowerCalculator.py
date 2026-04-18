@@ -1,7 +1,7 @@
 from Cards import Color, Type, Card
 
 
-class Card_Power_Calculator:
+class CardPowerCalculator:
     def __init__(self) -> None:
         self.trump_types: list[Type] = []
         self.trump_color_power: int = 100
@@ -75,7 +75,7 @@ class Card_Power_Calculator:
         return strongest_card
 
 
-class Ramsch_Card_Power_Calculator(Card_Power_Calculator):
+class RamschCardPowerCalculator(CardPowerCalculator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_color: Color = Color.HERZ
@@ -93,7 +93,7 @@ class Ramsch_Card_Power_Calculator(Card_Power_Calculator):
         return power
 
 
-class Sauspiel_Card_Power_Calculator(Card_Power_Calculator):
+class SauspielCardPowerCalculator(CardPowerCalculator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_color: Color = Color.HERZ
@@ -111,7 +111,7 @@ class Sauspiel_Card_Power_Calculator(Card_Power_Calculator):
         return power
 
 
-class Wenz_Card_Power_Calculator(Card_Power_Calculator):
+class WenzCardPowerCalculator(CardPowerCalculator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.UNTER]
@@ -124,7 +124,7 @@ class Wenz_Card_Power_Calculator(Card_Power_Calculator):
         return power
 
 
-class Solo_Card_Power_Calculator(Card_Power_Calculator):
+class SoloCardPowerCalculator(CardPowerCalculator):
     def __init__(self, trump_color: Color) -> None:
         super().__init__()
         self.trump_color: Color = trump_color
