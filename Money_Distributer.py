@@ -19,7 +19,6 @@ class Money_Distributer(ABC):
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
-        game_chooser: Player,
     ) -> None:
         self.base_price = base_price
         self.call_price = call_price
@@ -27,7 +26,6 @@ class Money_Distributer(ABC):
         self.renderer: Renderer = renderer
         self.players: list[Player] = players
         self.teams: list[Team] = teams
-        self.game_chooser: Player = game_chooser
         self.amount_game_value_doublers: int = amount_game_value_doublers
 
     def get_players_team(self, player: Player) -> Team | None:
@@ -122,7 +120,6 @@ class Ramsch_Money_Distributer(Money_Distributer):
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
-        game_chooser: Player,
     ) -> None:
         super().__init__(
             base_price=0,
@@ -132,7 +129,6 @@ class Ramsch_Money_Distributer(Money_Distributer):
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
-            game_chooser=game_chooser,
         )
 
     def identify_game_winners(self) -> list[Player]:
@@ -182,7 +178,7 @@ class Sauspiel_Money_Distributer(Money_Distributer):
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
-        game_chooser: Player,
+        active_team: Team,
     ) -> None:
         super().__init__(
             base_price=base_price,
@@ -192,8 +188,8 @@ class Sauspiel_Money_Distributer(Money_Distributer):
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
-            game_chooser=game_chooser,
         )
+        self.active_team: Team = active_team
         self.runners_amount: int = 0
 
     def identify_game_winners(self) -> list[Player]:
@@ -205,9 +201,7 @@ class Sauspiel_Money_Distributer(Money_Distributer):
                     winners.append(player)
         else:
             winner_teams = [
-                team
-                for team in most_point_teams
-                if self.game_chooser not in team.players
+                team for team in most_point_teams if self.active_team != team
             ]
             for team in winner_teams:
                 for player in team.players:
@@ -235,7 +229,7 @@ class Sauspiel_Money_Distributer(Money_Distributer):
 
         if winning_team.points > schneider_threshold or (
             winning_team.points == schneider_threshold
-            and self.game_chooser not in winning_team.players
+            and self.active_team != winning_team
         ):
             game_value += self.base_price
 
@@ -258,7 +252,7 @@ class Wenz_Money_Distributer(Money_Distributer):
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
-        game_chooser: Player,
+        active_team: Team,
     ) -> None:
         super().__init__(
             base_price=base_price,
@@ -268,8 +262,8 @@ class Wenz_Money_Distributer(Money_Distributer):
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
-            game_chooser=game_chooser,
         )
+        self.active_team: Team = active_team
         self.runners_amount: int = 0
 
     def identify_game_winners(self) -> list[Player]:
@@ -281,9 +275,7 @@ class Wenz_Money_Distributer(Money_Distributer):
                     winners.append(player)
         else:
             winner_teams = [
-                team
-                for team in most_point_teams
-                if self.game_chooser not in team.players
+                team for team in most_point_teams if self.active_team != team
             ]
             for team in winner_teams:
                 for player in team.players:
@@ -311,7 +303,7 @@ class Wenz_Money_Distributer(Money_Distributer):
 
         if winning_team.points > schneider_threshold or (
             winning_team.points == schneider_threshold
-            and self.game_chooser not in winning_team.players
+            and self.active_team != winning_team
         ):
             game_value += self.base_price
 
@@ -334,7 +326,7 @@ class Solo_Money_Distributer(Money_Distributer):
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
-        game_chooser: Player,
+        active_team: Team,
     ) -> None:
         super().__init__(
             base_price=base_price,
@@ -344,8 +336,8 @@ class Solo_Money_Distributer(Money_Distributer):
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
-            game_chooser=game_chooser,
         )
+        self.active_team: Team = active_team
         self.runners_amount: int = 0
 
     def identify_game_winners(self) -> list[Player]:
@@ -357,9 +349,7 @@ class Solo_Money_Distributer(Money_Distributer):
                     winners.append(player)
         else:
             winner_teams = [
-                team
-                for team in most_point_teams
-                if self.game_chooser not in team.players
+                team for team in most_point_teams if self.active_team != team
             ]
             for team in winner_teams:
                 for player in team.players:
@@ -387,7 +377,7 @@ class Solo_Money_Distributer(Money_Distributer):
 
         if winning_team.points > schneider_threshold or (
             winning_team.points == schneider_threshold
-            and self.game_chooser not in winning_team.players
+            and self.active_team != winning_team
         ):
             game_value += self.base_price
 

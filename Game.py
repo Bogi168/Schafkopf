@@ -180,7 +180,6 @@ class Ramsch(Game):
             teams=self.teams,
             renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
-            game_chooser=self.game_chooser,
         )
         return money_distributer
 
@@ -263,7 +262,7 @@ class Sauspiel(Game):
             teams=self.teams,
             renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
-            game_chooser=self.game_chooser,
+            active_team=self.active_team,
         )
         return money_distributer
 
@@ -325,7 +324,7 @@ class Wenz(Game):
             teams=self.teams,
             renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
-            game_chooser=self.game_chooser,
+            active_team=self.active_team,
         )
         return money_distributer
 
@@ -391,7 +390,7 @@ class Solo(Game):
             teams=self.teams,
             renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
-            game_chooser=self.game_chooser,
+            active_team=self.active_team,
         )
         return money_distributer
 
