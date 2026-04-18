@@ -305,7 +305,6 @@ class Schafkopf:
                     game_chooser=self.game_chooser,
                     base_price=self.base_price,
                     call_price=self.call_price,
-                    alone_price=self.alone_price,
                     amount_game_value_doublers=self.amount_game_value_doublers,
                     sau_color=sau_color,
                 )
@@ -316,7 +315,6 @@ class Schafkopf:
                     players=self.players,
                     game_chooser=self.game_chooser,
                     base_price=self.base_price,
-                    call_price=self.call_price,
                     alone_price=self.alone_price,
                     amount_game_value_doublers=self.amount_game_value_doublers,
                 )
@@ -346,7 +344,6 @@ class Schafkopf:
                     players=self.players,
                     game_chooser=self.game_chooser,
                     base_price=self.base_price,
-                    call_price=self.call_price,
                     alone_price=self.alone_price,
                     amount_game_value_doublers=self.amount_game_value_doublers,
                 )
@@ -360,8 +357,6 @@ class Schafkopf:
                 renderer=self.renderer,
                 players=self.players,
                 game_chooser=self.game_chooser,
-                base_price=self.base_price,
-                call_price=self.call_price,
                 alone_price=self.alone_price,
                 amount_game_value_doublers=self.amount_game_value_doublers,
             )
