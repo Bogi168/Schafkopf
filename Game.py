@@ -30,6 +30,9 @@ from MoneyDistributer import (
 from text import (
     show_played_cards,
     show_collector_of_cards,
+    tell_most_point_teams,
+    tell_team_points,
+    tell_team_players,
     tell_winners,
     tell_player_money,
 )
@@ -43,14 +46,13 @@ class Game(ABC):
         cards: Cards,
         renderer: Renderer,
         card_power_calculator: CardPowerCalculator,
-        card_decision_validator: CardDecisionValidator,
         players: list[Player],
         game_chooser: Player | None,
     ) -> None:
         self.cards: Cards = cards
         self.renderer: Renderer = renderer
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
-        self.card_decision_validator: CardDecisionValidator = card_decision_validator
+        self.card_decision_validator: CardDecisionValidator | None = None
         self.money_distributer: MoneyDistributer | None = None
         self.players: list[Player] = players
         self.game_chooser: Player | None = game_chooser
@@ -79,6 +81,10 @@ class Game(ABC):
                 self.players.pop(0)
             else:
                 found_beginner = True
+
+    @abstractmethod
+    def create_card_decision_validator(self) -> CardDecisionValidator:
+        pass
 
     @abstractmethod
     def create_money_distributer(self) -> MoneyDistributer:
@@ -119,7 +125,20 @@ class Game(ABC):
         self.played_cards.clear()
 
     def handle_winners(self):
-        winners = self.money_distributer.identify_game_winners()
+        winners = self.money_distributer.get_game_winners()
+        most_point_teams = self.money_distributer.get_most_points_teams()
+        self.renderer.render(
+            message=tell_most_point_teams(most_point_teams=most_point_teams)
+        )
+        for team in most_point_teams:
+            self.renderer.render(
+                message=tell_team_points(team_name=team.team_name, points=team.points)
+            )
+            self.renderer.render(
+                message=tell_team_players(
+                    team_name=team.team_name, players=team.players
+                )
+            )
         game_value = self.money_distributer.calculate_game_value()
         self.money_distributer.distribute_money(game_value=game_value, winners=winners)
         self.renderer.render(message=tell_winners(winners=winners))
@@ -131,6 +150,7 @@ class Game(ABC):
             )
 
     def play_game(self) -> None:
+        self.card_decision_validator = self.create_card_decision_validator()
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
         self.handle_winners()
@@ -152,7 +172,6 @@ class Ramsch(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=RamschCardPowerCalculator(),
-            card_decision_validator=RamschCardDecisionValidator(),
             players=players,
             game_chooser=game_chooser,
         )
@@ -173,12 +192,15 @@ class Ramsch(Game):
             team.players.append(self.players[index])
             self.teams.append(team)
 
+    def create_card_decision_validator(self) -> CardDecisionValidator:
+        card_decision_validator = RamschCardDecisionValidator()
+        return card_decision_validator
+
     def create_money_distributer(self) -> MoneyDistributer:
         money_distributer = RamschMoneyDistributer(
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
-            renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
         )
         return money_distributer
@@ -208,13 +230,6 @@ class Sauspiel(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=SauspielCardPowerCalculator(),
-            card_decision_validator=SauspielCardDecisionValidator(
-                call_sau=[
-                    card
-                    for card in cards.full_deck
-                    if card.card_color == sau_color and card.card_type == Type.SAU
-                ][0]
-            ),
             players=players,
             game_chooser=game_chooser,
         )
@@ -254,13 +269,16 @@ class Sauspiel(Game):
         self.teams.append(team_1)
         self.teams.append(team_2)
 
+    def create_card_decision_validator(self) -> CardDecisionValidator:
+        card_decision_validator = SauspielCardDecisionValidator(call_sau=self.call_sau)
+        return card_decision_validator
+
     def create_money_distributer(self) -> MoneyDistributer:
         money_distributer = SauspielMoneyDistributer(
             base_price=self.base_price,
             call_price=self.call_price,
             players=self.players,
             teams=self.teams,
-            renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
         )
@@ -291,7 +309,6 @@ class Wenz(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=WenzCardPowerCalculator(),
-            card_decision_validator=WenzCardDecisionValidator(),
             players=players,
             game_chooser=game_chooser,
         )
@@ -316,13 +333,16 @@ class Wenz(Game):
         self.teams.append(team_1)
         self.teams.append(team_2)
 
+    def create_card_decision_validator(self) -> CardDecisionValidator:
+        card_decision_validator = WenzCardDecisionValidator()
+        return card_decision_validator
+
     def create_money_distributer(self) -> MoneyDistributer:
         money_distributer = WenzMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
-            renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
         )
@@ -354,7 +374,6 @@ class Solo(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=SoloCardPowerCalculator(trump_color=trump_color),
-            card_decision_validator=SoloCardDecisionValidator(),
             players=players,
             game_chooser=game_chooser,
         )
@@ -382,13 +401,16 @@ class Solo(Game):
         self.teams.append(team_1)
         self.teams.append(team_2)
 
+    def create_card_decision_validator(self) -> CardDecisionValidator:
+        card_decision_validator = SoloCardDecisionValidator()
+        return card_decision_validator
+
     def create_money_distributer(self) -> MoneyDistributer:
         money_distributer = SoloMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
-            renderer=self.renderer,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
         )

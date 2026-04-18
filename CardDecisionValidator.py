@@ -7,34 +7,17 @@ class CardDecisionValidator:
         self.trump_types: list[Type] = []
 
     @staticmethod
-    def is_player_has_one_card(player_cards: list[Card]) -> bool:
-        return len(player_cards) == 1
-
-    @staticmethod
-    def is_lead_card_null(lead_card: Card | None) -> bool:
-        return lead_card is None
-
-    @staticmethod
     def player_has_lead(decision: Card, player_cards: list[Card]):
         return True
 
     @staticmethod
-    def is_lead_card_is_trump(lead_card: Card, trumps: list[Card]) -> bool:
-        return lead_card in trumps
-
-    @staticmethod
-    def is_player_has_trump_available(
-        player_cards: list[Card], trumps: list[Card]
-    ) -> bool:
-        for card in player_cards:
-            if card in trumps:
-                return True
-        return False
+    def has_trump_available(player_cards: list[Card], trumps: list[Card]) -> bool:
+        return any(card in trumps for card in player_cards)
 
     def lead_card_is_trump(
         self, decision: Card, player_cards: list[Card], trumps: list[Card]
     ) -> bool:
-        trump_available = self.is_player_has_trump_available(
+        trump_available = self.has_trump_available(
             player_cards=player_cards, trumps=trumps
         )
         if trump_available:
@@ -103,8 +86,7 @@ class CardDecisionValidator:
         trumps: list[Card],
     ) -> bool:
         assert lead_card is not None
-        bool_lead_trump = self.is_lead_card_is_trump(lead_card=lead_card, trumps=trumps)
-        if bool_lead_trump:
+        if lead_card in trumps:
             return self.lead_card_is_trump(
                 decision=decision, player_cards=player_cards, trumps=trumps
             )
@@ -123,11 +105,10 @@ class CardDecisionValidator:
 
         player_cards = player.player_cards
 
-        if self.is_player_has_one_card(player_cards):
+        if len(player_cards) == 1:
             return True
 
-        lead = self.is_lead_card_null(lead_card=lead_card)
-        if lead:
+        if lead_card is None:
             return self.player_has_lead(decision=decision, player_cards=player_cards)
 
         return self.player_has_not_lead(

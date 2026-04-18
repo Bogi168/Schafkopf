@@ -36,9 +36,7 @@ class GameDecisionValidator:
     @staticmethod
     def is_player_quits(quitting_possible: bool, decision: str) -> bool:
         quitting_code_words = ["QUIT", "Q"]
-        if quitting_possible and decision in quitting_code_words:
-            return True
-        return False
+        return quitting_possible and decision in quitting_code_words
 
     @staticmethod
     def count_color_cards(
@@ -51,11 +49,11 @@ class GameDecisionValidator:
         return count
 
     @staticmethod
-    def is_player_has_sau(sau_color: Color, player_cards: list[Card]) -> bool:
-        for card in player_cards:
-            if card.card_color == sau_color and card.card_type == Type.SAU:
-                return True
-        return False
+    def is_player_owns_sau(sau_color: Color, player_cards: list[Card]) -> bool:
+        return any(
+            (card.card_color == sau_color and card.card_type == Type.SAU)
+            for card in player_cards
+        )
 
     def is_sauspiel_playable(self, player_cards: list[Card]) -> bool:
         colors = (Color.EICHEL, Color.GRUEN, Color.SCHELLEN)
@@ -85,7 +83,7 @@ class GameDecisionValidator:
                     )
 
         for color in colors:
-            if self.is_player_has_sau(color, player_cards=player_cards):
+            if self.is_player_owns_sau(color, player_cards=player_cards):
                 match color:
                     case Color.EICHEL:
                         eichel_count = 0
@@ -125,7 +123,7 @@ class GameDecisionValidator:
         self, player_cards: list[Card], playable_colors: list[Color]
     ) -> list[Color]:
         for color in playable_colors.copy():
-            player_has_sau = self.is_player_has_sau(
+            player_has_sau = self.is_player_owns_sau(
                 player_cards=player_cards, sau_color=color
             )
             color_count = self.count_color_cards(

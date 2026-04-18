@@ -1,12 +1,6 @@
 from abc import ABC, abstractmethod
-from Renderer import Renderer
 from Cards import Card
 from Player import Team, Player
-from text import (
-    tell_most_point_teams,
-    tell_team_points,
-    tell_team_players,
-)
 
 
 class MoneyDistributer(ABC):
@@ -15,7 +9,6 @@ class MoneyDistributer(ABC):
         base_price: int,
         call_price: int,
         alone_price: int,
-        renderer: Renderer,
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
@@ -23,7 +16,6 @@ class MoneyDistributer(ABC):
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
-        self.renderer: Renderer = renderer
         self.players: list[Player] = players
         self.teams: list[Team] = teams
         self.amount_game_value_doublers: int = amount_game_value_doublers
@@ -45,26 +37,10 @@ class MoneyDistributer(ABC):
                 most_point_teams.append(team)
             elif team.points == most_point_team_points:
                 most_point_teams.append(team)
-        self.renderer.render(
-            message=tell_most_point_teams(most_point_teams=most_point_teams)
-        )
-        for team in most_point_teams:
-            self.renderer.render(
-                message=tell_team_points(team_name=team.team_name, points=team.points)
-            )
-            self.renderer.render(
-                message=tell_team_players(
-                    team_name=team.team_name, players=team.players
-                )
-            )
         return most_point_teams
 
-    @staticmethod
-    def is_multiple_most_point_teams(most_point_teams: list[Team]) -> bool:
-        return len(most_point_teams) != 1
-
     @abstractmethod
-    def identify_game_winners(self) -> list[Player]:
+    def get_game_winners(self) -> list[Player]:
         pass
 
     @staticmethod
@@ -116,7 +92,6 @@ class RamschMoneyDistributer(MoneyDistributer):
     def __init__(
         self,
         alone_price: int,
-        renderer: Renderer,
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
@@ -125,13 +100,12 @@ class RamschMoneyDistributer(MoneyDistributer):
             base_price=0,
             call_price=0,
             alone_price=alone_price,
-            renderer=renderer,
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
         )
 
-    def identify_game_winners(self) -> list[Player]:
+    def get_game_winners(self) -> list[Player]:
         winners: list[Player] = []
         most_point_teams = self.get_most_points_teams()
         if len(most_point_teams) != 1:
@@ -174,7 +148,6 @@ class SauspielMoneyDistributer(MoneyDistributer):
         self,
         base_price: int,
         call_price: int,
-        renderer: Renderer,
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
@@ -184,7 +157,6 @@ class SauspielMoneyDistributer(MoneyDistributer):
             base_price=base_price,
             call_price=call_price,
             alone_price=0,
-            renderer=renderer,
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
@@ -192,10 +164,10 @@ class SauspielMoneyDistributer(MoneyDistributer):
         self.active_team: Team = active_team
         self.runners_amount: int = 0
 
-    def identify_game_winners(self) -> list[Player]:
+    def get_game_winners(self) -> list[Player]:
         winners: list[Player] = []
         most_point_teams = self.get_most_points_teams()
-        if not self.is_multiple_most_point_teams(most_point_teams=most_point_teams):
+        if len(most_point_teams) == 1:
             for team in most_point_teams:
                 for player in team.players:
                     winners.append(player)
@@ -224,7 +196,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
         game_value = 0
         game_value += self.call_price
         game_value += self.runners_amount * self.base_price
-        winners: list[Player] = self.identify_game_winners()
+        winners: list[Player] = self.get_game_winners()
         winning_team = self.get_players_team(player=winners[0])
 
         if winning_team.points > schneider_threshold or (
@@ -248,7 +220,6 @@ class WenzMoneyDistributer(MoneyDistributer):
         self,
         base_price: int,
         alone_price: int,
-        renderer: Renderer,
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
@@ -258,7 +229,6 @@ class WenzMoneyDistributer(MoneyDistributer):
             base_price=base_price,
             call_price=0,
             alone_price=alone_price,
-            renderer=renderer,
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
@@ -266,10 +236,10 @@ class WenzMoneyDistributer(MoneyDistributer):
         self.active_team: Team = active_team
         self.runners_amount: int = 0
 
-    def identify_game_winners(self) -> list[Player]:
+    def get_game_winners(self) -> list[Player]:
         winners: list[Player] = []
         most_point_teams = self.get_most_points_teams()
-        if not self.is_multiple_most_point_teams(most_point_teams=most_point_teams):
+        if len(most_point_teams) == 1:
             for team in most_point_teams:
                 for player in team.players:
                     winners.append(player)
@@ -298,7 +268,7 @@ class WenzMoneyDistributer(MoneyDistributer):
         game_value = 0
         game_value += self.alone_price
         game_value += self.runners_amount * self.base_price
-        winners: list[Player] = self.identify_game_winners()
+        winners: list[Player] = self.get_game_winners()
         winning_team = self.get_players_team(player=winners[0])
 
         if winning_team.points > schneider_threshold or (
@@ -322,7 +292,6 @@ class SoloMoneyDistributer(MoneyDistributer):
         self,
         base_price: int,
         alone_price: int,
-        renderer: Renderer,
         players: list[Player],
         teams: list[Team],
         amount_game_value_doublers: int,
@@ -332,7 +301,6 @@ class SoloMoneyDistributer(MoneyDistributer):
             base_price=base_price,
             call_price=0,
             alone_price=alone_price,
-            renderer=renderer,
             players=players,
             teams=teams,
             amount_game_value_doublers=amount_game_value_doublers,
@@ -340,10 +308,10 @@ class SoloMoneyDistributer(MoneyDistributer):
         self.active_team: Team = active_team
         self.runners_amount: int = 0
 
-    def identify_game_winners(self) -> list[Player]:
+    def get_game_winners(self) -> list[Player]:
         winners: list[Player] = []
         most_point_teams = self.get_most_points_teams()
-        if not self.is_multiple_most_point_teams(most_point_teams=most_point_teams):
+        if len(most_point_teams) == 1:
             for team in most_point_teams:
                 for player in team.players:
                     winners.append(player)
@@ -372,7 +340,7 @@ class SoloMoneyDistributer(MoneyDistributer):
         game_value = 0
         game_value += self.alone_price
         game_value += self.runners_amount * self.base_price
-        winners: list[Player] = self.identify_game_winners()
+        winners: list[Player] = self.get_game_winners()
         winning_team = self.get_players_team(player=winners[0])
 
         if winning_team.points > schneider_threshold or (
