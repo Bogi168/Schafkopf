@@ -22,10 +22,7 @@ class Player:
 
     @property
     def points(self) -> int:
-        points = 0
-        for card in self.collected_cards:
-            points += card.card_type.points
-        return points
+        return sum(card.card_type.points for card in self.collected_cards)
 
     def is_decision_valid_number(self, index_decision: str) -> bool:
         return index_decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(
@@ -90,7 +87,4 @@ class Team:
 
     @property
     def points(self) -> int:
-        points = 0
-        for player in self.players:
-            points += player.points
-        return points
+        return sum(player.points for player in self.players)

@@ -50,7 +50,7 @@ class CardPowerCalculator:
 
             # played_card != Trump -> strongest_card == Trump -> strongest_card = strongest_card
             if played_card not in trumps and strongest_card in trumps:
-                pass
+                continue
 
             # played_card == Trump -> strongest_card != Trump -> strongest_card = played_card
             elif played_card in trumps and strongest_card not in trumps:
@@ -64,7 +64,7 @@ class CardPowerCalculator:
 
             # strongest_card + played_card != Trump -> played_card_color != lead_card_color -> strongest_card = strongest_card
             elif played_card.card_color != lead_card.card_color:
-                pass
+                continue
 
             # strongest_card + played_card != Trump -> played_card_color == lead_card_color -> compare ranks
             else:
