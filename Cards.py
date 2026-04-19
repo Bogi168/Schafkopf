@@ -66,6 +66,14 @@ class Card:
     def __repr__(self) -> str:
         return self.card_name
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Card):
+            return NotImplemented
+        return self.card_color == other.card_color and self.card_type == other.card_type
+
+    def __hash__(self) -> int:
+        return hash((self.card_color, self.card_type))
+
 
 class Cards:
     def __init__(self) -> None:
