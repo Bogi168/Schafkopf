@@ -45,16 +45,13 @@ class MoneyDistributer(ABC):
 
     @staticmethod
     def is_player_has_trump(player: Player, trump: Card) -> bool:
-        for card in player.player_cards:
-            if card == trump:
-                return True
-        return False
+        return any(card == trump for card in player.player_cards)
 
     def is_team_has_trump(self, team_players: list[Player], trump: Card) -> bool:
-        for player in team_players:
-            if self.is_player_has_trump(player=player, trump=trump):
-                return True
-        return False
+        return any(
+            self.is_player_has_trump(player=player, trump=trump)
+            for player in team_players
+        )
 
     def count_team_runners(self, team: Team, trumps: list[Card]) -> int:
         runners_count = 0
