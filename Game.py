@@ -56,7 +56,6 @@ class Game(ABC):
         self.money_distributer: MoneyDistributer | None = None
         self.players: list[Player] = players
         self.game_chooser: Player | None = game_chooser
-        self.trump_types: list[Type] = []
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
         self.trumps: list[Card] = []

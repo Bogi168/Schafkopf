@@ -1,7 +1,8 @@
 import random
 from Renderer import Renderer
-from Cards import Cards, Card
+from Cards import Cards, Card, Color
 from Player import Player, Bot
+from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from CardPowerCalculator import SauspielCardPowerCalculator
 from GameDecisionValidator import GameDecisionValidator
 from text import (
@@ -13,6 +14,8 @@ from text import (
     prompt_ask_to_choose_game,
     show_player_cards,
     words_of_thanks,
+    prompt_choose_solo_color,
+    prompt_choose_sau_color,
 )
 
 
@@ -22,6 +25,7 @@ class Schafkopf:
     ) -> None:
         self.players: list[Player] = []
         self.starter: Player | None = None
+        self.game_chooser: Player | None = None
         self.game_choosers: list[Player] = []
         self.amount_game_value_doublers = 0
 
@@ -130,6 +134,107 @@ class Schafkopf:
                 key=card_power_calculator.get_card_power, reverse=True
             )
 
+    def get_sau_color(self, player_name: str, player_cards: list[Card]) -> Color:
+        sau_color_decision = self.renderer.ask_with_validation(
+            prompt=prompt_choose_sau_color(player_name=player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip(),
+            validator=lambda x: x
+            in self.game_decision_validator.get_valid_call_sau_colors(
+                player_cards=player_cards
+            ),
+        )
+        sau_color = self.game_decision_validator.sau_color_mapping[sau_color_decision]
+        return sau_color
+
+    def get_trump_color(self, player_name) -> Color:
+        trump_color_decision = self.renderer.ask_with_validation(
+            prompt=prompt_choose_solo_color(player_name=player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip(),
+            validator=lambda x: x
+            in self.game_decision_validator.get_valid_solo_trump_colors(),
+        )
+        trump_color = self.game_decision_validator.solo_trump_color_mapping[
+            trump_color_decision
+        ]
+        return trump_color
+
+    def get_game(self, decision: str, player: Player, prev_game: Game | None) -> Game:
+        game: Game | None = None
+        if decision != "Q":
+            self.game_chooser = player
+        match decision:
+            case "Q":
+                return prev_game
+            case "1":
+                sau_color = self.get_sau_color(
+                    player_name=player.player_name, player_cards=player.player_cards
+                )
+                game = Sauspiel(
+                    cards=self.cards,
+                    renderer=self.renderer,
+                    players=self.players,
+                    game_chooser=self.game_chooser,
+                    base_price=self.base_price,
+                    call_price=self.call_price,
+                    amount_game_value_doublers=self.amount_game_value_doublers,
+                    sau_color=sau_color,
+                )
+            case "2":
+                game = Wenz(
+                    cards=self.cards,
+                    renderer=self.renderer,
+                    players=self.players,
+                    game_chooser=self.game_chooser,
+                    base_price=self.base_price,
+                    alone_price=self.alone_price,
+                    amount_game_value_doublers=self.amount_game_value_doublers,
+                )
+            case "3":
+                trump_color = self.get_trump_color(player_name=player.player_name)
+                game = Solo(
+                    trump_color=trump_color,
+                    cards=self.cards,
+                    renderer=self.renderer,
+                    players=self.players,
+                    game_chooser=self.game_chooser,
+                    base_price=self.base_price,
+                    alone_price=self.alone_price,
+                    amount_game_value_doublers=self.amount_game_value_doublers,
+                )
+        return game
+
+    def players_choose_game(self) -> Game:
+        game: None | Game = None
+        if len(self.game_choosers) == 0:
+            game = Ramsch(
+                cards=self.cards,
+                renderer=self.renderer,
+                players=self.players,
+                game_chooser=self.game_chooser,
+                alone_price=self.alone_price,
+                amount_game_value_doublers=self.amount_game_value_doublers,
+            )
+        else:
+            for player in self.game_choosers:
+                if game is None:
+                    decision = self.game_decision_validator.choose_valid_game_mode(
+                        player=player, prev_game=game
+                    )
+                elif game.rank == Solo.rank:
+                    break
+                elif game.rank > Sauspiel.rank:
+                    decision = self.game_decision_validator.choose_valid_game_mode(
+                        player=player, prev_game=game, quitting_possible=True
+                    )
+                else:
+                    decision = self.game_decision_validator.choose_valid_game_mode(
+                        player=player, prev_game=game
+                    )
+                game = self.get_game(decision=decision, player=player, prev_game=game)
+        return game
+
     def get_new_starter(self, prev_starter_index: int) -> Player:
         if self.players[prev_starter_index] == self.players[-1]:
             return self.players[0]
@@ -157,15 +262,8 @@ class Schafkopf:
                 self._ask_player_game_decision(player=player)
             self.game_decision_validator = GameDecisionValidator(
                 renderer=self.renderer,
-                cards=self.cards,
-                players=self.players,
-                base_price=self.base_price,
-                call_price=self.call_price,
-                alone_price=self.alone_price,
-                amount_game_value_doublers=self.amount_game_value_doublers,
-                game_choosers=self.game_choosers,
             )
-            game = self.game_decision_validator.players_choose_game()
+            game = self.players_choose_game()
             assert game is not None
             game.play_game()
             self.starter = self.get_new_starter(
