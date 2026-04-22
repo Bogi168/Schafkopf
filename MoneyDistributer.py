@@ -18,7 +18,9 @@ class MoneyDistributer(ABC):
         self.alone_price = alone_price
         self.players: list[Player] = players
         self.teams: list[Team] = teams
+        self.active_team: Team | None = None
         self.amount_game_value_doublers: int = amount_game_value_doublers
+        self.runners_amount: int = 0
 
     def get_players_team(self, player: Player) -> Team | None:
         player_team = None
@@ -39,9 +41,18 @@ class MoneyDistributer(ABC):
                 most_point_teams.append(team)
         return most_point_teams
 
-    @abstractmethod
     def get_game_winners(self) -> list[Player]:
-        pass
+        most_point_teams = self.get_most_points_teams()
+        if len(most_point_teams) == 1:
+            winners = [player for team in most_point_teams for player in team.players]
+        else:
+            winners = [
+                player
+                for team in most_point_teams
+                if self.active_team != team
+                for player in team.players
+            ]
+        return winners
 
     @staticmethod
     def is_player_has_trump(player: Player, trump: Card) -> bool:
@@ -62,8 +73,36 @@ class MoneyDistributer(ABC):
                 return runners_count
         return runners_count
 
-    def count_game_runners(self, trumps: list[Card]):
-        pass
+    def count_game_runners(self, trumps: list[Card], minimum_runners: int) -> int:
+        for team in self.teams:
+            runners_count: int = self.count_team_runners(team=team, trumps=trumps)
+            if runners_count >= minimum_runners:
+                self.runners_amount = runners_count
+                return runners_count
+        self.runners_amount = 0
+        return 0
+
+    def basic_game_value_adds(self, game_value: int) -> int:
+        black_threshold = 120
+        schneider_threshold = 90
+
+        game_value += self.runners_amount * self.base_price
+        winners: list[Player] = self.get_game_winners()
+        winning_team = self.get_players_team(player=winners[0])
+
+        if winning_team.points > schneider_threshold or (
+            winning_team.points == schneider_threshold
+            and self.active_team != winning_team
+        ):
+            game_value += self.base_price
+
+        if winning_team.points == black_threshold:
+            game_value += self.base_price
+
+        for _ in range(self.amount_game_value_doublers):
+            game_value *= 2
+
+        return game_value
 
     @abstractmethod
     def calculate_game_value(self) -> int:
@@ -106,18 +145,22 @@ class RamschMoneyDistributer(MoneyDistributer):
         winners: list[Player] = []
         most_point_teams = self.get_most_points_teams()
         if len(most_point_teams) != 1:
-            for team in self.teams:
-                if team not in most_point_teams:
-                    for player in team.players:
-                        winners.append(player)
+            winners = [
+                player
+                for team in self.teams
+                for player in team.players
+                if team not in most_point_teams
+            ]
         else:
             if most_point_teams[0].points >= 91:
                 winners.append(most_point_teams[0].players[0])
             else:
-                for team in self.teams:
-                    if team not in most_point_teams:
-                        for player in team.players:
-                            winners.append(player)
+                winners = [
+                    player
+                    for team in self.teams
+                    for player in team.players
+                    if team not in most_point_teams
+                ]
         return winners
 
     def count_virgins(self) -> int:
@@ -159,55 +202,16 @@ class SauspielMoneyDistributer(MoneyDistributer):
             amount_game_value_doublers=amount_game_value_doublers,
         )
         self.active_team: Team = active_team
-        self.runners_amount: int = 0
 
-    def get_game_winners(self) -> list[Player]:
-        winners: list[Player] = []
-        most_point_teams = self.get_most_points_teams()
-        if len(most_point_teams) == 1:
-            for team in most_point_teams:
-                for player in team.players:
-                    winners.append(player)
-        else:
-            winner_teams = [
-                team for team in most_point_teams if self.active_team != team
-            ]
-            for team in winner_teams:
-                for player in team.players:
-                    winners.append(player)
-        return winners
-
-    def count_game_runners(self, trumps: list[Card]) -> int:
-        minimum_runners: int = 3
-        for team in self.teams:
-            runners_count: int = self.count_team_runners(team=team, trumps=trumps)
-            if runners_count >= minimum_runners:
-                self.runners_amount = runners_count
-                return runners_count
-        self.runners_amount = 0
-        return 0
+    def count_game_runners(self, trumps: list[Card], minimum_runners: int = 3) -> int:
+        return super().count_game_runners(
+            trumps=trumps, minimum_runners=minimum_runners
+        )
 
     def calculate_game_value(self) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
         game_value = 0
         game_value += self.call_price
-        game_value += self.runners_amount * self.base_price
-        winners: list[Player] = self.get_game_winners()
-        winning_team = self.get_players_team(player=winners[0])
-
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
-            and self.active_team != winning_team
-        ):
-            game_value += self.base_price
-
-        if winning_team.points == black_threshold:
-            game_value += self.base_price
-
-        for _ in range(self.amount_game_value_doublers):
-            game_value *= 2
-
+        game_value = self.basic_game_value_adds(game_value=game_value)
         return game_value
 
 
@@ -231,55 +235,16 @@ class WenzMoneyDistributer(MoneyDistributer):
             amount_game_value_doublers=amount_game_value_doublers,
         )
         self.active_team: Team = active_team
-        self.runners_amount: int = 0
 
-    def get_game_winners(self) -> list[Player]:
-        winners: list[Player] = []
-        most_point_teams = self.get_most_points_teams()
-        if len(most_point_teams) == 1:
-            for team in most_point_teams:
-                for player in team.players:
-                    winners.append(player)
-        else:
-            winner_teams = [
-                team for team in most_point_teams if self.active_team != team
-            ]
-            for team in winner_teams:
-                for player in team.players:
-                    winners.append(player)
-        return winners
-
-    def count_game_runners(self, trumps: list[Card]) -> int:
-        minimum_runners: int = 2
-        for team in self.teams:
-            runners_count: int = self.count_team_runners(team=team, trumps=trumps)
-            if runners_count >= minimum_runners:
-                self.runners_amount = runners_count
-                return runners_count
-        self.runners_amount = 0
-        return 0
+    def count_game_runners(self, trumps: list[Card], minimum_runners: int = 2) -> int:
+        return super().count_game_runners(
+            trumps=trumps, minimum_runners=minimum_runners
+        )
 
     def calculate_game_value(self) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
         game_value = 0
         game_value += self.alone_price
-        game_value += self.runners_amount * self.base_price
-        winners: list[Player] = self.get_game_winners()
-        winning_team = self.get_players_team(player=winners[0])
-
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
-            and self.active_team != winning_team
-        ):
-            game_value += self.base_price
-
-        if winning_team.points == black_threshold:
-            game_value += self.base_price
-
-        for _ in range(self.amount_game_value_doublers):
-            game_value *= 2
-
+        game_value = self.basic_game_value_adds(game_value=game_value)
         return game_value
 
 
@@ -303,53 +268,14 @@ class SoloMoneyDistributer(MoneyDistributer):
             amount_game_value_doublers=amount_game_value_doublers,
         )
         self.active_team: Team = active_team
-        self.runners_amount: int = 0
 
-    def get_game_winners(self) -> list[Player]:
-        winners: list[Player] = []
-        most_point_teams = self.get_most_points_teams()
-        if len(most_point_teams) == 1:
-            for team in most_point_teams:
-                for player in team.players:
-                    winners.append(player)
-        else:
-            winner_teams = [
-                team for team in most_point_teams if self.active_team != team
-            ]
-            for team in winner_teams:
-                for player in team.players:
-                    winners.append(player)
-        return winners
-
-    def count_game_runners(self, trumps: list[Card]) -> int:
-        minimum_runners: int = 3
-        for team in self.teams:
-            runners_count: int = self.count_team_runners(team=team, trumps=trumps)
-            if runners_count >= minimum_runners:
-                self.runners_amount = runners_count
-                return runners_count
-        self.runners_amount = 0
-        return 0
+    def count_game_runners(self, trumps: list[Card], minimum_runners: int = 3) -> int:
+        return super().count_game_runners(
+            trumps=trumps, minimum_runners=minimum_runners
+        )
 
     def calculate_game_value(self) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
         game_value = 0
         game_value += self.alone_price
-        game_value += self.runners_amount * self.base_price
-        winners: list[Player] = self.get_game_winners()
-        winning_team = self.get_players_team(player=winners[0])
-
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
-            and self.active_team != winning_team
-        ):
-            game_value += self.base_price
-
-        if winning_team.points == black_threshold:
-            game_value += self.base_price
-
-        for _ in range(self.amount_game_value_doublers):
-            game_value *= 2
-
+        game_value = self.basic_game_value_adds(game_value=game_value)
         return game_value
