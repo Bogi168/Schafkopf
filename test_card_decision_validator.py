@@ -96,7 +96,27 @@ def test_last_card_freedom(
     )
 
 
-def test_lead_card_color_obligation(
+def test_lead_freedom(
+    player, trumps, gruen_unter, eichel_ten, herz_seven, eichel_ober, gruen_eight
+):
+    validator = SoloCardDecisionValidator()
+    lead_card = None
+    player.player_cards = [eichel_ten, herz_seven, eichel_ober, gruen_eight]
+    assert validator.is_move_legal(
+        decision=eichel_ten, lead_card=lead_card, player=player, trumps=trumps
+    )
+    assert validator.is_move_legal(
+        decision=gruen_eight, lead_card=lead_card, player=player, trumps=trumps
+    )
+    assert validator.is_move_legal(
+        decision=herz_seven, lead_card=lead_card, player=player, trumps=trumps
+    )
+    assert validator.is_move_legal(
+        decision=eichel_ober, lead_card=lead_card, player=player, trumps=trumps
+    )
+
+
+def test_lead_color_obligation(
     player, trumps, eichel_ten, eichel_seven, schellen_seven, eichel_ober
 ):
     validator = SoloCardDecisionValidator()
@@ -111,6 +131,23 @@ def test_lead_card_color_obligation(
     )
     assert validator.is_move_legal(
         decision=eichel_seven, lead_card=lead_card, player=player, trumps=trumps
+    )
+
+
+def test_lead_color_freedom(
+    player, trumps, gruen_unter, eichel_ten, herz_seven, eichel_ober, gruen_eight
+):
+    validator = SoloCardDecisionValidator()
+    lead_card = gruen_eight
+    player.player_cards = [eichel_ten, herz_seven, eichel_ober]
+    assert validator.is_move_legal(
+        decision=eichel_ten, lead_card=lead_card, player=player, trumps=trumps
+    )
+    assert validator.is_move_legal(
+        decision=herz_seven, lead_card=lead_card, player=player, trumps=trumps
+    )
+    assert validator.is_move_legal(
+        decision=eichel_ober, lead_card=lead_card, player=player, trumps=trumps
     )
 
 
@@ -134,38 +171,24 @@ def test_lead_trump_obligation(
     )
 
 
-def test_lead_freedom(
-    player, trumps, gruen_unter, eichel_ten, herz_seven, eichel_ober, gruen_eight
+def test_lead_trump_freedom(
+    player,
+    trumps,
+    herz_seven,
+    eichel_sau,
+    eichel_ober,
+    gruen_eight,
+    schellen_seven,
 ):
     validator = SoloCardDecisionValidator()
-    lead_card = None
-    player.player_cards = [eichel_ten, herz_seven, eichel_ober, gruen_eight]
+    lead_card = herz_seven
+    player.player_cards = [schellen_seven, eichel_sau, gruen_eight]
     assert validator.is_move_legal(
-        decision=eichel_ten, lead_card=lead_card, player=player, trumps=trumps
+        decision=eichel_sau, lead_card=lead_card, player=player, trumps=trumps
     )
     assert validator.is_move_legal(
         decision=gruen_eight, lead_card=lead_card, player=player, trumps=trumps
     )
     assert validator.is_move_legal(
-        decision=herz_seven, lead_card=lead_card, player=player, trumps=trumps
-    )
-    assert validator.is_move_legal(
-        decision=eichel_ober, lead_card=lead_card, player=player, trumps=trumps
-    )
-
-
-def test_no_lead_color_freedom(
-    player, trumps, gruen_unter, eichel_ten, herz_seven, eichel_ober, gruen_eight
-):
-    validator = SoloCardDecisionValidator()
-    lead_card = gruen_eight
-    player.player_cards = [eichel_ten, herz_seven, eichel_ober]
-    assert validator.is_move_legal(
-        decision=eichel_ten, lead_card=lead_card, player=player, trumps=trumps
-    )
-    assert validator.is_move_legal(
-        decision=herz_seven, lead_card=lead_card, player=player, trumps=trumps
-    )
-    assert validator.is_move_legal(
-        decision=eichel_ober, lead_card=lead_card, player=player, trumps=trumps
+        decision=schellen_seven, lead_card=lead_card, player=player, trumps=trumps
     )

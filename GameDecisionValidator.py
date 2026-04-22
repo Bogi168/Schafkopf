@@ -1,16 +1,9 @@
-from Renderer import Renderer
 from Cards import Color, Type, Card
-from Player import Player
 from Game import Game, Sauspiel, Wenz, Solo
-from text import (
-    error_message,
-    prompt_choose_game,
-)
 
 
 class GameDecisionValidator:
-    def __init__(self, renderer: Renderer):
-        self.renderer = renderer
+    def __init__(self):
         self.game_mapping = {
             "1": Sauspiel,
             "2": Wenz,
@@ -27,11 +20,6 @@ class GameDecisionValidator:
             "3": Color.HERZ,
             "4": Color.SCHELLEN,
         }
-
-    @staticmethod
-    def is_player_quits(quitting_possible: bool, decision: str) -> bool:
-        quitting_code_words = ["QUIT", "Q"]
-        return quitting_possible and decision in quitting_code_words
 
     @staticmethod
     def count_color_cards(
@@ -89,7 +77,7 @@ class GameDecisionValidator:
 
         return eichel_count + gruen_count + schellen_count != 0
 
-    def get_available_game_decisions(
+    def get_available_game_modes(
         self,
         playable_games: list[type[Game]],
         prev_game: Game | None,
@@ -101,25 +89,25 @@ class GameDecisionValidator:
             prev_game_rank = prev_game.rank
 
         if prev_game_rank != 0:
-            available_games: list[type[Game]] = [
+            available_game_modes: list[type[Game]] = [
                 game for game in playable_games if game.rank > prev_game_rank
             ]
         else:
             color_available: bool = self.is_sauspiel_playable(player_cards=player_cards)
             if color_available:
-                available_games: list[type[Game]] = [game for game in playable_games]
+                available_game_modes: list[type[Game]] = [
+                    game for game in playable_games
+                ]
             else:
-                available_games: list[type[Game]] = [
+                available_game_modes: list[type[Game]] = [
                     game for game in playable_games if game.rank != Sauspiel.rank
                 ]
-        return available_games
+        return available_game_modes
 
-    def choose_valid_game_mode(
-        self, player: Player, prev_game: Game | None, quitting_possible: bool = False
-    ) -> str:
-        player_name = player.player_name
-        player_cards = player.player_cards
-        available_decisions = self.get_available_game_decisions(
+    def get_valid_game_mode_decisions(
+        self, prev_game: Game | None, player_cards: list[Card]
+    ) -> list[str]:
+        available_game_modes = self.get_available_game_modes(
             playable_games=[game for game in self.game_mapping.values()],
             prev_game=prev_game,
             player_cards=player_cards,
@@ -127,20 +115,9 @@ class GameDecisionValidator:
         valid_inputs = [
             key
             for key, game in self.game_mapping.items()
-            if game in available_decisions
+            if game in available_game_modes
         ]
-        decision = self.renderer.ask_with_validation(
-            prompt=prompt_choose_game(
-                player_name=player_name, quitting_possible=quitting_possible
-            ),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip().upper(),
-            validator=lambda x: x in valid_inputs
-            or self.is_player_quits(quitting_possible=quitting_possible, decision=x),
-        )
-        if decision == "QUIT":
-            decision = "Q"
-        return decision
+        return valid_inputs
 
     def get_available_sau_color_decisions(
         self, player_cards: list[Card], sau_colors: list[Color]

@@ -16,6 +16,7 @@ from text import (
     words_of_thanks,
     prompt_choose_solo_color,
     prompt_choose_sau_color,
+    prompt_choose_game,
 )
 
 
@@ -31,7 +32,7 @@ class Schafkopf:
 
         self.cards = Cards()
         self.renderer = renderer
-        self.game_decision_validator: GameDecisionValidator | None = None
+        self.game_decision_validator: GameDecisionValidator = GameDecisionValidator()
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
@@ -134,6 +135,11 @@ class Schafkopf:
                 key=card_power_calculator.get_card_power, reverse=True
             )
 
+    @staticmethod
+    def is_player_quits(quitting_possible: bool, decision: str) -> bool:
+        quitting_code_words = ["QUIT", "Q"]
+        return quitting_possible and decision in quitting_code_words
+
     def get_sau_color(self, player_name: str, player_cards: list[Card]) -> Color:
         sau_color_decision = self.renderer.ask_with_validation(
             prompt=prompt_choose_sau_color(player_name=player_name),
@@ -205,6 +211,29 @@ class Schafkopf:
                 )
         return game
 
+    def choose_game_mode(
+        self, player: Player, prev_game: Game | None, quitting_possible: bool = False
+    ) -> str:
+        player_name = player.player_name
+        player_cards = player.player_cards
+        valid_game_mode_decisions = (
+            self.game_decision_validator.get_valid_game_mode_decisions(
+                prev_game=prev_game, player_cards=player_cards
+            )
+        )
+        decision = self.renderer.ask_with_validation(
+            prompt=prompt_choose_game(
+                player_name=player_name, quitting_possible=quitting_possible
+            ),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip().upper(),
+            validator=lambda x: x in valid_game_mode_decisions
+            or self.is_player_quits(quitting_possible=quitting_possible, decision=x),
+        )
+        if decision == "QUIT":
+            decision = "Q"
+        return decision
+
     def players_choose_game(self) -> Game:
         game: None | Game = None
         if len(self.game_choosers) == 0:
@@ -219,19 +248,15 @@ class Schafkopf:
         else:
             for player in self.game_choosers:
                 if game is None:
-                    decision = self.game_decision_validator.choose_valid_game_mode(
-                        player=player, prev_game=game
-                    )
+                    decision = self.choose_game_mode(player=player, prev_game=game)
                 elif game.rank == Solo.rank:
                     break
                 elif game.rank > Sauspiel.rank:
-                    decision = self.game_decision_validator.choose_valid_game_mode(
+                    decision = self.choose_game_mode(
                         player=player, prev_game=game, quitting_possible=True
                     )
                 else:
-                    decision = self.game_decision_validator.choose_valid_game_mode(
-                        player=player, prev_game=game
-                    )
+                    decision = self.choose_game_mode(player=player, prev_game=game)
                 game = self.get_game(decision=decision, player=player, prev_game=game)
         return game
 
@@ -260,9 +285,6 @@ class Schafkopf:
                     )
                 )
                 self._ask_player_game_decision(player=player)
-            self.game_decision_validator = GameDecisionValidator(
-                renderer=self.renderer,
-            )
             game = self.players_choose_game()
             assert game is not None
             game.play_game()
