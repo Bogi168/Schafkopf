@@ -39,7 +39,7 @@ class GameDecisionValidator:
         )
 
     def is_sauspiel_playable(self, player_cards: list[Card]) -> bool:
-        colors = (Color.EICHEL, Color.GRUEN, Color.SCHELLEN)
+        colors = [color for color in self.sau_color_mapping.values()]
         eichel_count = 0
         gruen_count = 0
         schellen_count = 0
