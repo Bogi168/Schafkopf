@@ -1,9 +1,9 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-from Cards import Cards, Card, Type, Color
-from Player import Player, Team
-from Renderer import Renderer
-
+from Player import Team
+from Cards import Card, Type, Color
 from CardPowerCalculator import (
     CardPowerCalculator,
     RamschCardPowerCalculator,
@@ -36,6 +36,11 @@ from text import (
     tell_winners,
     tell_player_money,
 )
+
+if TYPE_CHECKING:
+    from Player import Player
+    from Renderer import Renderer
+    from Cards import Cards
 
 
 class Game(ABC):
@@ -93,7 +98,6 @@ class Game(ABC):
     def play_round(self) -> None:
         for player in self.players:
             player.card_decision(
-                renderer=self.renderer,
                 played_cards=self.played_cards,
                 move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
                     player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card

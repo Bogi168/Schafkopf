@@ -5,11 +5,12 @@ from CardDecisionValidator import (
 )
 from Player import Player
 from Cards import Card, Color, Type
+from Renderer import ConsoleRenderer
 
 
 @pytest.fixture
 def player():
-    return Player(player_name="Testplayer")
+    return Player(player_name="Testplayer", renderer=ConsoleRenderer(), game_mapping={})
 
 
 @pytest.fixture

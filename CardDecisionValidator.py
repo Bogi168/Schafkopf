@@ -1,5 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from Cards import Type, Color, Card
-from Player import Player
+
+if TYPE_CHECKING:
+    from Player import Player
 
 
 class CardDecisionValidator:

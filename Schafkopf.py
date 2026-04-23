@@ -1,23 +1,22 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import random
 from Renderer import Renderer
-from Cards import Cards, Card, Color
+from Cards import Cards
 from Player import Player, Bot
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from CardPowerCalculator import SauspielCardPowerCalculator
-from GameDecisionValidator import GameDecisionValidator
 from text import (
     error_message,
     prompt_games_amount,
     prompt_player_name,
     prompt_play_again_message,
-    prompt_ask_to_double_game_value,
-    prompt_ask_to_choose_game,
     show_player_cards,
     words_of_thanks,
-    prompt_choose_solo_color,
-    prompt_choose_sau_color,
-    prompt_choose_game,
 )
+
+if TYPE_CHECKING:
+    from Cards import Card
 
 
 class Schafkopf:
@@ -32,10 +31,15 @@ class Schafkopf:
 
         self.cards = Cards()
         self.renderer = renderer
-        self.game_decision_validator: GameDecisionValidator = GameDecisionValidator()
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
+
+        self.game_mapping = {
+            "1": Sauspiel,
+            "2": Wenz,
+            "3": Solo,
+        }
 
     def _create_players(self) -> list[Player]:
         player_name = self.renderer.ask_with_validation(
@@ -44,30 +48,22 @@ class Schafkopf:
             preprocess=lambda x: x.strip().capitalize(),
             validator=lambda x: x != "",
         )
-        players = [Player(player_name=player_name)]
+        players = [
+            Player(
+                player_name=player_name,
+                renderer=self.renderer,
+                game_mapping=self.game_mapping,
+            )
+        ]
         for i in range(3):
-            players.append(Bot(f"Bot {i + 1}"))
+            players.append(
+                Bot(
+                    bot_name=f"Bot {i + 1}",
+                    renderer=self.renderer,
+                    game_mapping=self.game_mapping,
+                )
+            )
         return players
-
-    def ask_player_double_game_value(self, player_name: str) -> None:
-        decision = self.renderer.ask_with_validation(
-            prompt=prompt_ask_to_double_game_value(player_name=player_name),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip().upper(),
-            validator=lambda x: x in ("Y", "YES", "N", "NO"),
-        )
-        if decision in ("Y", "YES"):
-            self.amount_game_value_doublers += 1
-
-    def _ask_player_game_decision(self, player: Player) -> None:
-        decision = self.renderer.ask_with_validation(
-            prompt=prompt_ask_to_choose_game(player_name=player.player_name),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip().upper(),
-            validator=lambda x: x in ("YES", "Y", "NO", "N"),
-        )
-        if decision in ("YES", "Y"):
-            self.game_choosers.append(player)
 
     @staticmethod
     def choose_starter(players: list[Player]) -> Player:
@@ -111,7 +107,9 @@ class Schafkopf:
                     player_name=player.player_name, player_cards=player.player_cards
                 )
             )
-            self.ask_player_double_game_value(player_name=player.player_name)
+            self.amount_game_value_doublers = player.ask_double_game_value(
+                amount_game_value_doublers=self.amount_game_value_doublers,
+            )
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
         self.sort_player_hands()
 
@@ -129,37 +127,6 @@ class Schafkopf:
                 key=card_power_calculator.get_card_power, reverse=True
             )
 
-    @staticmethod
-    def is_player_quits(quitting_possible: bool, decision: str) -> bool:
-        quitting_code_words = ["QUIT", "Q"]
-        return quitting_possible and decision in quitting_code_words
-
-    def get_sau_color(self, player_name: str, player_cards: list[Card]) -> Color:
-        sau_color_decision = self.renderer.ask_with_validation(
-            prompt=prompt_choose_sau_color(player_name=player_name),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip(),
-            validator=lambda x: x
-            in self.game_decision_validator.get_valid_call_sau_colors(
-                player_cards=player_cards
-            ),
-        )
-        sau_color = self.game_decision_validator.sau_color_mapping[sau_color_decision]
-        return sau_color
-
-    def get_trump_color(self, player_name) -> Color:
-        trump_color_decision = self.renderer.ask_with_validation(
-            prompt=prompt_choose_solo_color(player_name=player_name),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip(),
-            validator=lambda x: x
-            in self.game_decision_validator.get_valid_solo_trump_colors(),
-        )
-        trump_color = self.game_decision_validator.solo_trump_color_mapping[
-            trump_color_decision
-        ]
-        return trump_color
-
     def get_game(self, decision: str, player: Player, prev_game: Game | None) -> Game:
         game: Game | None = None
         if decision != "Q":
@@ -168,9 +135,7 @@ class Schafkopf:
             case "Q":
                 return prev_game
             case "1":
-                sau_color = self.get_sau_color(
-                    player_name=player.player_name, player_cards=player.player_cards
-                )
+                sau_color = player.get_sau_color()
                 game = Sauspiel(
                     cards=self.cards,
                     renderer=self.renderer,
@@ -192,7 +157,7 @@ class Schafkopf:
                     amount_game_value_doublers=self.amount_game_value_doublers,
                 )
             case "3":
-                trump_color = self.get_trump_color(player_name=player.player_name)
+                trump_color = player.get_trump_color()
                 game = Solo(
                     trump_color=trump_color,
                     cards=self.cards,
@@ -204,29 +169,6 @@ class Schafkopf:
                     amount_game_value_doublers=self.amount_game_value_doublers,
                 )
         return game
-
-    def choose_game_mode(
-        self, player: Player, prev_game: Game | None, quitting_possible: bool = False
-    ) -> str:
-        player_name = player.player_name
-        player_cards = player.player_cards
-        valid_game_mode_decisions = (
-            self.game_decision_validator.get_valid_game_mode_decisions(
-                prev_game=prev_game, player_cards=player_cards
-            )
-        )
-        decision = self.renderer.ask_with_validation(
-            prompt=prompt_choose_game(
-                player_name=player_name, quitting_possible=quitting_possible
-            ),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip().upper(),
-            validator=lambda x: x in valid_game_mode_decisions
-            or self.is_player_quits(quitting_possible=quitting_possible, decision=x),
-        )
-        if decision == "QUIT":
-            decision = "Q"
-        return decision
 
     def players_choose_game(self) -> Game:
         game: None | Game = None
@@ -242,15 +184,20 @@ class Schafkopf:
         else:
             for player in self.game_choosers:
                 if game is None:
-                    decision = self.choose_game_mode(player=player, prev_game=game)
+                    decision = player.choose_game_mode(
+                        prev_game=game,
+                    )
                 elif game.rank == Solo.rank:
                     break
                 elif game.rank > Sauspiel.rank:
-                    decision = self.choose_game_mode(
-                        player=player, prev_game=game, quitting_possible=True
+                    decision = player.choose_game_mode(
+                        prev_game=game,
+                        quitting_possible=True,
                     )
                 else:
-                    decision = self.choose_game_mode(player=player, prev_game=game)
+                    decision = player.choose_game_mode(
+                        prev_game=game,
+                    )
                 game = self.get_game(decision=decision, player=player, prev_game=game)
         return game
 
@@ -278,7 +225,9 @@ class Schafkopf:
                         player_name=player.player_name, player_cards=player.player_cards
                     )
                 )
-                self._ask_player_game_decision(player=player)
+                self.game_choosers = player.ask_choose_decision(
+                    game_choosers=self.game_choosers
+                )
             game = self.players_choose_game()
             assert game is not None
             game.play_game()

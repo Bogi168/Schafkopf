@@ -1,14 +1,15 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from Cards import Color, Type, Card
-from Game import Game, Sauspiel, Wenz, Solo
+
+if TYPE_CHECKING:
+    from Game import Game
 
 
 class GameDecisionValidator:
-    def __init__(self):
-        self.game_mapping = {
-            "1": Sauspiel,
-            "2": Wenz,
-            "3": Solo,
-        }
+    def __init__(self, game_mapping: dict[str, type[Game]]):
+        self.game_mapping = game_mapping
         self.sau_color_mapping = {
             "1": Color.EICHEL,
             "2": Color.GRUEN,
@@ -99,8 +100,9 @@ class GameDecisionValidator:
                     game for game in playable_games
                 ]
             else:
+                sau_spiel_rank = 2
                 available_game_modes: list[type[Game]] = [
-                    game for game in playable_games if game.rank != Sauspiel.rank
+                    game for game in playable_games if game.rank != sau_spiel_rank
                 ]
         return available_game_modes
 

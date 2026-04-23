@@ -1,7 +1,10 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from Cards import Card
-from Player import Team, Player
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from Cards import Card
+    from Player import Team, Player
 
 class MoneyDistributer(ABC):
     def __init__(
