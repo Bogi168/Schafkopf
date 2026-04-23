@@ -1,4 +1,4 @@
-from Cards import Color, Type, Card
+from card_classes.Cards import Color, Type, Card
 
 
 class CardPowerCalculator:

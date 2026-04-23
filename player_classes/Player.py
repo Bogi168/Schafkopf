@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Callable, TYPE_CHECKING
-from GameDecisionValidator import GameDecisionValidator
-from Cards import Card, Color
-from text import (
+from input_validators.GameDecisionValidator import GameDecisionValidator
+from card_classes.Cards import Card, Color
+from system.text import (
     error_message,
     prompt_ask_player_card_decision,
     prompt_ask_to_double_game_value,
@@ -16,8 +16,8 @@ from text import (
 import random
 
 if TYPE_CHECKING:
-    from Game import Game
-    from Renderer import Renderer
+    from game_classes.Game import Game
+    from system.Renderer import Renderer
 
 
 class Player:

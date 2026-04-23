@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from Cards import Color, Type, Card
-from Game import Sauspiel
+from card_classes.Cards import Color, Type, Card
+from game_classes.Game import Sauspiel
 
 if TYPE_CHECKING:
-    from Game import Game
+    from game_classes.Game import Game
 
 
 class GameDecisionValidator:

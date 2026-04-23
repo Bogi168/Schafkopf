@@ -1,14 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import random
-from Renderer import Renderer
-from Cards import Cards
-from Player import Player, Bot
+from system.Renderer import Renderer
+from card_classes.Cards import Cards
+from player_classes.Player import Player, Bot
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
-from GameDecisionValidator import GameDecisionValidator
-from CardPowerCalculator import SauspielCardPowerCalculator
-from custom_exceptions import GamemodeIsNotImplemented
-from text import (
+from input_validators.GameDecisionValidator import GameDecisionValidator
+from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
+from system.custom_exceptions import GamemodeIsNotImplemented
+from system.text import (
     error_message,
     prompt_games_amount,
     prompt_player_name,
@@ -18,7 +18,7 @@ from text import (
 )
 
 if TYPE_CHECKING:
-    from Cards import Card
+    from card_classes.Cards import Card
 
 
 class Schafkopf:

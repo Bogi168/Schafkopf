@@ -1,9 +1,9 @@
 import pytest
-from CardPowerCalculator import (
+from card_classes.CardPowerCalculator import (
     SauspielCardPowerCalculator,
     WenzCardPowerCalculator,
 )
-from Cards import Card, Color, Type
+from card_classes.Cards import Card, Color, Type
 
 
 @pytest.fixture

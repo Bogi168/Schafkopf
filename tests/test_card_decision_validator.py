@@ -1,12 +1,12 @@
 import pytest
-from CardDecisionValidator import (
+from input_validators.CardDecisionValidator import (
     SoloCardDecisionValidator,
     SauspielCardDecisionValidator,
 )
-from GameDecisionValidator import GameDecisionValidator
-from Player import Player
-from Cards import Card, Color, Type
-from Renderer import ConsoleRenderer
+from input_validators.GameDecisionValidator import GameDecisionValidator
+from player_classes.Player import Player
+from card_classes.Cards import Card, Color, Type
+from system.Renderer import ConsoleRenderer
 
 
 @pytest.fixture

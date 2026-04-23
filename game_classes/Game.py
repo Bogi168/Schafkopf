@@ -2,16 +2,16 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from Team import Team
-from Cards import Card, Type, Color
-from CardPowerCalculator import (
+from player_classes.Team import Team
+from card_classes.Cards import Card, Type, Color
+from card_classes.CardPowerCalculator import (
     CardPowerCalculator,
     RamschCardPowerCalculator,
     SauspielCardPowerCalculator,
     WenzCardPowerCalculator,
     SoloCardPowerCalculator,
 )
-from CardDecisionValidator import (
+from input_validators.CardDecisionValidator import (
     CardDecisionValidator,
     RamschCardDecisionValidator,
     SauspielCardDecisionValidator,
@@ -19,7 +19,7 @@ from CardDecisionValidator import (
     SoloCardDecisionValidator,
 )
 
-from MoneyDistributer import (
+from money_handling.MoneyDistributer import (
     MoneyDistributer,
     RamschMoneyDistributer,
     SauspielMoneyDistributer,
@@ -27,7 +27,7 @@ from MoneyDistributer import (
     SoloMoneyDistributer,
 )
 
-from text import (
+from system.text import (
     show_played_cards,
     show_collector_of_cards,
     tell_most_point_teams,
@@ -38,9 +38,9 @@ from text import (
 )
 
 if TYPE_CHECKING:
-    from Player import Player
-    from Renderer import Renderer
-    from Cards import Cards
+    from player_classes.Player import Player
+    from system.Renderer import Renderer
+    from card_classes.Cards import Cards
 
 
 class Game(ABC):
@@ -164,7 +164,7 @@ class Ramsch(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=RamschCardPowerCalculator(),
-            players=players
+            players=players,
         )
         self.alone_price = alone_price
         self.amount_game_value_doublers = amount_game_value_doublers
@@ -219,7 +219,7 @@ class Sauspiel(Game):
             cards=cards,
             renderer=renderer,
             card_power_calculator=SauspielCardPowerCalculator(),
-            players=players
+            players=players,
         )
         self.game_chooser = game_chooser
         self.base_price = base_price

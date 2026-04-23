@@ -2,9 +2,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from Cards import Card
-    from Player import Player
-    from Team import Team
+    from card_classes.Cards import Card
+    from player_classes.Player import Player
+    from player_classes.Team import Team
 
 
 # regular text

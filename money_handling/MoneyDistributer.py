@@ -1,12 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
-from custom_exceptions import PlayerHasNoTeamError
+from system.custom_exceptions import PlayerHasNoTeamError
 
 if TYPE_CHECKING:
-    from Cards import Card
-    from Team import Team
-    from Player import Player
+    from card_classes.Cards import Card
+    from player_classes.Team import Team
+    from player_classes.Player import Player
 
 
 class MoneyDistributer(ABC):
