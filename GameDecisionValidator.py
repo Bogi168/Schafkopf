@@ -102,16 +102,13 @@ class GameDecisionValidator:
                 if self.game_rank_mapping[game] > prev_game_rank
             ]
         else:
-            color_available: bool = self.is_sauspiel_playable(player_cards=player_cards)
-            if color_available:
+            if self.is_sauspiel_playable(player_cards=player_cards):
                 available_game_modes: list[type[Game]] = [
                     game for game in playable_games
                 ]
             else:
                 available_game_modes: list[type[Game]] = [
-                    game
-                    for game in playable_games
-                    if self.game_rank_mapping[game] != self.game_rank_mapping[Sauspiel]
+                    game for game in playable_games if game != Sauspiel
                 ]
         return available_game_modes
 

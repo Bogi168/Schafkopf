@@ -7,6 +7,7 @@ from Player import Player, Bot
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from GameDecisionValidator import GameDecisionValidator
 from CardPowerCalculator import SauspielCardPowerCalculator
+from custom_exceptions import GamemodeIsNotImplemented
 from text import (
     error_message,
     prompt_games_amount,
@@ -121,6 +122,7 @@ class Schafkopf:
         self.sort_player_hands()
 
     def prepare_players(self):
+        assert self.starter is not None
         self.players = self.get_sorted_players(
             players=self.players, starter=self.starter
         )
@@ -135,6 +137,7 @@ class Schafkopf:
             )
 
     def get_game(self, game_mode: type[Game], player: Player) -> Game:
+        assert self.game_chooser is not None
         if game_mode is Sauspiel:
             sau_color = player.get_sau_color()
             return Sauspiel(
@@ -173,7 +176,7 @@ class Schafkopf:
             )
 
         else:
-            raise NotImplementedError
+            raise GamemodeIsNotImplemented(f"{game_mode} is not implemented yet")
 
     def players_choose_game(self) -> Game:
         game_mode: type[Game] | None = None
@@ -183,7 +186,6 @@ class Schafkopf:
                 cards=self.cards,
                 renderer=self.renderer,
                 players=self.players,
-                game_chooser=self.game_chooser,
                 alone_price=self.alone_price,
                 amount_game_value_doublers=self.amount_game_value_doublers,
             )
@@ -193,15 +195,18 @@ class Schafkopf:
                     decision = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
-                    game_mode = self.game_mapping[decision]
+                    game_mode: type[Game] = self.game_mapping[decision]
                     self.game_chooser = player
-                    game = self.get_game(game_mode=game_mode, player=player)
+                    game: Game = self.get_game(game_mode=game_mode, player=player)
 
                 elif game_mode == Solo:
+                    assert game is not None
                     return game
 
                 elif (
-                    self.game_rank_mapping[game_mode] > self.game_rank_mapping[Sauspiel]
+                    game_mode is not None
+                    and self.game_rank_mapping[game_mode]
+                    > self.game_rank_mapping[Sauspiel]
                 ):
                     decision = player.choose_game_mode(
                         prev_game_mode=game_mode,
@@ -210,18 +215,18 @@ class Schafkopf:
                     if decision == "Q":
                         continue
                     else:
-                        game_mode = self.game_mapping[decision]
+                        game_mode: type[Game] = self.game_mapping[decision]
                         self.game_chooser = player
-                        game = self.get_game(game_mode=game_mode, player=player)
+                        game: Game = self.get_game(game_mode=game_mode, player=player)
 
                 else:
                     decision = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
-                    game_mode = self.game_mapping[decision]
+                    game_mode: type[Game] = self.game_mapping[decision]
                     self.game_chooser = player
-                    game = self.get_game(game_mode=game_mode, player=player)
-
+                    game: Game = self.get_game(game_mode=game_mode, player=player)
+        assert game is not None
         return game
 
     def get_new_starter(self, prev_starter_index: int) -> Player:
@@ -254,6 +259,7 @@ class Schafkopf:
             game = self.players_choose_game()
             assert game is not None
             game.play_game()
+            assert self.starter is not None
             self.starter = self.get_new_starter(
                 prev_starter_index=self.players.index(self.starter)
             )

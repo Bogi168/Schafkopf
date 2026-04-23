@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
+from custom_exceptions import PlayerHasNoTeamError
 
 if TYPE_CHECKING:
     from Cards import Card
@@ -27,12 +28,12 @@ class MoneyDistributer(ABC):
         self.amount_game_value_doublers: int = amount_game_value_doublers
         self.runners_amount: int = 0
 
-    def get_players_team(self, player: Player) -> Team | None:
-        player_team = None
+    def get_players_team(self, player: Player) -> Team:
         for team in self.teams:
             if player in team.players:
-                player_team = team
-        return player_team
+                return team
+        else:
+            raise PlayerHasNoTeamError(f"{player} has no team!")
 
     def get_most_points_teams(self) -> list[Team]:
         most_point_teams: list[Team] = []
@@ -93,7 +94,7 @@ class MoneyDistributer(ABC):
 
         game_value += self.runners_amount * self.base_price
         winners: list[Player] = self.get_game_winners()
-        winning_team = self.get_players_team(player=winners[0])
+        winning_team: Team = self.get_players_team(player=winners[0])
 
         if winning_team.points > schneider_threshold or (
             winning_team.points == schneider_threshold

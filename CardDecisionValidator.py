@@ -131,10 +131,10 @@ class RamschCardDecisionValidator(CardDecisionValidator):
 
 
 class SauspielCardDecisionValidator(CardDecisionValidator):
-    def __init__(self, call_sau: Card | None) -> None:
+    def __init__(self, call_sau: Card) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
-        self.call_sau = call_sau
+        self.call_sau: Card = call_sau
 
     def is_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
         for card in player_cards:

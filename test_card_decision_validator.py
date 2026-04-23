@@ -3,6 +3,7 @@ from CardDecisionValidator import (
     SoloCardDecisionValidator,
     SauspielCardDecisionValidator,
 )
+from GameDecisionValidator import GameDecisionValidator
 from Player import Player
 from Cards import Card, Color, Type
 from Renderer import ConsoleRenderer
@@ -10,7 +11,13 @@ from Renderer import ConsoleRenderer
 
 @pytest.fixture
 def player():
-    return Player(player_name="Testplayer", renderer=ConsoleRenderer(), game_mapping={})
+    return Player(
+        player_name="Testplayer",
+        renderer=ConsoleRenderer(),
+        game_decision_validator=GameDecisionValidator(
+            game_mapping={}, game_rank_mapping={}
+        ),
+    )
 
 
 @pytest.fixture
