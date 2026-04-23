@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
 from player_classes.Team import Team
 from card_classes.Cards import Card, Type, Color
 from card_classes.CardPowerCalculator import (
@@ -56,10 +57,14 @@ class Game(ABC):
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
         self.card_decision_validator: CardDecisionValidator | None = None
         self.money_distributer: MoneyDistributer | None = None
+        self.winners_selector: WinnersSelector | None = None
         self.players: list[Player] = players
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
         self.trumps: list[Card] = []
+        self.active_team: Team | None = None
+        self.minimum_runners: int = 0
+        self.runners_amount: int = 0
 
     @property
     def lead_card(self) -> Card | None:
@@ -80,6 +85,9 @@ class Game(ABC):
     def create_card_decision_validator(self) -> CardDecisionValidator:
         pass
 
+    def create_winners_selector(self) -> WinnersSelector:
+        return WinnersSelector(teams=self.teams, active_team=self.active_team)
+
     @abstractmethod
     def create_money_distributer(self) -> MoneyDistributer:
         pass
@@ -89,6 +97,32 @@ class Game(ABC):
             player.player_cards.sort(
                 key=self.card_power_calculator.get_card_power, reverse=True
             )
+
+    @staticmethod
+    def is_player_has_trump(player: Player, trump: Card) -> bool:
+        return any(card == trump for card in player.player_cards)
+
+    def is_team_has_trump(self, team_players: list[Player], trump: Card) -> bool:
+        return any(
+            self.is_player_has_trump(player=player, trump=trump)
+            for player in team_players
+        )
+
+    def count_team_runners(self, team: Team, trumps: list[Card]) -> int:
+        runners_count = 0
+        for trump in trumps:
+            if self.is_team_has_trump(team_players=team.players, trump=trump):
+                runners_count += 1
+            else:
+                return runners_count
+        return runners_count
+
+    def count_game_runners(self, trumps: list[Card]) -> int:
+        for team in self.teams:
+            runners_count: int = self.count_team_runners(team=team, trumps=trumps)
+            if runners_count >= self.minimum_runners:
+                return runners_count
+        return 0
 
     def play_round(self) -> None:
         for player in self.players:
@@ -119,9 +153,10 @@ class Game(ABC):
         self.played_cards.clear()
 
     def handle_winners(self):
-        assert self.money_distributer is not None
-        winners = self.money_distributer.get_game_winners()
-        most_point_teams = self.money_distributer.get_most_points_teams()
+        self.winners_selector: WinnersSelector = self.create_winners_selector()
+        assert self.winners_selector is not None
+        winners = self.winners_selector.get_game_winners()
+        most_point_teams = self.winners_selector.get_most_points_teams()
         self.renderer.render(
             message=tell_most_point_teams(most_point_teams=most_point_teams)
         )
@@ -134,6 +169,8 @@ class Game(ABC):
                     team_name=team.team_name, players=team.players
                 )
             )
+        self.money_distributer: MoneyDistributer = self.create_money_distributer()
+        assert self.money_distributer is not None
         game_value = self.money_distributer.calculate_game_value()
         self.money_distributer.distribute_money(game_value=game_value, winners=winners)
         self.renderer.render(message=tell_winners(winners=winners))
@@ -145,6 +182,9 @@ class Game(ABC):
             )
 
     def play_game(self) -> None:
+        self.sort_player_hands()
+        self.create_teams()
+        self.runners_amount = self.count_game_runners(trumps=self.trumps)
         self.card_decision_validator = self.create_card_decision_validator()
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round()
@@ -187,20 +227,19 @@ class Ramsch(Game):
         card_decision_validator = RamschCardDecisionValidator()
         return card_decision_validator
 
+    def create_winners_selector(self) -> WinnersSelector:
+        return RamschWinnersSelector(teams=self.teams)
+
     def create_money_distributer(self) -> MoneyDistributer:
+        assert self.winners_selector is not None
         money_distributer = RamschMoneyDistributer(
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
+            winners=self.winners_selector.get_game_winners(),
         )
         return money_distributer
-
-    def play_game(self) -> None:
-        self.sort_player_hands()
-        self.create_teams()
-        self.money_distributer: MoneyDistributer = self.create_money_distributer()
-        super().play_game()
 
 
 class Sauspiel(Game):
@@ -234,7 +273,7 @@ class Sauspiel(Game):
         ]
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
-        self.active_team: Team | None = None
+        self.minimum_runners: int = 3
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
@@ -257,6 +296,7 @@ class Sauspiel(Game):
 
     def create_money_distributer(self) -> MoneyDistributer:
         assert self.active_team is not None
+        assert self.winners_selector is not None
         money_distributer = SauspielMoneyDistributer(
             base_price=self.base_price,
             call_price=self.call_price,
@@ -264,15 +304,10 @@ class Sauspiel(Game):
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
+            winners=self.winners_selector.get_game_winners(),
+            runners_amount=self.runners_amount,
         )
         return money_distributer
-
-    def play_game(self) -> None:
-        self.sort_player_hands()
-        self.create_teams()
-        self.money_distributer: MoneyDistributer = self.create_money_distributer()
-        self.money_distributer.count_game_runners(trumps=self.trumps)
-        super().play_game()
 
 
 class Wenz(Game):
@@ -301,7 +336,7 @@ class Wenz(Game):
         self.alone_price = alone_price
         self.base_price = base_price
         self.amount_game_value_doublers = amount_game_value_doublers
-        self.active_team: Team | None = None
+        self.minimum_runners: int = 2
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
@@ -320,6 +355,7 @@ class Wenz(Game):
 
     def create_money_distributer(self) -> MoneyDistributer:
         assert self.active_team is not None
+        assert self.winners_selector is not None
         money_distributer = WenzMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
@@ -327,15 +363,10 @@ class Wenz(Game):
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
+            winners=self.winners_selector.get_game_winners(),
+            runners_amount=self.runners_amount,
         )
         return money_distributer
-
-    def play_game(self) -> None:
-        self.sort_player_hands()
-        self.create_teams()
-        self.money_distributer: MoneyDistributer = self.create_money_distributer()
-        self.money_distributer.count_game_runners(trumps=self.trumps)
-        super().play_game()
 
 
 class Solo(Game):
@@ -368,7 +399,7 @@ class Solo(Game):
         self.alone_price = alone_price
         self.base_price = base_price
         self.amount_game_value_doublers = amount_game_value_doublers
-        self.active_team: Team | None = None
+        self.minimum_runners: int = 3
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
@@ -387,6 +418,7 @@ class Solo(Game):
 
     def create_money_distributer(self) -> MoneyDistributer:
         assert self.active_team is not None
+        assert self.winners_selector is not None
         money_distributer = SoloMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
@@ -394,12 +426,7 @@ class Solo(Game):
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
+            winners=self.winners_selector.get_game_winners(),
+            runners_amount=self.runners_amount,
         )
         return money_distributer
-
-    def play_game(self) -> None:
-        self.sort_player_hands()
-        self.create_teams()
-        self.money_distributer: MoneyDistributer = self.create_money_distributer()
-        self.money_distributer.count_game_runners(trumps=self.trumps)
-        super().play_game()

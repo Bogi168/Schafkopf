@@ -4,7 +4,7 @@ import random
 from system.Renderer import Renderer
 from card_classes.Cards import Cards
 from player_classes.Player import Player, Bot
-from Game import Game, Sauspiel, Wenz, Solo, Ramsch
+from game_classes.Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
 from system.custom_exceptions import GamemodeIsNotImplemented
