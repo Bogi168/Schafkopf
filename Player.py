@@ -25,9 +25,9 @@ class Player:
         return sum(card.card_type.points for card in self.collected_cards)
 
     def is_decision_valid_number(self, index_decision: str) -> bool:
-        return index_decision in ("1", "2", "3", "4", "5", "6", "7", "8") and int(
-            index_decision
-        ) <= len(self.player_cards)
+        return index_decision.isdigit() and 1 <= int(index_decision) <= len(
+            self.player_cards
+        )
 
     def card_decision(
         self,
@@ -64,11 +64,7 @@ class Bot(Player):
         played_cards: list[Card],
         move_validator: Callable[[Card], bool],
     ) -> None:
-        legal_cards = []
-        for card in self.player_cards:
-            legal = move_validator(card)
-            if legal:
-                legal_cards.append(card)
+        legal_cards = [card for card in self.player_cards if move_validator(card)]
         decision = random.choice(legal_cards)
         played_cards.append(decision)
         renderer.render(

@@ -73,7 +73,7 @@ class MoneyDistributer(ABC):
                 return runners_count
         return runners_count
 
-    def count_game_runners(self, trumps: list[Card], minimum_runners: int) -> int:
+    def count_game_runners(self, trumps: list[Card], minimum_runners: int = 3) -> int:
         for team in self.teams:
             runners_count: int = self.count_team_runners(team=team, trumps=trumps)
             if runners_count >= minimum_runners:

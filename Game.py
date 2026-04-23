@@ -57,6 +57,7 @@ class Game(ABC):
         self.players: list[Player] = players
         self.game_chooser: Player | None = game_chooser
         self.teams: list[Team] = []
+        self.active_team: Team | None = None
         self.played_cards: list[Card] = []
         self.trumps: list[Card] = []
 
@@ -243,15 +244,7 @@ class Sauspiel(Game):
             if card.card_type in self.trump_types or card.card_color == self.trump_color
         ]
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
-        self.sau_color = sau_color
-        self.active_team: Team | None = None
-
-    @property
-    def call_sau(self) -> Card | None:
-        for card in self.cards.full_deck:
-            if card.card_color == self.sau_color and card.card_type == Type.SAU:
-                return card
-        return None
+        self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
 
     def create_teams(self) -> None:
         team_1 = Team(team_name="Team 1")
@@ -316,7 +309,6 @@ class Wenz(Game):
             card for card in self.cards.full_deck if card.card_type in self.trump_types
         ]
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
-        self.active_team: Team | None = None
         self.alone_price = alone_price
         self.base_price = base_price
         self.amount_game_value_doublers = amount_game_value_doublers
@@ -384,7 +376,6 @@ class Solo(Game):
             if card.card_type in self.trump_types or card.card_color == self.trump_color
         ]
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
-        self.active_team: Team | None = None
         self.alone_price = alone_price
         self.base_price = base_price
         self.amount_game_value_doublers = amount_game_value_doublers
