@@ -73,14 +73,8 @@ class Game(ABC):
         pass
 
     def sort_players(self, starter: Player) -> None:
-        found_beginner = False
-        while not found_beginner:
-            player = self.players[0]
-            if not player == starter:
-                self.players.append(player)
-                self.players.pop(0)
-            else:
-                found_beginner = True
+        starter_index = self.players.index(starter)
+        self.players = self.players[starter_index:] + self.players[:starter_index]
 
     @abstractmethod
     def create_card_decision_validator(self) -> CardDecisionValidator:

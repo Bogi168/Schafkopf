@@ -76,14 +76,8 @@ class Schafkopf:
 
     @staticmethod
     def get_sorted_players(players: list[Player], starter: Player) -> list[Player]:
-        found_beginner = False
-        while not found_beginner:
-            player = players[0]
-            if not player == starter:
-                players.append(player)
-                players.pop(0)
-            else:
-                found_beginner = True
+        starter_index = players.index(starter)
+        players = players[starter_index:] + players[:starter_index]
         return players
 
     @staticmethod
