@@ -55,9 +55,6 @@ class Player:
 
 
 class Bot(Player):
-    def __init__(self, player_name: str) -> None:
-        super().__init__(player_name=player_name)
-
     def card_decision(
         self,
         renderer: Renderer,
