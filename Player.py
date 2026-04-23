@@ -22,13 +22,14 @@ if TYPE_CHECKING:
 
 class Player:
     def __init__(
-        self, player_name: str, renderer: Renderer, game_mapping: dict[str, type[Game]]
+        self,
+        player_name: str,
+        renderer: Renderer,
+        game_decision_validator: GameDecisionValidator,
     ) -> None:
         self.player_name = player_name
         self.renderer = renderer
-        self.game_decision_validator: GameDecisionValidator = GameDecisionValidator(
-            game_mapping=game_mapping
-        )
+        self.game_decision_validator: GameDecisionValidator = game_decision_validator
         self.player_cards: list[Card] = []
         self.collected_cards: list[Card] = []
         self.money: int = 0
@@ -102,12 +103,12 @@ class Player:
 
     def choose_game_mode(
         self,
-        prev_game: Game | None,
+        prev_game_mode: type[Game] | None,
         quitting_possible: bool = False,
     ) -> str:
         valid_game_mode_decisions = (
             self.game_decision_validator.get_valid_game_mode_decisions(
-                prev_game=prev_game, player_cards=self.player_cards
+                prev_game_mode=prev_game_mode, player_cards=self.player_cards
             )
         )
         decision = self.renderer.ask_with_validation(
@@ -154,10 +155,15 @@ class Player:
 
 class Bot(Player):
     def __init__(
-        self, bot_name: str, renderer: Renderer, game_mapping: dict[str, type[Game]]
+        self,
+        bot_name: str,
+        renderer: Renderer,
+        game_decision_validator: GameDecisionValidator,
     ):
         super().__init__(
-            player_name=bot_name, renderer=renderer, game_mapping=game_mapping
+            player_name=bot_name,
+            renderer=renderer,
+            game_decision_validator=game_decision_validator,
         )
 
     def card_decision(
@@ -172,16 +178,3 @@ class Bot(Player):
             message=show_played_card(player_name=self.player_name, decision=decision)
         )
         self.player_cards.remove(decision)
-
-
-class Team:
-    def __init__(self, team_name: str) -> None:
-        self.team_name = team_name
-        self.players: list[Player] = []
-
-    def __repr__(self) -> str:
-        return self.team_name
-
-    @property
-    def points(self) -> int:
-        return sum(player.points for player in self.players)

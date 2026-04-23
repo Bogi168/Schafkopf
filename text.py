@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from Cards import Card
-    from Player import Player, Team
+    from Player import Player
+    from Team import Team
 
 
 # regular text

@@ -5,6 +5,7 @@ from Renderer import Renderer
 from Cards import Cards
 from Player import Player, Bot
 from Game import Game, Sauspiel, Wenz, Solo, Ramsch
+from GameDecisionValidator import GameDecisionValidator
 from CardPowerCalculator import SauspielCardPowerCalculator
 from text import (
     error_message,
@@ -35,11 +36,17 @@ class Schafkopf:
         self.call_price = call_price
         self.alone_price = alone_price
 
-        self.game_mapping = {
+        self.game_mapping: dict[str, type[Game]] = {
             "1": Sauspiel,
             "2": Wenz,
             "3": Solo,
         }
+        self.game_rank_mapping: dict[type[Game], int] = {
+            game: rank for rank, game in enumerate(self.game_mapping.values(), start=1)
+        }
+        self.game_decision_validator: GameDecisionValidator = GameDecisionValidator(
+            game_mapping=self.game_mapping, game_rank_mapping=self.game_rank_mapping
+        )
 
     def _create_players(self) -> list[Player]:
         player_name = self.renderer.ask_with_validation(
@@ -52,7 +59,7 @@ class Schafkopf:
             Player(
                 player_name=player_name,
                 renderer=self.renderer,
-                game_mapping=self.game_mapping,
+                game_decision_validator=self.game_decision_validator,
             )
         ]
         for i in range(3):
@@ -60,7 +67,7 @@ class Schafkopf:
                 Bot(
                     bot_name=f"Bot {i + 1}",
                     renderer=self.renderer,
-                    game_mapping=self.game_mapping,
+                    game_decision_validator=self.game_decision_validator,
                 )
             )
         return players
@@ -127,53 +134,52 @@ class Schafkopf:
                 key=card_power_calculator.get_card_power, reverse=True
             )
 
-    def get_game(self, decision: str, player: Player, prev_game: Game | None) -> Game:
-        game: Game | None = None
-        if decision != "Q":
-            self.game_chooser = player
-        match decision:
-            case "Q":
-                return prev_game
-            case "1":
-                sau_color = player.get_sau_color()
-                game = Sauspiel(
-                    cards=self.cards,
-                    renderer=self.renderer,
-                    players=self.players,
-                    game_chooser=self.game_chooser,
-                    base_price=self.base_price,
-                    call_price=self.call_price,
-                    amount_game_value_doublers=self.amount_game_value_doublers,
-                    sau_color=sau_color,
-                )
-            case "2":
-                game = Wenz(
-                    cards=self.cards,
-                    renderer=self.renderer,
-                    players=self.players,
-                    game_chooser=self.game_chooser,
-                    base_price=self.base_price,
-                    alone_price=self.alone_price,
-                    amount_game_value_doublers=self.amount_game_value_doublers,
-                )
-            case "3":
-                trump_color = player.get_trump_color()
-                game = Solo(
-                    trump_color=trump_color,
-                    cards=self.cards,
-                    renderer=self.renderer,
-                    players=self.players,
-                    game_chooser=self.game_chooser,
-                    base_price=self.base_price,
-                    alone_price=self.alone_price,
-                    amount_game_value_doublers=self.amount_game_value_doublers,
-                )
-        return game
+    def get_game(self, game_mode: type[Game], player: Player) -> Game:
+        if game_mode is Sauspiel:
+            sau_color = player.get_sau_color()
+            return Sauspiel(
+                cards=self.cards,
+                renderer=self.renderer,
+                players=self.players,
+                game_chooser=self.game_chooser,
+                base_price=self.base_price,
+                call_price=self.call_price,
+                amount_game_value_doublers=self.amount_game_value_doublers,
+                sau_color=sau_color,
+            )
+
+        elif game_mode is Wenz:
+            return Wenz(
+                cards=self.cards,
+                renderer=self.renderer,
+                players=self.players,
+                game_chooser=self.game_chooser,
+                base_price=self.base_price,
+                alone_price=self.alone_price,
+                amount_game_value_doublers=self.amount_game_value_doublers,
+            )
+
+        elif game_mode is Solo:
+            trump_color = player.get_trump_color()
+            return Solo(
+                trump_color=trump_color,
+                cards=self.cards,
+                renderer=self.renderer,
+                players=self.players,
+                game_chooser=self.game_chooser,
+                base_price=self.base_price,
+                alone_price=self.alone_price,
+                amount_game_value_doublers=self.amount_game_value_doublers,
+            )
+
+        else:
+            raise NotImplementedError
 
     def players_choose_game(self) -> Game:
-        game: None | Game = None
+        game_mode: type[Game] | None = None
+        game: Game | None = None
         if len(self.game_choosers) == 0:
-            game = Ramsch(
+            return Ramsch(
                 cards=self.cards,
                 renderer=self.renderer,
                 players=self.players,
@@ -183,22 +189,39 @@ class Schafkopf:
             )
         else:
             for player in self.game_choosers:
-                if game is None:
+                if game_mode is None:
                     decision = player.choose_game_mode(
-                        prev_game=game,
+                        prev_game_mode=game_mode,
                     )
-                elif game.rank == Solo.rank:
-                    break
-                elif game.rank > Sauspiel.rank:
+                    game_mode = self.game_mapping[decision]
+                    self.game_chooser = player
+                    game = self.get_game(game_mode=game_mode, player=player)
+
+                elif game_mode == Solo:
+                    return game
+
+                elif (
+                    self.game_rank_mapping[game_mode] > self.game_rank_mapping[Sauspiel]
+                ):
                     decision = player.choose_game_mode(
-                        prev_game=game,
+                        prev_game_mode=game_mode,
                         quitting_possible=True,
                     )
+                    if decision == "Q":
+                        continue
+                    else:
+                        game_mode = self.game_mapping[decision]
+                        self.game_chooser = player
+                        game = self.get_game(game_mode=game_mode, player=player)
+
                 else:
                     decision = player.choose_game_mode(
-                        prev_game=game,
+                        prev_game_mode=game_mode,
                     )
-                game = self.get_game(decision=decision, player=player, prev_game=game)
+                    game_mode = self.game_mapping[decision]
+                    self.game_chooser = player
+                    game = self.get_game(game_mode=game_mode, player=player)
+
         return game
 
     def get_new_starter(self, prev_starter_index: int) -> Player:

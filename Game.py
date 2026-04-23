@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from Player import Team
+from Team import Team
 from Cards import Card, Type, Color
 from CardPowerCalculator import (
     CardPowerCalculator,
@@ -44,8 +44,6 @@ if TYPE_CHECKING:
 
 
 class Game(ABC):
-    rank = 0
-
     def __init__(
         self,
         cards: Cards,
@@ -155,8 +153,6 @@ class Game(ABC):
 
 
 class Ramsch(Game):
-    rank = 1
-
     def __init__(
         self,
         cards: Cards,
@@ -211,8 +207,6 @@ class Ramsch(Game):
 
 
 class Sauspiel(Game):
-    rank = 2
-
     def __init__(
         self,
         cards: Cards,
@@ -283,8 +277,6 @@ class Sauspiel(Game):
 
 
 class Wenz(Game):
-    rank = 4
-
     def __init__(
         self,
         cards: Cards,
@@ -346,8 +338,6 @@ class Wenz(Game):
 
 
 class Solo(Game):
-    rank = 6
-
     def __init__(
         self,
         trump_color: Color,

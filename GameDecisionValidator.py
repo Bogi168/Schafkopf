@@ -2,14 +2,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from Cards import Color, Type, Card
+from Game import Sauspiel
 
 if TYPE_CHECKING:
     from Game import Game
 
 
 class GameDecisionValidator:
-    def __init__(self, game_mapping: dict[str, type[Game]]):
-        self.game_mapping = game_mapping
+    def __init__(
+        self,
+        game_mapping: dict[str, type[Game]],
+        game_rank_mapping: dict[type[Game], int],
+    ) -> None:
+        self.game_mapping: dict[str, type[Game]] = game_mapping
+        self.game_rank_mapping: dict[type[Game], int] = game_rank_mapping
         self.sau_color_mapping = {
             "1": Color.EICHEL,
             "2": Color.GRUEN,
@@ -81,17 +87,19 @@ class GameDecisionValidator:
     def get_available_game_modes(
         self,
         playable_games: list[type[Game]],
-        prev_game: Game | None,
+        prev_game: type[Game] | None,
         player_cards: list[Card],
     ) -> list[type[Game]]:
         if prev_game is None:
             prev_game_rank = 0
         else:
-            prev_game_rank = prev_game.rank
+            prev_game_rank = self.game_rank_mapping[prev_game]
 
         if prev_game_rank != 0:
             available_game_modes: list[type[Game]] = [
-                game for game in playable_games if game.rank > prev_game_rank
+                game
+                for game in playable_games
+                if self.game_rank_mapping[game] > prev_game_rank
             ]
         else:
             color_available: bool = self.is_sauspiel_playable(player_cards=player_cards)
@@ -100,18 +108,19 @@ class GameDecisionValidator:
                     game for game in playable_games
                 ]
             else:
-                sau_spiel_rank = 2
                 available_game_modes: list[type[Game]] = [
-                    game for game in playable_games if game.rank != sau_spiel_rank
+                    game
+                    for game in playable_games
+                    if self.game_rank_mapping[game] != self.game_rank_mapping[Sauspiel]
                 ]
         return available_game_modes
 
     def get_valid_game_mode_decisions(
-        self, prev_game: Game | None, player_cards: list[Card]
+        self, prev_game_mode: type[Game] | None, player_cards: list[Card]
     ) -> list[str]:
         available_game_modes = self.get_available_game_modes(
             playable_games=[game for game in self.game_mapping.values()],
-            prev_game=prev_game,
+            prev_game=prev_game_mode,
             player_cards=player_cards,
         )
         valid_inputs = [
