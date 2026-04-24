@@ -1,4 +1,5 @@
 from enum import Enum, IntEnum
+from dataclasses import dataclass, field
 
 
 class Color(Enum):
@@ -57,22 +58,17 @@ class Type(IntEnum):
         return points[self]
 
 
+@dataclass
 class Card:
-    def __init__(self, card_color: Color, card_type: Type) -> None:
-        self.card_color: Color = card_color
-        self.card_type: Type = card_type
-        self.card_name: str = f"({self.card_color.name} {self.card_type.name})"
+    card_color: Color
+    card_type: Type
+    card_name: str = field(default=None, compare=False)
 
-    def __repr__(self) -> str:
-        return self.card_name
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Card):
-            return NotImplemented
-        return self.card_color == other.card_color and self.card_type == other.card_type
-
-    def __hash__(self) -> int:
-        return hash((self.card_color, self.card_type))
+    def __post_init__(self) -> None:
+        if self.card_name is None:
+            self.card_name: str = field(
+                default=f"({self.card_color.name} {self.card_type.name})", compare=False
+            )
 
 
 class Cards:

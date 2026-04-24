@@ -45,27 +45,23 @@ class Player:
     def points(self) -> int:
         return sum(card.card_type.points for card in self.collected_cards)
 
-    def ask_double_game_value(self, amount_game_value_doublers: int) -> int:
+    def is_doubles_game_value(self) -> bool:
         decision = self.renderer.ask_with_validation(
             prompt=prompt_ask_to_double_game_value(player_name=self.player_name),
             error_prefix=error_message,
             preprocess=lambda x: x.strip().upper(),
             validator=lambda x: x in self.string_decisions,
         )
-        if decision in self.yes_decisions:
-            amount_game_value_doublers += 1
-        return amount_game_value_doublers
+        return decision in self.yes_decisions
 
-    def ask_choose_decision(self, game_choosers: list[Player]) -> list[Player]:
+    def is_chooses_game(self) -> bool:
         decision = self.renderer.ask_with_validation(
             prompt=prompt_ask_to_choose_game(player_name=self.player_name),
             error_prefix=error_message,
             preprocess=lambda x: x.strip().upper(),
             validator=lambda x: x in self.string_decisions,
         )
-        if decision in self.yes_decisions:
-            game_choosers.append(self)
-        return game_choosers
+        return decision in self.yes_decisions
 
     def choose_sau_color(self) -> str:
         sau_color_decision = self.renderer.ask_with_validation(

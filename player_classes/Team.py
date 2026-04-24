@@ -1,17 +1,15 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
 
 if TYPE_CHECKING:
     from player_classes.Player import Player
 
 
+@dataclass
 class Team:
-    def __init__(self, team_name: str) -> None:
-        self.team_name = team_name
-        self.players: list[Player] = []
-
-    def __repr__(self) -> str:
-        return self.team_name
+    team_name: str
+    players: list[Player] = field(default_factory=list)
 
     @property
     def points(self) -> int:

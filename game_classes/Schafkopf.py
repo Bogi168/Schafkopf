@@ -115,9 +115,8 @@ class Schafkopf:
                     player_name=player.player_name, player_cards=player.player_cards
                 )
             )
-            self.amount_game_value_doublers = player.ask_double_game_value(
-                amount_game_value_doublers=self.amount_game_value_doublers,
-            )
+            if player.is_doubles_game_value():
+                self.amount_game_value_doublers += 1
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
         self.sort_player_hands()
 
@@ -253,11 +252,9 @@ class Schafkopf:
                         player_name=player.player_name, player_cards=player.player_cards
                     )
                 )
-                self.game_choosers = player.ask_choose_decision(
-                    game_choosers=self.game_choosers
-                )
-            game = self.players_choose_game()
-            assert game is not None
+                if player.is_chooses_game():
+                    self.game_choosers.append(player)
+            game: Game = self.players_choose_game()
             game.play_game()
             assert self.starter is not None
             self.starter = self.get_new_starter(
