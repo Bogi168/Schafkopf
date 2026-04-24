@@ -193,7 +193,7 @@ class Player:
     def is_shoots(self) -> bool:
         """
         Asks the player whether he wants to shoot or not.
-        By shooting the player doubles the game value and his team turns to the active team.
+        By shooting, the player doubles the game value and his team turns to the active team.
         :return: A boolean indicating whether the player wants to shoot or not
         :rtype: bool
         """
@@ -213,9 +213,9 @@ class Player:
 
     def is_shoots_back(self) -> bool:
         """
-        Asks the player whether he wants to shoot or not.
-        By shooting the player doubles the game value and his team turns to the active team.
-        :return: A boolean indicating whether the player wants to shoot or not
+        Asks the player whether he wants to shoot back after someone else shot at him or not.
+        By shooting back, the player doubles the game value and his team turns to the active team.
+        :return: A boolean indicating whether the player wants to shoot back or not
         :rtype: bool
         """
 
@@ -289,3 +289,9 @@ class Bot(Player):
             message=show_played_card(player_name=self.player_name, decision=decision)
         )
         self.player_cards.remove(decision)
+
+    def is_shoots(self) -> bool:
+        return False
+
+    def is_shoots_back(self) -> bool:
+        return False
