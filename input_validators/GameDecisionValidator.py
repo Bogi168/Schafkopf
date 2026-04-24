@@ -9,11 +9,21 @@ if TYPE_CHECKING:
 
 
 class GameDecisionValidator:
+    """
+    An object that checks whether the game decision by a player is legal or not
+    """
+
     def __init__(
         self,
         game_mapping: dict[str, type[Game]],
         game_rank_mapping: dict[type[Game], int],
     ) -> None:
+        """
+        :param game_mapping: A dictionary of all the implemented games
+        :type game_mapping: dict[str, type[Game]]
+        :param game_rank_mapping: A dictionary of all the implemented games with their ranks
+        :type game_rank_mapping: dict[str, type[Game]]
+        """
         self.game_mapping: dict[str, type[Game]] = game_mapping
         self.game_rank_mapping: dict[type[Game], int] = game_rank_mapping
         self.sau_color_mapping = {
@@ -32,6 +42,18 @@ class GameDecisionValidator:
     def count_color_cards(
         player_cards: list[Card], color: Color, trump_types: list[Type]
     ) -> int:
+        """
+        Counts the amount of cards of a given color that a player has,
+        ignoring cards of the color that are from the trump type.
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        :param color: The color for which the number of cards should be counted
+        :type color: Color
+        :param trump_types: A list of the trump types of the game
+        :type trump_types: list[Type]
+        :return: The amount of cards the player has of the given color
+        :rtype: int
+        """
         count = 0
         for card in player_cards:
             if card.card_color == color and card.card_type not in trump_types:
@@ -39,13 +61,31 @@ class GameDecisionValidator:
         return count
 
     @staticmethod
-    def is_player_owns_sau(sau_color: Color, player_cards: list[Card]) -> bool:
+    def is_player_owns_sau(player_cards: list[Card], sau_color: Color) -> bool:
+        """
+        Checks whether a player owns the sau of a given color.
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        :param sau_color: The color of the sau for which the player's cards should be checked
+        :type sau_color: Color
+        :return: A boolean value indicating whether the player owns the sau
+        :rtype: bool
+        """
         return any(
             (card.card_color == sau_color and card.card_type == Type.SAU)
             for card in player_cards
         )
 
     def is_sauspiel_playable(self, player_cards: list[Card]) -> bool:
+        """
+        Checks whether the player is able to choose sauspiel as a game mode.
+        Choosing Sauspiel is only possible if you have cards that are not trumps
+        and don't have the Sau for every non trump card color you have.
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        :return: A boolean value indicating whether the player is able to choose sauspiel as a game mode
+        :rtype: bool
+        """
         colors = [color for color in self.sau_color_mapping.values()]
         eichel_count = 0
         gruen_count = 0
@@ -73,7 +113,7 @@ class GameDecisionValidator:
                     )
 
         for color in colors:
-            if self.is_player_owns_sau(color, player_cards=player_cards):
+            if self.is_player_owns_sau(sau_color=color, player_cards=player_cards):
                 match color:
                     case Color.EICHEL:
                         eichel_count = 0
@@ -90,6 +130,15 @@ class GameDecisionValidator:
         prev_game: type[Game] | None,
         player_cards: list[Card],
     ) -> list[type[Game]]:
+        """
+        Returns a list of choosable game modes for a player.
+        :param playable_games: A list of all the implemented game modes
+        :type playable_games: list[type[Game]]
+        :param prev_game: The game mode, chosen by a previous player
+        :type prev_game: type[Game] | None
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        """
         if prev_game is None:
             prev_game_rank = 0
         else:
@@ -115,6 +164,14 @@ class GameDecisionValidator:
     def get_valid_game_mode_decisions(
         self, prev_game_mode: type[Game] | None, player_cards: list[Card]
     ) -> list[str]:
+        """
+        Returns a list of valid inputs for a game decision made by a player.
+        :param prev_game_mode: The game mode, chosen by a previous player
+        :type prev_game_mode: type[Game] | None
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        :return: list of valid inputs for a game decision made by a player
+        """
         available_game_modes = self.get_available_game_modes(
             playable_games=[game for game in self.game_mapping.values()],
             prev_game=prev_game_mode,
@@ -127,11 +184,21 @@ class GameDecisionValidator:
         ]
         return valid_inputs
 
-    def get_available_sau_color_decisions(
+    def get_valid_call_sau_colors(
         self, player_cards: list[Card], sau_colors: list[Color]
     ) -> list[Color]:
+        """
+        Returns a list of valid colors for a player to choose a color for the call sau.
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        :param sau_colors: All the colors choosable for a Sauspiel
+        :type sau_colors: list[Color]
+        :return: list of valid colors for a player to choose a color for the call sau
+        :rtype: list[Color]
+        """
         playable_colors = sau_colors.copy()
-        for color in playable_colors:
+
+        for color in sau_colors:
             player_has_sau = self.is_player_owns_sau(
                 player_cards=player_cards, sau_color=color
             )
@@ -144,9 +211,14 @@ class GameDecisionValidator:
                 playable_colors.remove(color)
         return playable_colors
 
-    def get_valid_call_sau_colors(self, player_cards: list[Card]) -> list[str]:
+    def get_available_sau_color_decisions(self, player_cards: list[Card]) -> list[str]:
+        """
+        Returns a list of legal inputs by a player for his sau color decision.
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        """
         sau_colors = [color for key, color in self.sau_color_mapping.items()]
-        available_colors = self.get_available_sau_color_decisions(
+        available_colors = self.get_valid_call_sau_colors(
             player_cards=player_cards, sau_colors=sau_colors
         )
         valid_inputs = [

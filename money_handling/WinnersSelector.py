@@ -7,11 +7,23 @@ if TYPE_CHECKING:
 
 
 class WinnersSelector:
+    """Selects the winners of a game"""
+
     def __init__(self, teams: list[Team], active_team: Team | None) -> None:
+        """
+        :param teams: list of all the teams of a game
+        :type teams: list[Team]
+        :param active_team: The active team of the game
+        :type active_team: Team | None
+        """
         self.teams: list[Team] = teams
         self.active_team: Team | None = active_team
 
     def get_most_points_teams(self) -> list[Team]:
+        """
+        :return: A list of the teams with the most points
+        :rtype: list[Team]
+        """
         most_point_teams: list[Team] = []
         most_point_team_points = 0
         for team in self.teams:
@@ -24,6 +36,10 @@ class WinnersSelector:
         return most_point_teams
 
     def get_game_winners(self) -> list[Player]:
+        """
+        :return: A list of the winners of the game
+        :rtype: list[Player]
+        """
         most_point_teams = self.get_most_points_teams()
         if len(most_point_teams) == 1:
             winners = [player for team in most_point_teams for player in team.players]

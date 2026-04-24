@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 
 class CardDecisionValidator:
+    """An object that checks whether the card decision by a player is legal or not"""
+
     def __init__(self) -> None:
         self.trump_types: list[Type] = []
 
@@ -106,6 +108,17 @@ class CardDecisionValidator:
         player: Player,
         trumps: list[Card],
     ) -> bool:
+        """
+        Checks whether the card decision by a player is legal or not
+        :param decision: The card decision by the player
+        :type decision: Card
+        :param lead_card: The first card that was played in the round
+        :type lead_card: Card
+        :param player: The player who is making the decision
+        :type player: Player
+        :param trumps: A list of the trump cards
+        :type trumps: list[Card]
+        """
 
         player_cards = player.player_cards
 

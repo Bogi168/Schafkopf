@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 
 class Color(Enum):
+    """The color of the card"""
+
     SCHELLEN = 4
     HERZ = 3
     GRUEN = 2
@@ -20,6 +22,8 @@ class Color(Enum):
 
 
 class Type(IntEnum):
+    """The type of the card"""
+
     SEVEN = 1
     EIGHT = 2
     NINE = 3
@@ -60,6 +64,16 @@ class Type(IntEnum):
 
 @dataclass
 class Card:
+    """
+    A card object that represents a card with a certain color, type and name
+    :param card_color: The color of the card
+    :type card_color: Color
+    :param card_type: The type of the card
+    :type card_type: Type
+    :param card_name: The name of the card
+    :type card_name: str
+    """
+
     card_color: Color
     card_type: Type
     card_name: str = None
@@ -70,6 +84,10 @@ class Card:
 
 
 class Cards:
+    """
+    A cards object which saves a full deck of cards and has a deck to play with
+    """
+
     def __init__(self) -> None:
         self.full_deck: list[Card] = [
             Card(card_color=card_color, card_type=card_type)
@@ -79,4 +97,5 @@ class Cards:
         self.deck: list[Card] = self.full_deck.copy()
 
     def reset_deck(self) -> None:
+        """deck is reset to the original full deck."""
         self.deck = self.full_deck.copy()

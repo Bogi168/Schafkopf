@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
 
 class MoneyDistributer(ABC):
+    """An object that distributes money across multiple players."""
+
     def __init__(
         self,
         base_price: int,
@@ -21,7 +23,30 @@ class MoneyDistributer(ABC):
         winners: list[Player],
         amount_game_value_doublers: int,
         runners_amount: int,
+        amount_game_card_points: int,
     ) -> None:
+        """
+        :param base_price: base price for game value calculations
+        :type base_price: int
+        :param call_price: call price for game value calculations
+        :type call_price: int
+        :param alone_price: alone price for game value calculations
+        :type alone_price: int
+        :param players: A list of all the players of the game
+        :type players: list[Player]
+        :param teams: A list of all the teams of the game
+        :type teams: list[Team]
+        :param active_team: The active team of the game
+        :type active_team: Team | None
+        :param winners: The winners of the game
+        :type winners: list[Player]
+        :param amount_game_value_doublers: The amount of people who decided to double the game value
+        :type amount_game_value_doublers: int
+        :param runners_amount: The amount of game runners
+        :type runners_amount: int
+        :param amount_game_card_points: The amount of points when combining all card points of a game
+        :type amount_game_card_points: int
+        """
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
@@ -31,8 +56,19 @@ class MoneyDistributer(ABC):
         self.winners: list[Player] = winners
         self.amount_game_value_doublers: int = amount_game_value_doublers
         self.runners_amount: int = runners_amount
+        self.schneider_threshold = amount_game_card_points - (
+            amount_game_card_points // 4
+        )
+        self.black_threshold = amount_game_card_points
 
     def get_players_team(self, player: Player) -> Team:
+        """
+        Returns the team of a given player.
+        :param player: The player for whose team is to be returned
+        :type player: Player
+        :return: The player's team
+        :rtype: Team
+        """
         for team in self.teams:
             if player in team.players:
                 return team
@@ -40,20 +76,25 @@ class MoneyDistributer(ABC):
             raise PlayerHasNoTeamError(f"{player} has no team!")
 
     def basic_game_value_adds(self, game_value: int) -> int:
-        black_threshold = 120
-        schneider_threshold = 90
-
+        """
+        Adds runners, schneider and black values to the given game value if needed
+        and doubles game value for the amount of times it got doubled by players.
+        :param game_value: The previous game value
+        :type game_value: int
+        :return: The updated game value
+        :rtype: int
+        """
         game_value += self.runners_amount * self.base_price
 
         winning_team: Team = self.get_players_team(player=self.winners[0])
 
-        if winning_team.points > schneider_threshold or (
-            winning_team.points == schneider_threshold
+        if winning_team.points > self.schneider_threshold or (
+            winning_team.points == self.schneider_threshold
             and self.active_team != winning_team
         ):
             game_value += self.base_price
 
-        if winning_team.points == black_threshold:
+        if winning_team.points == self.black_threshold:
             game_value += self.base_price
 
         for _ in range(self.amount_game_value_doublers):
@@ -63,9 +104,17 @@ class MoneyDistributer(ABC):
 
     @abstractmethod
     def calculate_game_value(self) -> int:
+        """calculates the game value for the whole game"""
         pass
 
     def distribute_money(self, game_value: int, winners: list[Player]) -> None:
+        """
+        Distributes the money of the given game value to the given winners and deducts it from the losers
+        :param game_value: The game value to distribute
+        :type game_value: int
+        :param winners: The winners of the game
+        :type winners: list[Player]
+        """
         losers = [loser for loser in self.players if loser not in winners]
         if len(winners) == 1:
             for index in range(len(losers)):
@@ -82,6 +131,7 @@ class MoneyDistributer(ABC):
 
 
 class RamschMoneyDistributer(MoneyDistributer):
+
     def __init__(
         self,
         alone_price: int,
@@ -89,6 +139,7 @@ class RamschMoneyDistributer(MoneyDistributer):
         teams: list[Team],
         amount_game_value_doublers: int,
         winners: list[Player],
+        amount_game_card_points: int,
     ) -> None:
         super().__init__(
             base_price=0,
@@ -100,9 +151,13 @@ class RamschMoneyDistributer(MoneyDistributer):
             amount_game_value_doublers=amount_game_value_doublers,
             winners=winners,
             runners_amount=0,
+            amount_game_card_points=amount_game_card_points,
         )
 
     def count_virgins(self) -> int:
+        """
+        :return: The amount of players who didn't collect any cards during the game
+        """
         virgins_count = 0
         for player in self.players:
             if not player.collected_cards:
@@ -133,6 +188,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
         active_team: Team,
         winners: list[Player],
         runners_amount: int,
+        amount_game_card_points: int,
     ) -> None:
         super().__init__(
             base_price=base_price,
@@ -144,6 +200,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
             active_team=active_team,
             winners=winners,
             runners_amount=runners_amount,
+            amount_game_card_points=amount_game_card_points,
         )
 
     def calculate_game_value(self) -> int:
@@ -165,6 +222,7 @@ class WenzMoneyDistributer(MoneyDistributer):
         active_team: Team,
         winners: list[Player],
         runners_amount: int,
+        amount_game_card_points: int,
     ) -> None:
         super().__init__(
             base_price=base_price,
@@ -176,6 +234,7 @@ class WenzMoneyDistributer(MoneyDistributer):
             amount_game_value_doublers=amount_game_value_doublers,
             winners=winners,
             runners_amount=runners_amount,
+            amount_game_card_points=amount_game_card_points,
         )
 
     def calculate_game_value(self) -> int:
@@ -197,6 +256,7 @@ class SoloMoneyDistributer(MoneyDistributer):
         active_team: Team,
         winners: list[Player],
         runners_amount: int,
+        amount_game_card_points: int,
     ) -> None:
         super().__init__(
             base_price=base_price,
@@ -208,6 +268,7 @@ class SoloMoneyDistributer(MoneyDistributer):
             amount_game_value_doublers=amount_game_value_doublers,
             winners=winners,
             runners_amount=runners_amount,
+            amount_game_card_points=amount_game_card_points,
         )
 
     def calculate_game_value(self) -> int:

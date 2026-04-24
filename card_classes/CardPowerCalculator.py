@@ -2,6 +2,8 @@ from card_classes.Cards import Color, Type, Card
 
 
 class CardPowerCalculator:
+    """An object that checks card powers"""
+
     def __init__(self) -> None:
         self.trump_types: list[Type] = []
         self.trump_color_power: int = 100
@@ -11,6 +13,14 @@ class CardPowerCalculator:
         self.schellen_power: int = 20
 
     def get_card_power(self, card: Card) -> int:
+        """
+        takes a card and returns the power of the card
+        in dependence of its type and color.
+        :param card: The card that is to be checked
+        :type card: Card
+        :return: the power of the card
+        :rtype: int
+        """
         trump_type_power = 1000
         trump_type_power_difference = 100
         power = 0
@@ -35,6 +45,16 @@ class CardPowerCalculator:
         return power
 
     def get_stronger_card(self, first_card: Card, second_card: Card) -> Card:
+        """
+        takes two cards and returns the stronger card.
+        :param first_card: the first card
+        :type first_card: Card
+        :param second_card: the second card
+        :type second_card: Card
+        :return: the stronger card
+        :rtype: Card
+        """
+
         if self.get_card_power(card=first_card) > self.get_card_power(second_card):
             return first_card
         else:
@@ -43,16 +63,27 @@ class CardPowerCalculator:
     def get_strongest_played_card(
         self, played_cards: list[Card], trumps: list[Card]
     ) -> Card:
+        """
+        takes all the played cards of a round and the trumps of the game,
+        compares the cards and returns the strongest card.
+        :param played_cards: the played cards
+        :type played_cards: list[Card]
+        :param trumps: the trumps
+        :type trumps: list[Card]
+        :return: the strongest card out of the played cards
+        :rtype: Card
+        """
+
         lead_card = played_cards[0]
         strongest_card = lead_card
 
         for played_card in played_cards:
 
-            # played_card != Trump -> strongest_card == Trump -> strongest_card = strongest_card
+            # played_card != Trump and strongest_card == Trump -> strongest_card = strongest_card
             if played_card not in trumps and strongest_card in trumps:
                 continue
 
-            # played_card == Trump -> strongest_card != Trump -> strongest_card = played_card
+            # played_card == Trump and strongest_card != Trump -> strongest_card = played_card
             elif played_card in trumps and strongest_card not in trumps:
                 strongest_card = played_card
 
@@ -62,11 +93,11 @@ class CardPowerCalculator:
                     first_card=strongest_card, second_card=played_card
                 )
 
-            # strongest_card + played_card != Trump -> played_card_color != lead_card_color -> strongest_card = strongest_card
+            # strongest_card and played_card != Trump -> played_card_color != lead_card_color -> strongest_card = strongest_card
             elif played_card.card_color != lead_card.card_color:
                 continue
 
-            # strongest_card + played_card != Trump -> played_card_color == lead_card_color -> compare ranks
+            # strongest_card and played_card != Trump -> played_card_color == lead_card_color -> compare ranks
             else:
                 strongest_card = self.get_stronger_card(
                     first_card=strongest_card, second_card=played_card

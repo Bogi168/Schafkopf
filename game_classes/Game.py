@@ -232,12 +232,15 @@ class Ramsch(Game):
 
     def create_money_distributer(self) -> MoneyDistributer:
         assert self.winners_selector is not None
-        money_distributer = RamschMoneyDistributer(
+        money_distributer: MoneyDistributer = RamschMoneyDistributer(
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             winners=self.winners_selector.get_game_winners(),
+            amount_game_card_points=sum(
+                card.card_type.points for card in self.cards.full_deck
+            ),
         )
         return money_distributer
 
@@ -306,6 +309,9 @@ class Sauspiel(Game):
             active_team=self.active_team,
             winners=self.winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
+            amount_game_card_points=sum(
+                card.card_type.points for card in self.cards.full_deck
+            ),
         )
         return money_distributer
 
@@ -365,6 +371,9 @@ class Wenz(Game):
             active_team=self.active_team,
             winners=self.winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
+            amount_game_card_points=sum(
+                card.card_type.points for card in self.cards.full_deck
+            ),
         )
         return money_distributer
 
@@ -428,5 +437,8 @@ class Solo(Game):
             active_team=self.active_team,
             winners=self.winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
+            amount_game_card_points=sum(
+                card.card_type.points for card in self.cards.full_deck
+            ),
         )
         return money_distributer
