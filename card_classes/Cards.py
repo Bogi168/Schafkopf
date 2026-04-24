@@ -85,7 +85,7 @@ class Card:
 
 class Cards:
     """
-    A cards object which saves a full deck of cards and has a deck to play with
+    A cards object which saves a full deck of cards and provides a deck to play with
     """
 
     def __init__(self) -> None:

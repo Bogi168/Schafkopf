@@ -45,6 +45,8 @@ if TYPE_CHECKING:
 
 
 class Game(ABC):
+    """An object that represents the game"""
+
     def __init__(
         self,
         cards: Cards,
@@ -52,6 +54,17 @@ class Game(ABC):
         card_power_calculator: CardPowerCalculator,
         players: list[Player],
     ) -> None:
+        """
+        :param cards: An object which saves a full deck of cards and provides a deck to play with
+        :type cards: Cards
+        :param renderer: An object which renders information
+        :type renderer: Renderer
+        :param card_power_calculator: An object which calculates the card power
+        :type card_power_calculator: CardPowerCalculator
+        :param players: A list of objects which represent the players
+        :type players: list[Player]
+        """
+
         self.cards: Cards = cards
         self.renderer: Renderer = renderer
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
@@ -68,6 +81,11 @@ class Game(ABC):
 
     @property
     def lead_card(self) -> Card | None:
+        """
+        :return: The first played card of the round
+        :rtype: Card | None
+        """
+
         if self.played_cards:
             return self.played_cards[0]
         else:
@@ -75,49 +93,93 @@ class Game(ABC):
 
     @abstractmethod
     def create_teams(self) -> None:
+        """Creates the team objects"""
+
         pass
 
     def sort_players(self, starter: Player) -> None:
+        """
+        Sorts the list of Players.
+        The given starter moves to Index 0, but the order remains the same.
+        :param starter: The player who should start the next game or round
+        :type starter: Player
+        :return: None
+        """
+
         starter_index = self.players.index(starter)
         self.players = self.players[starter_index:] + self.players[:starter_index]
 
     @abstractmethod
     def create_card_decision_validator(self) -> CardDecisionValidator:
+        """
+        Creates a card decision validator object.
+        :return: A card decision validator object
+        :rtype: CardDecisionValidator
+        """
+
         pass
 
     def create_winners_selector(self) -> WinnersSelector:
+        """
+        Creates a winners selector object.
+        :return: A winners selector object
+        :rtype: WinnersSelector
+        """
+
         return WinnersSelector(teams=self.teams, active_team=self.active_team)
 
     @abstractmethod
     def create_money_distributer(self) -> MoneyDistributer:
+        """
+        Creates a money distributer object.
+        :return: A money distributer object
+        :rtype: MoneyDistributer
+        """
+
         pass
 
-    def sort_player_hands(self):
+    def sort_player_hands(self) -> None:
+        """
+        Sorts the cards of the players according to their power in the game.
+        :return: None
+        """
+
         for player in self.players:
             player.player_cards.sort(
                 key=self.card_power_calculator.get_card_power, reverse=True
             )
 
     @staticmethod
-    def is_player_has_trump(player: Player, trump: Card) -> bool:
-        return any(card == trump for card in player.player_cards)
+    def count_team_runners(team: Team, trumps: list[Card]) -> int:
+        """
+        Counts the amount of runners a team has.
+        :param team: The team object
+        :type team: Team
+        :param trumps: A list of all the trump cards
+        :type trumps: list[Card]
+        :return: The amount of runners the given team has
+        :rtype: int
+        """
 
-    def is_team_has_trump(self, team_players: list[Player], trump: Card) -> bool:
-        return any(
-            self.is_player_has_trump(player=player, trump=trump)
-            for player in team_players
-        )
-
-    def count_team_runners(self, team: Team, trumps: list[Card]) -> int:
         runners_count = 0
         for trump in trumps:
-            if self.is_team_has_trump(team_players=team.players, trump=trump):
+            if any(
+                card == trump for player in team.players for card in player.player_cards
+            ):
                 runners_count += 1
             else:
                 return runners_count
         return runners_count
 
     def count_game_runners(self, trumps: list[Card]) -> int:
+        """
+        Counts the amount of runners for each team and returns the game runners count.
+        :param trumps: A list of all the trump cards
+        :type trumps: list[Card]
+        :return: The amount of runners the game has
+        :rtype: int
+        """
+
         for team in self.teams:
             runners_count: int = self.count_team_runners(team=team, trumps=trumps)
             if runners_count >= self.minimum_runners:
@@ -192,6 +254,7 @@ class Game(ABC):
 
 
 class Ramsch(Game):
+
     def __init__(
         self,
         cards: Cards,
@@ -246,6 +309,7 @@ class Ramsch(Game):
 
 
 class Sauspiel(Game):
+
     def __init__(
         self,
         cards: Cards,
@@ -317,6 +381,7 @@ class Sauspiel(Game):
 
 
 class Wenz(Game):
+
     def __init__(
         self,
         cards: Cards,
@@ -379,6 +444,7 @@ class Wenz(Game):
 
 
 class Solo(Game):
+
     def __init__(
         self,
         trump_color: Color,
