@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 class Color(Enum):
@@ -62,7 +62,7 @@ class Type(IntEnum):
 class Card:
     card_color: Color
     card_type: Type
-    card_name: str = field(default=None, compare=False, repr=True)
+    card_name: str = None
 
     def __post_init__(self) -> None:
         if self.card_name is None:
