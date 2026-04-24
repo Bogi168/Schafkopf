@@ -10,8 +10,10 @@ from system.text import (
     prompt_choose_game,
     prompt_choose_sau_color,
     prompt_choose_solo_color,
+    prompt_ask_player_shoots,
     show_player_cards,
     show_played_card,
+    prompt_ask_player_shoots_back,
 )
 import random
 
@@ -187,6 +189,48 @@ class Player:
         return index_decision.isdigit() and 1 <= int(index_decision) <= len(
             self.player_cards
         )
+
+    def is_shoots(self) -> bool:
+        """
+        Asks the player whether he wants to shoot or not.
+        By shooting the player doubles the game value and his team turns to the active team.
+        :return: A boolean indicating whether the player wants to shoot or not
+        :rtype: bool
+        """
+
+        self.renderer.render(
+            show_player_cards(
+                player_name=self.player_name, player_cards=self.player_cards
+            )
+        )
+        decision = self.renderer.ask_with_validation(
+            prompt=prompt_ask_player_shoots(player_name=self.player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip().upper(),
+            validator=lambda x: x in self.string_decisions,
+        )
+        return decision in self.yes_decisions
+
+    def is_shoots_back(self) -> bool:
+        """
+        Asks the player whether he wants to shoot or not.
+        By shooting the player doubles the game value and his team turns to the active team.
+        :return: A boolean indicating whether the player wants to shoot or not
+        :rtype: bool
+        """
+
+        self.renderer.render(
+            show_player_cards(
+                player_name=self.player_name, player_cards=self.player_cards
+            )
+        )
+        decision = self.renderer.ask_with_validation(
+            prompt=prompt_ask_player_shoots_back(player_name=self.player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip().upper(),
+            validator=lambda x: x in self.string_decisions,
+        )
+        return decision in self.yes_decisions
 
     def card_decision(
         self,

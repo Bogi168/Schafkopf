@@ -98,5 +98,13 @@ def prompt_choose_solo_color(player_name: str) -> str:
     return f"{player_name}: Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): "
 
 
+def prompt_ask_player_shoots(player_name: str) -> str:
+    return f"{player_name}: Do you want to shoot? (Y/N): "
+
+
+def prompt_ask_player_shoots_back(player_name: str) -> str:
+    return f"{player_name}: Do you want to shoot back? (Y/N): "
+
+
 def prompt_ask_player_card_decision(player_name: str, player_cards: list[Card]) -> str:
     return f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): "

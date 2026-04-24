@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+from system.custom_exceptions import PlayerHasNoTeamError
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
 from player_classes.Team import Team
 from card_classes.Cards import Card, Type, Color
@@ -53,6 +54,7 @@ class Game(ABC):
         renderer: Renderer,
         card_power_calculator: CardPowerCalculator,
         players: list[Player],
+        amount_game_value_doublers: int,
     ) -> None:
         """
         :param cards: An object which saves a full deck of cards and provides a deck to play with
@@ -63,11 +65,14 @@ class Game(ABC):
         :type card_power_calculator: CardPowerCalculator
         :param players: A list of objects which represent the players
         :type players: list[Player]
+        :param amount_game_value_doublers: The amount of players who doubled the game value
+        :type amount_game_value_doublers: int
         """
 
         self.cards: Cards = cards
         self.renderer: Renderer = renderer
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
+        self.amount_game_value_doublers: int = amount_game_value_doublers
         self.players: list[Player] = players
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
@@ -92,6 +97,20 @@ class Game(ABC):
     def create_teams(self) -> None:
         """Creates the team objects"""
         pass
+
+    def get_players_team(self, player: Player) -> Team:
+        """
+        Returns the team of a given player.
+        :param player: The player for whose team is to be returned
+        :type player: Player
+        :return: The player's team
+        :rtype: Team
+        """
+        for team in self.teams:
+            if player in team.players:
+                return team
+        else:
+            raise PlayerHasNoTeamError(f"{player} has no team!")
 
     def sort_players(self, starter: Player) -> None:
         """
@@ -182,17 +201,44 @@ class Game(ABC):
                 return runners_count
         return 0
 
-    def play_round(self, card_decision_validator: CardDecisionValidator) -> None:
+    def play_round(
+        self, card_decision_validator: CardDecisionValidator, rounds: int
+    ) -> None:
         """
         Simulates one round. Every player gets to play a card.
         The player who plays the strongest card is the round winner
         and starts the next round.
         :param card_decision_validator: An object that validates the card decisions
         :type card_decision_validator: CardDecisionValidator
+        :param rounds: The number of the current round (first round must be 1)
+        :type rounds: int
         :return: None
         """
 
+        shooting_possible: bool = False
+
+        if rounds == 1:
+            shooting_possible: bool = True
+
         for player in self.players:
+
+            players_team: Team = self.get_players_team(player)
+
+            if (
+                shooting_possible
+                and self.active_team is not None
+                and players_team != self.active_team
+            ):
+                if player.is_shoots():
+                    self.amount_game_value_doublers += 1
+                    for prev_active_player in self.active_team.players:
+                        if prev_active_player.is_shoots_back():
+                            self.amount_game_value_doublers += 1
+                            break
+                    else:
+                        self.active_team = players_team
+                    shooting_possible = False
+
             player.card_decision(
                 played_cards=self.played_cards,
                 move_validator=lambda d, p=player: card_decision_validator.is_move_legal(
@@ -266,7 +312,9 @@ class Game(ABC):
             self.create_card_decision_validator()
         )
         for rounds in range(len(self.players[0].player_cards)):
-            self.play_round(card_decision_validator=card_decision_validator)
+            self.play_round(
+                card_decision_validator=card_decision_validator, rounds=rounds + 1
+            )
         self.handle_winners()
 
 
@@ -277,7 +325,8 @@ class Ramsch(Game):
     There are no real teams, everybody plays alone.
     The goal is to earn the least amount of points during the game.
     The player with the most points loses the game.
-    If multiple players have the same amount of points, all of them lose.
+    If multiple players have the same amount of points, all of them lose,
+    expect one or more of them shot (doubled the game value and turned active).
     If the player with the most points has 91 points or more, he is the winner of the game.
     """
 
@@ -307,9 +356,9 @@ class Ramsch(Game):
             renderer=renderer,
             card_power_calculator=RamschCardPowerCalculator(),
             players=players,
+            amount_game_value_doublers=amount_game_value_doublers,
         )
         self.alone_price = alone_price
-        self.amount_game_value_doublers = amount_game_value_doublers
         self.trump_color = Color.HERZ
         self.trump_types = [Type.OBER, Type.UNTER]
         self.trumps: list[Card] = [
@@ -318,6 +367,7 @@ class Ramsch(Game):
             if card.card_type in self.trump_types or card.card_color == self.trump_color
         ]
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
+        self.active_players: list[Player] = []
 
     def create_teams(self) -> None:
         for index in range(len(self.players)):
@@ -329,7 +379,21 @@ class Ramsch(Game):
         return RamschCardDecisionValidator()
 
     def create_winners_selector(self) -> WinnersSelector:
-        return RamschWinnersSelector(teams=self.teams)
+        return RamschWinnersSelector(
+            teams=self.teams, active_players=self.active_players
+        )
+
+    def play_round(
+        self, card_decision_validator: CardDecisionValidator, rounds: int
+    ) -> None:
+        if rounds == 1:
+            for player in self.players:
+                if player.is_shoots():
+                    self.amount_game_value_doublers += 1
+                    self.active_players.append(player)
+        super().play_round(
+            card_decision_validator=card_decision_validator, rounds=rounds
+        )
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector
@@ -363,7 +427,9 @@ class Sauspiel(Game):
     apart from it being the last card the player has.
     The goal is to earn the highest amount of points as a team during the game.
     The team with the most points wins the game.
-    If multiple teams have the same amount of points, the team that didn't choose the game wins.
+    If multiple teams have the same amount of points, the team that didn't choose the game wins,
+    except somebody from the other team shot and the team of the game chooser didn't shoot back
+    (doubled the game value and turned active).
     """
 
     def __init__(
@@ -401,11 +467,11 @@ class Sauspiel(Game):
             renderer=renderer,
             card_power_calculator=SauspielCardPowerCalculator(),
             players=players,
+            amount_game_value_doublers=amount_game_value_doublers,
         )
         self.game_chooser = game_chooser
         self.base_price = base_price
         self.call_price = call_price
-        self.amount_game_value_doublers = amount_game_value_doublers
         self.trump_color = Color.HERZ
         self.trump_types = [Type.OBER, Type.UNTER]
         self.trumps: list[Card] = [
@@ -463,7 +529,9 @@ class Wenz(Game):
     The rest of the players build a team.
     The goal is to earn the highest amount of points as a team during the game.
     The team with the most points wins the game.
-    If the game chooser and the rest have the same amount of points, the game chooser loses.
+    If the game chooser and the rest have the same amount of points, the game chooser loses,
+    except somebody from the other team shot and game chooser didn't shoot back
+    (doubled the game value and turned active).
     """
 
     def __init__(
@@ -498,6 +566,7 @@ class Wenz(Game):
             renderer=renderer,
             card_power_calculator=WenzCardPowerCalculator(),
             players=players,
+            amount_game_value_doublers=amount_game_value_doublers,
         )
         self.game_chooser = game_chooser
         self.trump_types = [Type.UNTER]
@@ -507,7 +576,6 @@ class Wenz(Game):
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.alone_price = alone_price
         self.base_price = base_price
-        self.amount_game_value_doublers = amount_game_value_doublers
         self.minimum_runners: int = 2
 
     def create_teams(self) -> None:
@@ -553,7 +621,9 @@ class Solo(Game):
     The rest of the players build a team.
     The goal is to earn the highest amount of points as a team during the game.
     The team with the most points wins the game.
-    If the game chooser and the rest have the same amount of points, the game chooser loses.
+    If the game chooser and the rest have the same amount of points, the game chooser loses,
+    except somebody from the other team shot and game chooser didn't shoot back
+    (doubled the game value and turned active).
     """
 
     def __init__(
@@ -591,6 +661,7 @@ class Solo(Game):
             renderer=renderer,
             card_power_calculator=SoloCardPowerCalculator(trump_color=trump_color),
             players=players,
+            amount_game_value_doublers=amount_game_value_doublers,
         )
         self.game_chooser = game_chooser
         self.trump_color: Color = trump_color
@@ -603,7 +674,6 @@ class Solo(Game):
         self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.alone_price = alone_price
         self.base_price = base_price
-        self.amount_game_value_doublers = amount_game_value_doublers
         self.minimum_runners: int = 3
 
     def create_teams(self) -> None:

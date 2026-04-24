@@ -54,21 +54,36 @@ class WinnersSelector:
 
 
 class RamschWinnersSelector(WinnersSelector):
-    def __init__(self, teams: list[Team]) -> None:
+    def __init__(self, teams: list[Team], active_players: list[Player]) -> None:
         super().__init__(teams=teams, active_team=None)
+        self.run_through_threshold = 91
+        self.active_players: list[Player] = active_players
 
     def get_game_winners(self) -> list[Player]:
         winners: list[Player] = []
         most_point_teams = self.get_most_points_teams()
-        if len(most_point_teams) != 1:
+        if len(most_point_teams) > 1:
             winners = [
                 player
                 for team in self.teams
                 for player in team.players
-                if team not in most_point_teams
+                if team not in most_point_teams and player
             ]
+            losers = [
+                player
+                for team in self.teams
+                for player in team.players
+                if player not in winners
+            ]
+            if any(loser in self.active_players for loser in losers) and any(
+                loser not in self.active_players for loser in losers
+            ):
+                for loser in losers:
+                    if loser not in self.active_players:
+                        winners.append(loser)
+
         else:
-            if most_point_teams[0].points >= 91:
+            if most_point_teams[0].points >= self.run_through_threshold:
                 winners.append(most_point_teams[0].players[0])
             else:
                 winners = [
