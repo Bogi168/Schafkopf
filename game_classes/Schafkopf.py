@@ -180,7 +180,7 @@ class Schafkopf:
     def players_choose_game(self) -> Game:
         game_mode: type[Game] | None = None
         game: Game | None = None
-        if len(self.game_choosers) == 0:
+        if not self.game_choosers:
             return Ramsch(
                 cards=self.cards,
                 renderer=self.renderer,

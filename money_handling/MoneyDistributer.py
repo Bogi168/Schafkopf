@@ -105,7 +105,7 @@ class RamschMoneyDistributer(MoneyDistributer):
     def count_virgins(self) -> int:
         virgins_count = 0
         for player in self.players:
-            if len(player.collected_cards) == 0:
+            if not player.collected_cards:
                 virgins_count += 1
         return virgins_count
 
