@@ -92,10 +92,8 @@ class Schafkopf:
     def deal_cards(self, cards_amount_per_player: int) -> None:
         self.shuffle_cards(cards=self.cards.deck)
         for player in self.players:
-            for _ in range(cards_amount_per_player):
-                card = self.cards.deck[-1]
-                player.player_cards.append(card)
-                self.cards.deck.pop(-1)
+            player.player_cards.extend(self.cards.deck[-cards_amount_per_player:])
+            del self.cards.deck[-cards_amount_per_player:]
 
     def prepare_cards(self) -> None:
         for player in self.players:

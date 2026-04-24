@@ -91,7 +91,6 @@ class Game(ABC):
     @abstractmethod
     def create_teams(self) -> None:
         """Creates the team objects"""
-
         pass
 
     def sort_players(self, starter: Player) -> None:
@@ -113,7 +112,6 @@ class Game(ABC):
         :return: A card decision validator object
         :rtype: CardDecisionValidator
         """
-
         pass
 
     def create_winners_selector(self) -> WinnersSelector:
@@ -134,7 +132,6 @@ class Game(ABC):
         :return: A money distributer object
         :rtype: MoneyDistributer
         """
-
         pass
 
     def sort_player_hands(self) -> None:
@@ -227,6 +224,7 @@ class Game(ABC):
         Creates another object after to distribute the money among the players.
         :return: None
         """
+
         winners_selector: WinnersSelector = self.create_winners_selector()
         winners = winners_selector.get_game_winners()
         most_point_teams = winners_selector.get_most_points_teams()
