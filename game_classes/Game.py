@@ -186,6 +186,15 @@ class Game(ABC):
         return 0
 
     def play_round(self, card_decision_validator: CardDecisionValidator) -> None:
+        """
+        Simulates one round. Every player gets to play a card.
+        The player who plays the strongest card is the round winner
+        and starts the next round.
+        :param card_decision_validator: An object that validates the card decisions
+        :type card_decision_validator: CardDecisionValidator
+        :return: None
+        """
+
         for player in self.players:
             player.card_decision(
                 played_cards=self.played_cards,
@@ -199,20 +208,25 @@ class Game(ABC):
         strongest_card = self.card_power_calculator.get_strongest_played_card(
             played_cards=self.played_cards, trumps=self.trumps
         )
-        winner_index = self.played_cards.index(strongest_card)
+        round_winner_index = self.played_cards.index(strongest_card)
         for card in self.played_cards:
-            self.players[winner_index].collected_cards.append(card)
+            self.players[round_winner_index].collected_cards.append(card)
         self.renderer.render(
             message=show_collector_of_cards(
-                player_name=self.players[winner_index].player_name,
-                collected_cards=self.players[winner_index].collected_cards,
+                player_name=self.players[round_winner_index].player_name,
+                collected_cards=self.players[round_winner_index].collected_cards,
             )
         )
-        starter = self.players[winner_index]
+        starter = self.players[round_winner_index]
         self.sort_players(starter=starter)
         self.played_cards.clear()
 
     def handle_winners(self):
+        """
+        Creates an object that selects the winners.
+        Creates another object after to distribute the money among the players.
+        :return: None
+        """
         winners_selector: WinnersSelector = self.create_winners_selector()
         winners = winners_selector.get_game_winners()
         most_point_teams = winners_selector.get_most_points_teams()
@@ -242,6 +256,11 @@ class Game(ABC):
             )
 
     def play_game(self) -> None:
+        """
+        Simulates a full game.
+        :return: None
+        """
+
         self.sort_player_hands()
         self.create_teams()
         self.runners_amount = self.count_game_runners(trumps=self.trumps)
@@ -254,6 +273,15 @@ class Game(ABC):
 
 
 class Ramsch(Game):
+    """
+    The trump types are Ober and Unter.
+    The trump color is Herz
+    There are no real teams, everybody plays alone.
+    The goal is to earn the least amount of points during the game.
+    The player with the most points loses the game.
+    If multiple players have the same amount of points, all of them lose.
+    If the player with the most points has 91 points or more, he is the winner of the game.
+    """
 
     def __init__(
         self,
@@ -309,6 +337,23 @@ class Ramsch(Game):
 
 
 class Sauspiel(Game):
+    """
+    The trump types are Ober and Unter.
+    The trump color is Herz
+    Choosing Sauspiel is only possible if you have cards that are not trumps
+    and don't have the Sau for every non-trump card color you have.
+    The player who chooses the game has to choose a sau color.
+    The sau color decision is only legal, if he/she doesn't own the sau of the chosen sau color
+    and has at least one non-trump card of the chosen sau color.
+    The game chooser and the person who owns the sau of the chosen sau color (the so called callsau) build a team.
+    Until the callsau is played, nobody knows for sure, who his teammates are.
+    If the first played card of a round is from the color of the callsau, the owner of the callsau has to play it.
+    There are no other scenarios in which the callsau is allowed to be played,
+    apart from it being the last card the player has.
+    The goal is to earn the highest amount of points as a team during the game.
+    The team with the most points wins the game.
+    If multiple teams have the same amount of points, the team that didn't choose the game wins.
+    """
 
     def __init__(
         self,

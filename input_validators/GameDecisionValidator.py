@@ -80,7 +80,7 @@ class GameDecisionValidator:
         """
         Checks whether the player is able to choose sauspiel as a game mode.
         Choosing Sauspiel is only possible if you have cards that are not trumps
-        and don't have the Sau for every non trump card color you have.
+        and don't have the Sau for every non-trump card color you have.
         :param player_cards: The player's cards
         :type player_cards: list[Card]
         :return: A boolean value indicating whether the player is able to choose sauspiel as a game mode
