@@ -291,6 +291,19 @@ class Ramsch(Game):
         alone_price: int,
         amount_game_value_doublers: int,
     ) -> None:
+        """
+        :param cards: An object which saves a full deck of cards and provides a deck to play with
+        :type cards: Cards
+        :param renderer: An object which renders information
+        :type renderer: Renderer
+        :param players: A list of objects which represent the players
+        :type players: list[Player]
+        :param alone_price: alone price for game value calculations
+        :type alone_price: int
+        :param amount_game_value_doublers: The amount of people who decided to double the game value
+        :type amount_game_value_doublers: int
+        """
+
         super().__init__(
             cards=cards,
             renderer=renderer,
@@ -366,6 +379,25 @@ class Sauspiel(Game):
         call_price: int,
         amount_game_value_doublers: int,
     ) -> None:
+        """
+        :param cards: An object which saves a full deck of cards and provides a deck to play with
+        :type cards: Cards
+        :param renderer: An object which renders information
+        :type renderer: Renderer
+        :param players: A list of objects which represent the players
+        :type players: list[Player]
+        :param sau_color: The color of the callsau
+        :type sau_color: Color
+        :param game_chooser: The player who choose the game
+        :type game_chooser: Player
+        :param base_price: base price for game value calculations
+        :type base_price: int
+        :param call_price: call price for game value calculations
+        :type call_price: int
+        :param amount_game_value_doublers: The amount of people who decided to double the game value
+        :type amount_game_value_doublers: int
+        """
+
         super().__init__(
             cards=cards,
             renderer=renderer,
@@ -426,6 +458,15 @@ class Sauspiel(Game):
 
 
 class Wenz(Game):
+    """
+    The only trump type is Unter.
+    There are no trump colors.
+    The game chooser has to play alone.
+    The rest of the players build a team.
+    The goal is to earn the highest amount of points as a team during the game.
+    The team with the most points wins the game.
+    If the game chooser and the rest have the same amount of points, the game chooser loses.
+    """
 
     def __init__(
         self,
@@ -437,6 +478,23 @@ class Wenz(Game):
         alone_price: int,
         amount_game_value_doublers: int,
     ) -> None:
+        """
+        :param cards: An object which saves a full deck of cards and provides a deck to play with
+        :type cards: Cards
+        :param renderer: An object which renders information
+        :type renderer: Renderer
+        :param players: A list of objects which represent the players
+        :type players: list[Player]
+        :param game_chooser: The player who choose the game
+        :type game_chooser: Player
+        :param base_price: base price for game value calculations
+        :type base_price: int
+        :param alone_price: alone price for game value calculations
+        :type alone_price: int
+        :param amount_game_value_doublers: The amount of people who decided to double the game value
+        :type amount_game_value_doublers: int
+        """
+
         super().__init__(
             cards=cards,
             renderer=renderer,
@@ -489,6 +547,16 @@ class Wenz(Game):
 
 
 class Solo(Game):
+    """
+    The trump types are Ober and Unter.
+    The player who chooses the game has to choose a trump color.
+    The trump color is the color chosen by the game chooser.
+    The game chooser has to play alone.
+    The rest of the players build a team.
+    The goal is to earn the highest amount of points as a team during the game.
+    The team with the most points wins the game.
+    If the game chooser and the rest have the same amount of points, the game chooser loses.
+    """
 
     def __init__(
         self,
@@ -501,6 +569,25 @@ class Solo(Game):
         alone_price: int,
         amount_game_value_doublers: int,
     ) -> None:
+        """
+        :param trump_color: The trump color chosen by the game chooser
+        :type trump_color: Color
+        :param cards: An object which saves a full deck of cards and provides a deck to play with
+        :type cards: Cards
+        :param renderer: An object which renders information
+        :type renderer: Renderer
+        :param players: A list of objects which represent the players
+        :type players: list[Player]
+        :param game_chooser: The player who choose the game
+        :type game_chooser: Player
+        :param base_price: base price for game value calculations
+        :type base_price: int
+        :param alone_price: alone price for game value calculations
+        :type alone_price: int
+        :param amount_game_value_doublers: The amount of people who decided to double the game value
+        :type amount_game_value_doublers: int
+        """
+
         super().__init__(
             cards=cards,
             renderer=renderer,
