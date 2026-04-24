@@ -68,9 +68,6 @@ class Game(ABC):
         self.cards: Cards = cards
         self.renderer: Renderer = renderer
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
-        self.card_decision_validator: CardDecisionValidator | None = None
-        self.money_distributer: MoneyDistributer | None = None
-        self.winners_selector: WinnersSelector | None = None
         self.players: list[Player] = players
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
@@ -129,7 +126,9 @@ class Game(ABC):
         return WinnersSelector(teams=self.teams, active_team=self.active_team)
 
     @abstractmethod
-    def create_money_distributer(self) -> MoneyDistributer:
+    def create_money_distributer(
+        self, winners_selector: WinnersSelector
+    ) -> MoneyDistributer:
         """
         Creates a money distributer object.
         :return: A money distributer object
@@ -186,12 +185,11 @@ class Game(ABC):
                 return runners_count
         return 0
 
-    def play_round(self) -> None:
+    def play_round(self, card_decision_validator: CardDecisionValidator) -> None:
         for player in self.players:
-            assert self.card_decision_validator is not None
             player.card_decision(
                 played_cards=self.played_cards,
-                move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
+                move_validator=lambda d, p=player: card_decision_validator.is_move_legal(
                     player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card
                 ),
             )
@@ -215,10 +213,9 @@ class Game(ABC):
         self.played_cards.clear()
 
     def handle_winners(self):
-        self.winners_selector: WinnersSelector = self.create_winners_selector()
-        assert self.winners_selector is not None
-        winners = self.winners_selector.get_game_winners()
-        most_point_teams = self.winners_selector.get_most_points_teams()
+        winners_selector: WinnersSelector = self.create_winners_selector()
+        winners = winners_selector.get_game_winners()
+        most_point_teams = winners_selector.get_most_points_teams()
         self.renderer.render(
             message=tell_most_point_teams(most_point_teams=most_point_teams)
         )
@@ -231,10 +228,11 @@ class Game(ABC):
                     team_name=team.team_name, players=team.players
                 )
             )
-        self.money_distributer: MoneyDistributer = self.create_money_distributer()
-        assert self.money_distributer is not None
-        game_value = self.money_distributer.calculate_game_value()
-        self.money_distributer.distribute_money(game_value=game_value, winners=winners)
+        money_distributer: MoneyDistributer = self.create_money_distributer(
+            winners_selector=winners_selector
+        )
+        game_value = money_distributer.calculate_game_value()
+        money_distributer.distribute_money(game_value=game_value, winners=winners)
         self.renderer.render(message=tell_winners(winners=winners))
         for player in self.players:
             self.renderer.render(
@@ -247,9 +245,11 @@ class Game(ABC):
         self.sort_player_hands()
         self.create_teams()
         self.runners_amount = self.count_game_runners(trumps=self.trumps)
-        self.card_decision_validator = self.create_card_decision_validator()
+        card_decision_validator: CardDecisionValidator = (
+            self.create_card_decision_validator()
+        )
         for rounds in range(len(self.players[0].player_cards)):
-            self.play_round()
+            self.play_round(card_decision_validator=card_decision_validator)
         self.handle_winners()
 
 
@@ -287,20 +287,20 @@ class Ramsch(Game):
             self.teams.append(team)
 
     def create_card_decision_validator(self) -> CardDecisionValidator:
-        card_decision_validator = RamschCardDecisionValidator()
-        return card_decision_validator
+        return RamschCardDecisionValidator()
 
     def create_winners_selector(self) -> WinnersSelector:
         return RamschWinnersSelector(teams=self.teams)
 
-    def create_money_distributer(self) -> MoneyDistributer:
-        assert self.winners_selector is not None
+    def create_money_distributer(
+        self, winners_selector: WinnersSelector
+    ) -> MoneyDistributer:
         money_distributer: MoneyDistributer = RamschMoneyDistributer(
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
-            winners=self.winners_selector.get_game_winners(),
+            winners=winners_selector.get_game_winners(),
             amount_game_card_points=sum(
                 card.card_type.points for card in self.cards.full_deck
             ),
@@ -358,12 +358,12 @@ class Sauspiel(Game):
         self.teams.append(team_2)
 
     def create_card_decision_validator(self) -> CardDecisionValidator:
-        card_decision_validator = SauspielCardDecisionValidator(call_sau=self.call_sau)
-        return card_decision_validator
+        return SauspielCardDecisionValidator(call_sau=self.call_sau)
 
-    def create_money_distributer(self) -> MoneyDistributer:
+    def create_money_distributer(
+        self, winners_selector: WinnersSelector
+    ) -> MoneyDistributer:
         assert self.active_team is not None
-        assert self.winners_selector is not None
         money_distributer = SauspielMoneyDistributer(
             base_price=self.base_price,
             call_price=self.call_price,
@@ -371,7 +371,7 @@ class Sauspiel(Game):
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
-            winners=self.winners_selector.get_game_winners(),
+            winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
             amount_game_card_points=sum(
                 card.card_type.points for card in self.cards.full_deck
@@ -421,12 +421,12 @@ class Wenz(Game):
         self.teams.append(team_2)
 
     def create_card_decision_validator(self) -> CardDecisionValidator:
-        card_decision_validator = WenzCardDecisionValidator()
-        return card_decision_validator
+        return WenzCardDecisionValidator()
 
-    def create_money_distributer(self) -> MoneyDistributer:
+    def create_money_distributer(
+        self, winners_selector: WinnersSelector
+    ) -> MoneyDistributer:
         assert self.active_team is not None
-        assert self.winners_selector is not None
         money_distributer = WenzMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
@@ -434,7 +434,7 @@ class Wenz(Game):
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
-            winners=self.winners_selector.get_game_winners(),
+            winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
             amount_game_card_points=sum(
                 card.card_type.points for card in self.cards.full_deck
@@ -488,12 +488,12 @@ class Solo(Game):
         self.teams.append(team_2)
 
     def create_card_decision_validator(self) -> CardDecisionValidator:
-        card_decision_validator = SoloCardDecisionValidator()
-        return card_decision_validator
+        return SoloCardDecisionValidator()
 
-    def create_money_distributer(self) -> MoneyDistributer:
+    def create_money_distributer(
+        self, winners_selector: WinnersSelector
+    ) -> MoneyDistributer:
         assert self.active_team is not None
-        assert self.winners_selector is not None
         money_distributer = SoloMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
@@ -501,7 +501,7 @@ class Solo(Game):
             teams=self.teams,
             amount_game_value_doublers=self.amount_game_value_doublers,
             active_team=self.active_team,
-            winners=self.winners_selector.get_game_winners(),
+            winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
             amount_game_card_points=sum(
                 card.card_type.points for card in self.cards.full_deck
