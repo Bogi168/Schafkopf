@@ -62,13 +62,11 @@ class Type(IntEnum):
 class Card:
     card_color: Color
     card_type: Type
-    card_name: str = field(default=None, compare=False)
+    card_name: str = field(default=None, compare=False, repr=True)
 
     def __post_init__(self) -> None:
         if self.card_name is None:
-            self.card_name: str = field(
-                default=f"({self.card_color.name} {self.card_type.name})", compare=False
-            )
+            self.card_name: str = f"({self.card_color.name} {self.card_type.name})"
 
 
 class Cards:
