@@ -7,7 +7,7 @@ from player_classes.Player import Player, Bot
 from game_classes.Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
-from system.custom_exceptions import GamemodeIsNotImplemented
+from system.custom_exceptions import GamemodeIsNotImplementedError
 from system.text import (
     error_message,
     prompt_games_amount,
@@ -176,7 +176,7 @@ class Schafkopf:
             )
 
         else:
-            raise GamemodeIsNotImplemented(f"{game_mode} is not implemented yet")
+            raise GamemodeIsNotImplementedError(f"{game_mode} is not implemented yet")
 
     def players_choose_game(self) -> Game:
         game_mode: type[Game] | None = None

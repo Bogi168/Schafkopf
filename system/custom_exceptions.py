@@ -2,5 +2,5 @@ class PlayerHasNoTeamError(Exception):
     pass
 
 
-class GamemodeIsNotImplemented(Exception):
+class GamemodeIsNotImplementedError(Exception):
     pass

@@ -90,7 +90,6 @@ class CardDecisionValidator:
         player_cards: list[Card],
         trumps: list[Card],
     ) -> bool:
-        assert lead_card is not None
         if lead_card in trumps:
             return self.lead_card_is_trump(
                 decision=decision, player_cards=player_cards, trumps=trumps
@@ -137,13 +136,9 @@ class SauspielCardDecisionValidator(CardDecisionValidator):
         self.call_sau: Card = call_sau
 
     def is_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
-        for card in player_cards:
-            if card == self.call_sau:
-                return True
-        return False
+        return any(card == self.call_sau for card in player_cards)
 
     def player_has_lead(self, decision: Card, player_cards: list[Card]) -> bool:
-        assert self.call_sau is not None
         if (
             self.is_player_owns_call_sau(player_cards=player_cards)
             and decision.card_color == self.call_sau.card_color
@@ -181,8 +176,6 @@ class SauspielCardDecisionValidator(CardDecisionValidator):
         player_cards: list[Card],
         trumps: list[Card],
     ) -> bool:
-        assert lead_card is not None
-        assert self.call_sau is not None
         if (
             self.is_player_owns_call_sau(player_cards=player_cards)
             and lead_card.card_color != self.call_sau.card_color
