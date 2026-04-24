@@ -3,6 +3,8 @@ from typing import Callable
 
 
 class Renderer(ABC):
+    """An object that renders information"""
+
     @abstractmethod
     def render(self, message: str) -> None:
         pass
