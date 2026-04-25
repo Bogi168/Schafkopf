@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 import random
 from system.Renderer import Renderer
 from card_classes.Cards import Cards
@@ -17,9 +16,6 @@ from system.text import (
     words_of_thanks,
 )
 
-if TYPE_CHECKING:
-    from card_classes.Cards import Card
-
 
 class Schafkopf:
     def __init__(
@@ -29,7 +25,7 @@ class Schafkopf:
         self.starter: Player | None = None
         self.game_chooser: Player | None = None
         self.game_choosers: list[Player] = []
-        self.amount_game_value_doublers = 0
+        self.amount_game_value_doubles = 0
 
         self.cards = Cards()
         self.renderer = renderer
@@ -73,24 +69,12 @@ class Schafkopf:
             )
         return players
 
-    @staticmethod
-    def choose_starter(players: list[Player]) -> Player:
-        starter = random.choice(players)
-        return starter
-
-    @staticmethod
-    def get_sorted_players(players: list[Player], starter: Player) -> list[Player]:
-        starter_index = players.index(starter)
-        players = players[starter_index:] + players[:starter_index]
-        return players
-
-    @staticmethod
-    def shuffle_cards(cards: list[Card]) -> list[Card]:
-        random.shuffle(cards)
-        return cards
+    def sort_players(self, starter: Player) -> None:
+        starter_index = self.players.index(starter)
+        self.players = self.players[starter_index:] + self.players[:starter_index]
 
     def deal_cards(self, cards_amount_per_player: int) -> None:
-        self.shuffle_cards(cards=self.cards.deck)
+        random.shuffle(self.cards.deck)
         for player in self.players:
             player.player_cards.extend(self.cards.deck[-cards_amount_per_player:])
             del self.cards.deck[-cards_amount_per_player:]
@@ -106,7 +90,7 @@ class Schafkopf:
         )
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
         self.sort_player_hands()
-        self.amount_game_value_doublers = 0
+        self.amount_game_value_doubles = 0
         for player in self.players:
             self.renderer.render(
                 message=show_player_cards(
@@ -114,15 +98,13 @@ class Schafkopf:
                 )
             )
             if player.is_doubles_game_value():
-                self.amount_game_value_doublers += 1
+                self.amount_game_value_doubles += 1
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
         self.sort_player_hands()
 
     def prepare_players(self):
         assert self.starter is not None
-        self.players = self.get_sorted_players(
-            players=self.players, starter=self.starter
-        )
+        self.sort_players(starter=self.starter)
         self.game_choosers.clear()
 
     # sort cards for a Sauspiel -> easier to make game decisions
@@ -144,7 +126,7 @@ class Schafkopf:
                 game_chooser=self.game_chooser,
                 base_price=self.base_price,
                 call_price=self.call_price,
-                amount_game_value_doublers=self.amount_game_value_doublers,
+                amount_game_value_doubles=self.amount_game_value_doubles,
                 sau_color=sau_color,
             )
 
@@ -156,7 +138,7 @@ class Schafkopf:
                 game_chooser=self.game_chooser,
                 base_price=self.base_price,
                 alone_price=self.alone_price,
-                amount_game_value_doublers=self.amount_game_value_doublers,
+                amount_game_value_doubles=self.amount_game_value_doubles,
             )
 
         elif game_mode is Solo:
@@ -169,7 +151,7 @@ class Schafkopf:
                 game_chooser=self.game_chooser,
                 base_price=self.base_price,
                 alone_price=self.alone_price,
-                amount_game_value_doublers=self.amount_game_value_doublers,
+                amount_game_value_doubles=self.amount_game_value_doubles,
             )
 
         else:
@@ -184,7 +166,7 @@ class Schafkopf:
                 renderer=self.renderer,
                 players=self.players,
                 alone_price=self.alone_price,
-                amount_game_value_doublers=self.amount_game_value_doublers,
+                amount_game_value_doubles=self.amount_game_value_doubles,
             )
         else:
             for player in self.game_choosers:
@@ -234,7 +216,7 @@ class Schafkopf:
 
     def main(self) -> None:
         self.players = self._create_players()
-        self.starter = self.choose_starter(players=self.players)
+        self.starter = random.choice(self.players)
         games_amount: str = self.renderer.ask_with_validation(
             prompt=prompt_games_amount,
             error_prefix=error_message,

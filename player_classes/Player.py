@@ -178,18 +178,6 @@ class Player:
             decision = "Q"
         return decision
 
-    def is_card_decision_valid_number(self, index_decision: str) -> bool:
-        """
-        Checks, whether the player chose a valid card number for his next card decision
-        :param index_decision: The input made by the player
-        :type index_decision: str
-        :return: A boolean value which indicates whether the player chose a valid card number or not
-        :rtype: bool
-        """
-        return index_decision.isdigit() and 1 <= int(index_decision) <= len(
-            self.player_cards
-        )
-
     def is_shoots(self) -> bool:
         """
         Asks the player whether he wants to shoot or not.
@@ -231,6 +219,18 @@ class Player:
             validator=lambda x: x in self.string_decisions,
         )
         return decision in self.yes_decisions
+
+    def is_card_decision_valid_number(self, index_decision: str) -> bool:
+        """
+        Checks, whether the player chose a valid card number for his next card decision
+        :param index_decision: The input made by the player
+        :type index_decision: str
+        :return: A boolean value which indicates whether the player chose a valid card number or not
+        :rtype: bool
+        """
+        return index_decision.isdigit() and 1 <= int(index_decision) <= len(
+            self.player_cards
+        )
 
     def card_decision(
         self,

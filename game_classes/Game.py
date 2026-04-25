@@ -53,8 +53,9 @@ class Game(ABC):
         cards: Cards,
         renderer: Renderer,
         card_power_calculator: CardPowerCalculator,
+        card_decision_validator: CardDecisionValidator,
         players: list[Player],
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
     ) -> None:
         """
         :param cards: An object which saves a full deck of cards and provides a deck to play with
@@ -65,14 +66,15 @@ class Game(ABC):
         :type card_power_calculator: CardPowerCalculator
         :param players: A list of objects which represent the players
         :type players: list[Player]
-        :param amount_game_value_doublers: The amount of players who doubled the game value
-        :type amount_game_value_doublers: int
+        :param amount_game_value_doubles: The amount of players who doubled the game value
+        :type amount_game_value_doubles: int
         """
 
         self.cards: Cards = cards
         self.renderer: Renderer = renderer
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
-        self.amount_game_value_doublers: int = amount_game_value_doublers
+        self.card_decision_validator: CardDecisionValidator = card_decision_validator
+        self.amount_game_value_doubles: int = amount_game_value_doubles
         self.players: list[Player] = players
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
@@ -123,15 +125,6 @@ class Game(ABC):
 
         starter_index = self.players.index(starter)
         self.players = self.players[starter_index:] + self.players[:starter_index]
-
-    @abstractmethod
-    def create_card_decision_validator(self) -> CardDecisionValidator:
-        """
-        Creates a card decision validator object.
-        :return: A card decision validator object
-        :rtype: CardDecisionValidator
-        """
-        pass
 
     def create_winners_selector(self) -> WinnersSelector:
         """
@@ -201,15 +194,11 @@ class Game(ABC):
                 return runners_count
         return 0
 
-    def play_round(
-        self, card_decision_validator: CardDecisionValidator, rounds: int
-    ) -> None:
+    def play_round(self, rounds: int) -> None:
         """
         Simulates one round. Every player gets to play a card.
         The player who plays the strongest card is the round winner
         and starts the next round.
-        :param card_decision_validator: An object that validates the card decisions
-        :type card_decision_validator: CardDecisionValidator
         :param rounds: The number of the current round (first round must be 1)
         :type rounds: int
         :return: None
@@ -230,10 +219,10 @@ class Game(ABC):
                 and players_team != self.active_team
             ):
                 if player.is_shoots():
-                    self.amount_game_value_doublers += 1
+                    self.amount_game_value_doubles += 1
                     for prev_active_player in self.active_team.players:
                         if prev_active_player.is_shoots_back():
-                            self.amount_game_value_doublers += 1
+                            self.amount_game_value_doubles += 1
                             break
                     else:
                         self.active_team = players_team
@@ -241,7 +230,7 @@ class Game(ABC):
 
             player.card_decision(
                 played_cards=self.played_cards,
-                move_validator=lambda d, p=player: card_decision_validator.is_move_legal(
+                move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
                     player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card
                 ),
             )
@@ -308,13 +297,8 @@ class Game(ABC):
         self.sort_player_hands()
         self.create_teams()
         self.runners_amount = self.count_game_runners(trumps=self.trumps)
-        card_decision_validator: CardDecisionValidator = (
-            self.create_card_decision_validator()
-        )
         for rounds in range(len(self.players[0].player_cards)):
-            self.play_round(
-                card_decision_validator=card_decision_validator, rounds=rounds + 1
-            )
+            self.play_round(rounds=rounds + 1)
         self.handle_winners()
 
 
@@ -336,7 +320,7 @@ class Ramsch(Game):
         renderer: Renderer,
         players: list[Player],
         alone_price: int,
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
     ) -> None:
         """
         :param cards: An object which saves a full deck of cards and provides a deck to play with
@@ -347,8 +331,8 @@ class Ramsch(Game):
         :type players: list[Player]
         :param alone_price: alone price for game value calculations
         :type alone_price: int
-        :param amount_game_value_doublers: The amount of people who decided to double the game value
-        :type amount_game_value_doublers: int
+        :param amount_game_value_doubles: The amount of people who decided to double the game value
+        :type amount_game_value_doubles: int
         """
 
         super().__init__(
@@ -356,7 +340,8 @@ class Ramsch(Game):
             renderer=renderer,
             card_power_calculator=RamschCardPowerCalculator(),
             players=players,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
+            card_decision_validator=RamschCardDecisionValidator(),
         )
         self.alone_price = alone_price
         self.trump_color = Color.HERZ
@@ -375,25 +360,18 @@ class Ramsch(Game):
             team.players.append(self.players[index])
             self.teams.append(team)
 
-    def create_card_decision_validator(self) -> CardDecisionValidator:
-        return RamschCardDecisionValidator()
-
     def create_winners_selector(self) -> WinnersSelector:
         return RamschWinnersSelector(
             teams=self.teams, active_players=self.active_players
         )
 
-    def play_round(
-        self, card_decision_validator: CardDecisionValidator, rounds: int
-    ) -> None:
+    def play_round(self, rounds: int) -> None:
         if rounds == 1:
             for player in self.players:
                 if player.is_shoots():
-                    self.amount_game_value_doublers += 1
+                    self.amount_game_value_doubles += 1
                     self.active_players.append(player)
-        super().play_round(
-            card_decision_validator=card_decision_validator, rounds=rounds
-        )
+        super().play_round(rounds=rounds)
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector
@@ -402,7 +380,7 @@ class Ramsch(Game):
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
-            amount_game_value_doublers=self.amount_game_value_doublers,
+            amount_game_value_doubles=self.amount_game_value_doubles,
             winners=winners_selector.get_game_winners(),
             amount_game_card_points=sum(
                 card.card_type.points for card in self.cards.full_deck
@@ -441,7 +419,7 @@ class Sauspiel(Game):
         game_chooser: Player,
         base_price: int,
         call_price: int,
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
     ) -> None:
         """
         :param cards: An object which saves a full deck of cards and provides a deck to play with
@@ -458,8 +436,8 @@ class Sauspiel(Game):
         :type base_price: int
         :param call_price: call price for game value calculations
         :type call_price: int
-        :param amount_game_value_doublers: The amount of people who decided to double the game value
-        :type amount_game_value_doublers: int
+        :param amount_game_value_doubles: The amount of people who decided to double the game value
+        :type amount_game_value_doubles: int
         """
 
         super().__init__(
@@ -467,7 +445,10 @@ class Sauspiel(Game):
             renderer=renderer,
             card_power_calculator=SauspielCardPowerCalculator(),
             players=players,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
+            card_decision_validator=SauspielCardDecisionValidator(
+                call_sau=Card(card_color=sau_color, card_type=Type.SAU)
+            ),
         )
         self.game_chooser = game_chooser
         self.base_price = base_price
@@ -498,9 +479,6 @@ class Sauspiel(Game):
         self.teams.append(team_1)
         self.teams.append(team_2)
 
-    def create_card_decision_validator(self) -> CardDecisionValidator:
-        return SauspielCardDecisionValidator(call_sau=self.call_sau)
-
     def create_money_distributer(
         self, winners_selector: WinnersSelector
     ) -> MoneyDistributer:
@@ -510,7 +488,7 @@ class Sauspiel(Game):
             call_price=self.call_price,
             players=self.players,
             teams=self.teams,
-            amount_game_value_doublers=self.amount_game_value_doublers,
+            amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
             winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
@@ -542,7 +520,7 @@ class Wenz(Game):
         game_chooser: Player,
         base_price: int,
         alone_price: int,
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
     ) -> None:
         """
         :param cards: An object which saves a full deck of cards and provides a deck to play with
@@ -557,8 +535,8 @@ class Wenz(Game):
         :type base_price: int
         :param alone_price: alone price for game value calculations
         :type alone_price: int
-        :param amount_game_value_doublers: The amount of people who decided to double the game value
-        :type amount_game_value_doublers: int
+        :param amount_game_value_doubles: The amount of people who decided to double the game value
+        :type amount_game_value_doubles: int
         """
 
         super().__init__(
@@ -566,7 +544,8 @@ class Wenz(Game):
             renderer=renderer,
             card_power_calculator=WenzCardPowerCalculator(),
             players=players,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
+            card_decision_validator=WenzCardDecisionValidator(),
         )
         self.game_chooser = game_chooser
         self.trump_types = [Type.UNTER]
@@ -589,9 +568,6 @@ class Wenz(Game):
         self.teams.append(team_1)
         self.teams.append(team_2)
 
-    def create_card_decision_validator(self) -> CardDecisionValidator:
-        return WenzCardDecisionValidator()
-
     def create_money_distributer(
         self, winners_selector: WinnersSelector
     ) -> MoneyDistributer:
@@ -601,7 +577,7 @@ class Wenz(Game):
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
-            amount_game_value_doublers=self.amount_game_value_doublers,
+            amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
             winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
@@ -635,7 +611,7 @@ class Solo(Game):
         game_chooser: Player,
         base_price: int,
         alone_price: int,
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
     ) -> None:
         """
         :param trump_color: The trump color chosen by the game chooser
@@ -652,8 +628,8 @@ class Solo(Game):
         :type base_price: int
         :param alone_price: alone price for game value calculations
         :type alone_price: int
-        :param amount_game_value_doublers: The amount of people who decided to double the game value
-        :type amount_game_value_doublers: int
+        :param amount_game_value_doubles: The amount of people who decided to double the game value
+        :type amount_game_value_doubles: int
         """
 
         super().__init__(
@@ -661,7 +637,8 @@ class Solo(Game):
             renderer=renderer,
             card_power_calculator=SoloCardPowerCalculator(trump_color=trump_color),
             players=players,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
+            card_decision_validator=SoloCardDecisionValidator(),
         )
         self.game_chooser = game_chooser
         self.trump_color: Color = trump_color
@@ -687,9 +664,6 @@ class Solo(Game):
         self.teams.append(team_1)
         self.teams.append(team_2)
 
-    def create_card_decision_validator(self) -> CardDecisionValidator:
-        return SoloCardDecisionValidator()
-
     def create_money_distributer(
         self, winners_selector: WinnersSelector
     ) -> MoneyDistributer:
@@ -699,7 +673,7 @@ class Solo(Game):
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
-            amount_game_value_doublers=self.amount_game_value_doublers,
+            amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
             winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,

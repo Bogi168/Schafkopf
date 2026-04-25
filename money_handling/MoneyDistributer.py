@@ -21,7 +21,7 @@ class MoneyDistributer(ABC):
         teams: list[Team],
         active_team: Team | None,
         winners: list[Player],
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
         runners_amount: int,
         amount_game_card_points: int,
     ) -> None:
@@ -40,8 +40,8 @@ class MoneyDistributer(ABC):
         :type active_team: Team | None
         :param winners: The winners of the game
         :type winners: list[Player]
-        :param amount_game_value_doublers: The amount of people who decided to double the game value
-        :type amount_game_value_doublers: int
+        :param amount_game_value_doubles: The amount of times someone decided to double the game value
+        :type amount_game_value_doubles: int
         :param runners_amount: The amount of game runners
         :type runners_amount: int
         :param amount_game_card_points: The amount of points when combining all card points of a game
@@ -54,7 +54,7 @@ class MoneyDistributer(ABC):
         self.teams: list[Team] = teams
         self.active_team: Team | None = active_team
         self.winners: list[Player] = winners
-        self.amount_game_value_doublers: int = amount_game_value_doublers
+        self.amount_game_value_doubles: int = amount_game_value_doubles
         self.runners_amount: int = runners_amount
         self.schneider_threshold = amount_game_card_points - (
             amount_game_card_points // 4
@@ -97,7 +97,7 @@ class MoneyDistributer(ABC):
         if winning_team.points == self.black_threshold:
             game_value += self.base_price
 
-        for _ in range(self.amount_game_value_doublers):
+        for _ in range(self.amount_game_value_doubles):
             game_value *= 2
 
         return game_value
@@ -137,7 +137,7 @@ class RamschMoneyDistributer(MoneyDistributer):
         alone_price: int,
         players: list[Player],
         teams: list[Team],
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
         winners: list[Player],
         amount_game_card_points: int,
     ) -> None:
@@ -148,7 +148,7 @@ class RamschMoneyDistributer(MoneyDistributer):
             players=players,
             teams=teams,
             active_team=None,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
             winners=winners,
             runners_amount=0,
             amount_game_card_points=amount_game_card_points,
@@ -166,12 +166,11 @@ class RamschMoneyDistributer(MoneyDistributer):
 
     def calculate_game_value(self) -> int:
         game_value = self.alone_price
-        virgins_count = self.count_virgins()
 
-        for x in range(virgins_count):
-            game_value *= 2
+        for _ in range(self.count_virgins()):
+            self.amount_game_value_doubles += 1
 
-        for _ in range(self.amount_game_value_doublers):
+        for _ in range(self.amount_game_value_doubles):
             game_value *= 2
         return game_value
 
@@ -184,7 +183,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
         call_price: int,
         players: list[Player],
         teams: list[Team],
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
         active_team: Team,
         winners: list[Player],
         runners_amount: int,
@@ -196,7 +195,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
             alone_price=0,
             players=players,
             teams=teams,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
             active_team=active_team,
             winners=winners,
             runners_amount=runners_amount,
@@ -218,7 +217,7 @@ class WenzMoneyDistributer(MoneyDistributer):
         alone_price: int,
         players: list[Player],
         teams: list[Team],
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
         active_team: Team,
         winners: list[Player],
         runners_amount: int,
@@ -231,7 +230,7 @@ class WenzMoneyDistributer(MoneyDistributer):
             players=players,
             teams=teams,
             active_team=active_team,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
             winners=winners,
             runners_amount=runners_amount,
             amount_game_card_points=amount_game_card_points,
@@ -252,7 +251,7 @@ class SoloMoneyDistributer(MoneyDistributer):
         alone_price: int,
         players: list[Player],
         teams: list[Team],
-        amount_game_value_doublers: int,
+        amount_game_value_doubles: int,
         active_team: Team,
         winners: list[Player],
         runners_amount: int,
@@ -265,7 +264,7 @@ class SoloMoneyDistributer(MoneyDistributer):
             players=players,
             teams=teams,
             active_team=active_team,
-            amount_game_value_doublers=amount_game_value_doublers,
+            amount_game_value_doubles=amount_game_value_doubles,
             winners=winners,
             runners_amount=runners_amount,
             amount_game_card_points=amount_game_card_points,
