@@ -15,7 +15,7 @@ def player():
         player_name="Testplayer",
         renderer=ConsoleRenderer(),
         game_decision_validator=GameDecisionValidator(
-            game_mapping={}, game_rank_mapping={}
+            choosable_game_mapping={}, game_rank_mapping={}
         ),
     )
 

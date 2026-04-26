@@ -48,6 +48,14 @@ if TYPE_CHECKING:
 class Game(ABC):
     """An object that represents the game"""
 
+    name = "Game"
+    game_mapping: dict[int, type[Game]] = {}
+    is_choosable = False
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        Game.game_mapping[len(Game.game_mapping) + 1] = cls
+
     def __init__(
         self,
         cards: Cards,
@@ -314,6 +322,9 @@ class Ramsch(Game):
     If the player with the most points has 91 points or more, he is the winner of the game.
     """
 
+    name = "Ramsch"
+    is_choosable = False
+
     def __init__(
         self,
         cards: Cards,
@@ -409,6 +420,9 @@ class Sauspiel(Game):
     except somebody from the other team shot and the team of the game chooser didn't shoot back
     (doubled the game value and turned active).
     """
+
+    name = "Sauspiel"
+    is_choosable = True
 
     def __init__(
         self,
@@ -512,6 +526,9 @@ class Wenz(Game):
     (doubled the game value and turned active).
     """
 
+    name = "Wenz"
+    is_choosable = True
+
     def __init__(
         self,
         cards: Cards,
@@ -601,6 +618,9 @@ class Solo(Game):
     except somebody from the other team shot and game chooser didn't shoot back
     (doubled the game value and turned active).
     """
+
+    name = "Solo"
+    is_choosable = True
 
     def __init__(
         self,

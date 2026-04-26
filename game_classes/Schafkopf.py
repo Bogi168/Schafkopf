@@ -1,5 +1,6 @@
 from __future__ import annotations
 import random
+
 from system.Renderer import Renderer
 from card_classes.Cards import Cards
 from player_classes.Player import Player, Bot
@@ -33,16 +34,19 @@ class Schafkopf:
         self.call_price = call_price
         self.alone_price = alone_price
 
-        self.game_mapping: dict[str, type[Game]] = {
-            "1": Sauspiel,
-            "2": Wenz,
-            "3": Solo,
+        self.game_mapping: dict[int, type[Game]] = Game.game_mapping.copy()
+        self.choosable_game_mapping: dict[int, type[Game]] = {
+            key: game_mode
+            for key, game_mode in self.game_mapping.items()
+            if game_mode.is_choosable
         }
         self.game_rank_mapping: dict[type[Game], int] = {
-            game: rank for rank, game in enumerate(self.game_mapping.values(), start=1)
+            game: rank
+            for rank, game in enumerate(self.choosable_game_mapping.values(), start=1)
         }
         self.game_decision_validator: GameDecisionValidator = GameDecisionValidator(
-            game_mapping=self.game_mapping, game_rank_mapping=self.game_rank_mapping
+            choosable_game_mapping=self.choosable_game_mapping,
+            game_rank_mapping=self.game_rank_mapping,
         )
 
     def _create_players(self) -> list[Player]:
@@ -171,10 +175,11 @@ class Schafkopf:
         else:
             for player in self.game_choosers:
                 if game_mode is None:
-                    decision = player.choose_game_mode(
+                    decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
-                    game_mode: type[Game] = self.game_mapping[decision]
+                    assert decision is not None
+                    game_mode: type[Game] = decision
                     self.game_chooser = player
                     game: Game = self.get_game(game_mode=game_mode, player=player)
 
@@ -187,22 +192,23 @@ class Schafkopf:
                     and self.game_rank_mapping[game_mode]
                     > self.game_rank_mapping[Sauspiel]
                 ):
-                    decision = player.choose_game_mode(
+                    decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                         quitting_possible=True,
                     )
-                    if decision == "Q":
+                    if decision is None:
                         continue
                     else:
-                        game_mode: type[Game] = self.game_mapping[decision]
+                        game_mode: type[Game] = decision
                         self.game_chooser = player
                         game: Game = self.get_game(game_mode=game_mode, player=player)
 
                 else:
-                    decision = player.choose_game_mode(
+                    decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
-                    game_mode: type[Game] = self.game_mapping[decision]
+                    assert decision is not None
+                    game_mode: type[Game] = decision
                     self.game_chooser = player
                     game: Game = self.get_game(game_mode=game_mode, player=player)
         assert game is not None

@@ -2,9 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from card_classes.Cards import Card
+    from card_classes.Cards import Card, Color
     from player_classes.Player import Player
     from player_classes.Team import Team
+    from game_classes.Game import Game
 
 
 # regular text
@@ -83,19 +84,26 @@ def prompt_ask_to_choose_game(player_name: str) -> str:
     return f"{player_name}: Do you want to choose a game (Y/N): "
 
 
-def prompt_choose_game(player_name: str, quitting_possible: bool) -> str:
+def prompt_choose_game(
+    player_name: str,
+    quitting_possible: bool,
+    possible_game_mode_decisions: dict[str, type[Game]],
+) -> str:
+    prepared_game_mode_decisions: list[str] = [
+        f"{key}: {game_mode.name}"
+        for key, game_mode in possible_game_mode_decisions.items()
+    ]
     if quitting_possible:
-        return f"\n{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo) (Q to quit): "
+        return f"\n{player_name}: Which game do you want to choose? ({", ".join(prepared_game_mode_decisions)}) (Q to quit): "
     else:
-        return f"\n{player_name}: Which game do you want to choose? (1: Sauspiel, 2: Wenz, 3: Solo): "
+        return f"\n{player_name}: Which game do you want to choose? ({", ".join(prepared_game_mode_decisions)}): "
 
 
-def prompt_choose_sau_color(player_name: str) -> str:
-    return f"{player_name}: Which color? (1: Eichel, 2: Grün, 3: Schellen): "
-
-
-def prompt_choose_solo_color(player_name: str) -> str:
-    return f"{player_name}: Which color? (1: Eichel, 2: Grün, 3: Herz, 4: Schellen): "
+def prompt_choose_color(player_name: str, valid_colors: dict[str, Color]) -> str:
+    prepared_color_decisions: list[str] = [
+        f"{key}: {color.name}" for key, color in valid_colors.items()
+    ]
+    return f"{player_name}: Which color? ({", ".join(prepared_color_decisions)}): "
 
 
 def prompt_ask_player_shoots(player_name: str) -> str:

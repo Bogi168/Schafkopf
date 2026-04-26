@@ -15,16 +15,16 @@ class GameDecisionValidator:
 
     def __init__(
         self,
-        game_mapping: dict[str, type[Game]],
+        choosable_game_mapping: dict[int, type[Game]],
         game_rank_mapping: dict[type[Game], int],
     ) -> None:
         """
-        :param game_mapping: A dictionary of all the implemented games
-        :type game_mapping: dict[str, type[Game]]
+        :param choosable_game_mapping: A dictionary of all the implemented games
+        :type choosable_game_mapping: dict[str, type[Game]]
         :param game_rank_mapping: A dictionary of all the implemented games with their ranks
         :type game_rank_mapping: dict[str, type[Game]]
         """
-        self.game_mapping: dict[str, type[Game]] = game_mapping
+        self.choosable_game_mapping: dict[int, type[Game]] = choosable_game_mapping
         self.game_rank_mapping: dict[type[Game], int] = game_rank_mapping
         self.sau_color_mapping = {
             "1": Color.EICHEL,
@@ -163,39 +163,36 @@ class GameDecisionValidator:
 
     def get_valid_game_mode_decisions(
         self, prev_game_mode: type[Game] | None, player_cards: list[Card]
-    ) -> list[str]:
+    ) -> dict[str, type[Game]]:
         """
-        Returns a list of valid inputs for a game decision made by a player.
+        Returns a dictionary of valid inputs for a game decision to make by a player.
         :param prev_game_mode: The game mode, chosen by a previous player
         :type prev_game_mode: type[Game] | None
         :param player_cards: The player's cards
         :type player_cards: list[Card]
-        :return: list of valid inputs for a game decision made by a player
+        :return: dictionary of valid inputs for a game decision to make by a player
         """
         available_game_modes = self.get_available_game_modes(
-            playable_games=[game for game in self.game_mapping.values()],
+            playable_games=[game for game in self.choosable_game_mapping.values()],
             prev_game=prev_game_mode,
             player_cards=player_cards,
         )
-        valid_inputs = [
-            key
-            for key, game in self.game_mapping.items()
-            if game in available_game_modes
-        ]
+        valid_inputs: dict[str, type[Game]] = {
+            str(index): game_mode
+            for index, game_mode in enumerate(available_game_modes, start=1)
+        }
         return valid_inputs
 
-    def get_valid_call_sau_colors(
-        self, player_cards: list[Card], sau_colors: list[Color]
-    ) -> list[Color]:
+    def get_valid_call_sau_colors(self, player_cards: list[Card]) -> list[Color]:
         """
         Returns a list of valid colors for a player to choose a color for the call sau.
         :param player_cards: The player's cards
         :type player_cards: list[Card]
-        :param sau_colors: All the colors choosable for a Sauspiel
-        :type sau_colors: list[Color]
         :return: list of valid colors for a player to choose a color for the call sau
         :rtype: list[Color]
         """
+
+        sau_colors = [color for color in self.sau_color_mapping.values()]
         playable_colors = sau_colors.copy()
 
         for color in sau_colors:
@@ -211,23 +208,25 @@ class GameDecisionValidator:
                 playable_colors.remove(color)
         return playable_colors
 
-    def get_available_sau_color_decisions(self, player_cards: list[Card]) -> list[str]:
+    def get_available_sau_color_decisions(
+        self, player_cards: list[Card]
+    ) -> dict[str, Color]:
         """
-        Returns a list of legal inputs by a player for his sau color decision.
+        Returns a dictionary of legal inputs by a player for his sau color decision.
         :param player_cards: The player's cards
         :type player_cards: list[Card]
         """
-        sau_colors = [color for key, color in self.sau_color_mapping.items()]
-        available_colors = self.get_valid_call_sau_colors(
-            player_cards=player_cards, sau_colors=sau_colors
+        available_colors: list[Color] = self.get_valid_call_sau_colors(
+            player_cards=player_cards
         )
-        valid_inputs = [
-            key
-            for key, color in self.sau_color_mapping.items()
-            if color in available_colors
-        ]
+        valid_inputs = {
+            str(index): color for index, color in enumerate(available_colors, start=1)
+        }
         return valid_inputs
 
-    def get_valid_solo_trump_colors(self) -> list[str]:
-        valid_inputs = [key for key in self.solo_trump_color_mapping.keys()]
+    def get_valid_solo_trump_colors(self) -> dict[str, Color]:
+        valid_inputs: dict[str, Color] = {
+            str(key): color
+            for key, color in enumerate(self.solo_trump_color_mapping.values(), start=1)
+        }
         return valid_inputs

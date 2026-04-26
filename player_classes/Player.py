@@ -8,8 +8,7 @@ from system.text import (
     prompt_ask_to_double_game_value,
     prompt_ask_to_choose_game,
     prompt_choose_game,
-    prompt_choose_sau_color,
-    prompt_choose_solo_color,
+    prompt_choose_color,
     prompt_ask_player_shoots,
     show_player_cards,
     show_played_card,
@@ -97,14 +96,19 @@ class Player:
         :rtype: str
         """
 
+        valid_color_inputs: dict[str, Color] = (
+            self.game_decision_validator.get_available_sau_color_decisions(
+                player_cards=self.player_cards
+            )
+        )
+
         sau_color_decision = self.renderer.ask_with_validation(
-            prompt=prompt_choose_sau_color(player_name=self.player_name),
+            prompt=prompt_choose_color(
+                player_name=self.player_name, valid_colors=valid_color_inputs
+            ),
             error_prefix=error_message,
             preprocess=lambda x: x.strip(),
-            validator=lambda x: x
-            in self.game_decision_validator.get_available_sau_color_decisions(
-                player_cards=self.player_cards
-            ),
+            validator=lambda x: x in valid_color_inputs.keys(),
         )
         return sau_color_decision
 
@@ -125,12 +129,17 @@ class Player:
         :rtype: str
         """
 
+        valid_color_inputs: dict[str, Color] = (
+            self.game_decision_validator.get_valid_solo_trump_colors()
+        )
+
         trump_color_decision = self.renderer.ask_with_validation(
-            prompt=prompt_choose_solo_color(player_name=self.player_name),
+            prompt=prompt_choose_color(
+                player_name=self.player_name, valid_colors=valid_color_inputs
+            ),
             error_prefix=error_message,
             preprocess=lambda x: x.strip(),
-            validator=lambda x: x
-            in self.game_decision_validator.get_valid_solo_trump_colors(),
+            validator=lambda x: x in valid_color_inputs.keys(),
         )
         return trump_color_decision
 
@@ -150,7 +159,7 @@ class Player:
         self,
         prev_game_mode: type[Game] | None,
         quitting_possible: bool = False,
-    ) -> str:
+    ) -> type[Game] | None:
         """
         Returns a valid game decision input made by the player
         :param prev_game_mode: The previously chosen game mode
@@ -167,16 +176,19 @@ class Player:
         )
         decision = self.renderer.ask_with_validation(
             prompt=prompt_choose_game(
-                player_name=self.player_name, quitting_possible=quitting_possible
+                player_name=self.player_name,
+                quitting_possible=quitting_possible,
+                possible_game_mode_decisions=valid_game_mode_decisions,
             ),
             error_prefix=error_message,
             preprocess=lambda x: x.strip().upper(),
-            validator=lambda x: x in valid_game_mode_decisions
+            validator=lambda x: x in valid_game_mode_decisions.keys()
             or (x in self.quit_decisions and quitting_possible),
         )
         if decision in self.quit_decisions:
-            decision = "Q"
-        return decision
+            return None
+        else:
+            return valid_game_mode_decisions[decision]
 
     def is_shoots(self) -> bool:
         """
