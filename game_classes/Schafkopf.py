@@ -50,19 +50,21 @@ class Schafkopf:
         )
 
     def _create_players(self) -> list[Player]:
+        players: list[Player] = []
+
         player_name = self.renderer.ask_with_validation(
             prompt=prompt_player_name,
             error_prefix=error_message,
             preprocess=lambda x: x.strip().capitalize(),
             validator=lambda x: x != "",
         )
-        players = [
+        players.append(
             Player(
                 player_name=player_name,
                 renderer=self.renderer,
                 game_decision_validator=self.game_decision_validator,
             )
-        ]
+        )
         for i in range(3):
             players.append(
                 Bot(
@@ -71,6 +73,7 @@ class Schafkopf:
                     game_decision_validator=self.game_decision_validator,
                 )
             )
+
         return players
 
     def sort_players(self, starter: Player) -> None:
