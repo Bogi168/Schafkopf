@@ -1,5 +1,8 @@
 import pytest
 from card_classes.Cards import Card, Color, Type
+from system.Renderer import ConsoleRenderer
+from input_validators.GameDecisionValidator import GameDecisionValidator
+from player_classes.Player import Player
 
 
 @pytest.fixture
@@ -271,3 +274,39 @@ def sauspiel_trumps(
 @pytest.fixture
 def wenz_trumps(eichel_unter, gruen_unter, herz_unter, schellen_unter):
     return [eichel_unter, gruen_unter, herz_unter, schellen_unter]
+
+
+@pytest.fixture
+def test_player_1() -> Player:
+    return Player(
+        player_name="Testplayer 1",
+        renderer=ConsoleRenderer(),
+        game_decision_validator=GameDecisionValidator({}, {}),
+    )
+
+
+@pytest.fixture
+def test_player_2() -> Player:
+    return Player(
+        player_name="Testplayer 2",
+        renderer=ConsoleRenderer(),
+        game_decision_validator=GameDecisionValidator({}, {}),
+    )
+
+
+@pytest.fixture
+def test_player_3() -> Player:
+    return Player(
+        player_name="Testplayer 3",
+        renderer=ConsoleRenderer(),
+        game_decision_validator=GameDecisionValidator({}, {}),
+    )
+
+
+@pytest.fixture
+def test_player_4() -> Player:
+    return Player(
+        player_name="Testplayer 4",
+        renderer=ConsoleRenderer(),
+        game_decision_validator=GameDecisionValidator({}, {}),
+    )

@@ -1,45 +1,6 @@
 import pytest
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
-from player_classes.Player import Player
 from player_classes.Team import Team
-from system.Renderer import ConsoleRenderer
-from input_validators.GameDecisionValidator import GameDecisionValidator
-
-
-@pytest.fixture
-def test_player_1() -> Player:
-    return Player(
-        player_name="Testplayer 1",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
-
-
-@pytest.fixture
-def test_player_2() -> Player:
-    return Player(
-        player_name="Testplayer 2",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
-
-
-@pytest.fixture
-def test_player_3() -> Player:
-    return Player(
-        player_name="Testplayer 3",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
-
-
-@pytest.fixture
-def test_player_4() -> Player:
-    return Player(
-        player_name="Testplayer 4",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
 
 
 @pytest.fixture
