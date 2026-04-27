@@ -116,6 +116,7 @@ class Game(ABC):
         :return: The player's team
         :rtype: Team
         """
+
         for team in self.teams:
             if player in team.players:
                 return team
