@@ -119,8 +119,7 @@ class Game(ABC):
         for team in self.teams:
             if player in team.players:
                 return team
-        else:
-            raise PlayerHasNoTeamError(f"{player} has no team!")
+        raise PlayerHasNoTeamError(f"{player} has no team!")
 
     def sort_players(self, starter: Player) -> None:
         """

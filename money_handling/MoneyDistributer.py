@@ -47,19 +47,20 @@ class MoneyDistributer(ABC):
         :param amount_game_card_points: The amount of points when combining all card points of a game
         :type amount_game_card_points: int
         """
-        self.base_price = base_price
-        self.call_price = call_price
-        self.alone_price = alone_price
+
+        self.base_price: int = base_price
+        self.call_price: int = call_price
+        self.alone_price: int = alone_price
         self.players: list[Player] = players
         self.teams: list[Team] = teams
         self.active_team: Team | None = active_team
         self.winners: list[Player] = winners
         self.amount_game_value_doubles: int = amount_game_value_doubles
         self.runners_amount: int = runners_amount
-        self.schneider_threshold = amount_game_card_points - (
+        self.schneider_threshold: int = amount_game_card_points - (
             amount_game_card_points // 4
         )
-        self.black_threshold = amount_game_card_points
+        self.black_threshold: int = amount_game_card_points
 
     def get_players_team(self, player: Player) -> Team:
         """
@@ -69,6 +70,7 @@ class MoneyDistributer(ABC):
         :return: The player's team
         :rtype: Team
         """
+
         for team in self.teams:
             if player in team.players:
                 return team
@@ -84,6 +86,7 @@ class MoneyDistributer(ABC):
         :return: The updated game value
         :rtype: int
         """
+
         game_value += self.runners_amount * self.base_price
 
         winning_team: Team = self.get_players_team(player=self.winners[0])
@@ -115,6 +118,7 @@ class MoneyDistributer(ABC):
         :param winners: The winners of the game
         :type winners: list[Player]
         """
+
         losers = [loser for loser in self.players if loser not in winners]
         if len(winners) == 1:
             for index in range(len(losers)):
@@ -158,6 +162,7 @@ class RamschMoneyDistributer(MoneyDistributer):
         """
         :return: The amount of players who didn't collect any cards during the game
         """
+
         virgins_count = 0
         for player in self.players:
             if not player.collected_cards:

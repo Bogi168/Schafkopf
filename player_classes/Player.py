@@ -24,8 +24,6 @@ if TYPE_CHECKING:
 class Player:
     """An object that represents a player on the game"""
 
-    players: list[Player] = []
-
     def __init__(
         self,
         player_name: str,
@@ -40,8 +38,6 @@ class Player:
         :param game_decision_validator: An object to validate the game decisions made by the player
         :type game_decision_validator: GameDecisionValidator
         """
-
-        Player.players.append(self)
 
         self.player_name = player_name
         self.renderer = renderer
@@ -261,6 +257,7 @@ class Player:
         :type move_validator: Callable[[Card], bool]
         :rtype: None
         """
+
         self.renderer.render(
             message=show_player_cards(
                 player_name=self.player_name, player_cards=self.player_cards
