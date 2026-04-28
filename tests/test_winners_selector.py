@@ -490,6 +490,7 @@ def test_ramsch_two_most_point_teams(
     herz_ten,
     schellen_ten,
     eichel_koenig,
+    gruen_koenig,
     schellen_koenig,
 ):
     teams = [
@@ -507,15 +508,13 @@ def test_ramsch_two_most_point_teams(
         eichel_sau,
         schellen_ten,
         schellen_sau,
-        eichel_ten,
     ]
     team_alone_player_2.players[0].collected_cards = [
         gruen_sau,
         herz_sau,
         gruen_ten,
-        herz_ten,
     ]
-    team_alone_player_3.players[0].collected_cards = [schellen_koenig]
+    team_alone_player_3.players[0].collected_cards = [eichel_ten, herz_ten]
     team_alone_player_4.players[0].collected_cards = [eichel_koenig]
 
     assert sorted(
@@ -544,6 +543,54 @@ def test_ramsch_two_most_point_teams(
             for player in team.players
             if team != team_alone_player_1 and team != team_alone_player_2
         ],
+        key=lambda x: x.player_name,
+    )
+
+    winners_selector = RamschWinnersSelector(
+        teams=teams,
+        active_players=[team_alone_player_1.players[0], team_alone_player_4.players[0]],
+    )
+
+    assert sorted(
+        winners_selector.get_game_winners(), key=lambda x: x.player_name
+    ) == sorted(
+        [
+            player
+            for team in teams
+            for player in team.players
+            if team != team_alone_player_1
+        ],
+        key=lambda x: x.player_name,
+    )
+
+    winners_selector = RamschWinnersSelector(
+        teams=teams,
+        active_players=[],
+    )
+
+    team_alone_player_1.players[0].collected_cards = [
+        eichel_sau,
+        schellen_ten,
+        schellen_sau,
+    ]
+    team_alone_player_2.players[0].collected_cards = [
+        gruen_sau,
+        herz_sau,
+        gruen_ten,
+    ]
+    team_alone_player_3.players[0].collected_cards = [
+        eichel_ten,
+        herz_ten,
+        eichel_koenig,
+        gruen_koenig,
+        schellen_koenig,
+    ]
+    team_alone_player_4.players[0].collected_cards = []
+
+    assert sorted(
+        winners_selector.get_game_winners(), key=lambda x: x.player_name
+    ) == sorted(
+        [player for player in team_alone_player_4.players],
         key=lambda x: x.player_name,
     )
 
