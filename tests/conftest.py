@@ -3,6 +3,7 @@ from card_classes.Cards import Card, Color, Type
 from system.Renderer import ConsoleRenderer
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from player_classes.Player import Player
+from player_classes.Team import Team
 
 
 @pytest.fixture
@@ -310,3 +311,52 @@ def test_player_4() -> Player:
         renderer=ConsoleRenderer(),
         game_decision_validator=GameDecisionValidator({}, {}),
     )
+
+
+@pytest.fixture
+def team_alone_player_1(test_player_1) -> Team:
+    team_alone_player = Team(team_name="TeamAlonePlayer1")
+    team_alone_player.players = [test_player_1]
+    return team_alone_player
+
+
+@pytest.fixture
+def team_alone_player_2(test_player_2) -> Team:
+    team_alone_player = Team(team_name="TeamAlonePlayer2")
+    team_alone_player.players = [test_player_2]
+    return team_alone_player
+
+
+@pytest.fixture
+def team_alone_player_3(test_player_3) -> Team:
+    team_alone_player = Team(team_name="TeamAlonePlayer3")
+    team_alone_player.players = [test_player_3]
+    return team_alone_player
+
+
+@pytest.fixture
+def team_alone_player_4(test_player_4) -> Team:
+    team_alone_player = Team(team_name="TeamAlonePlayer4")
+    team_alone_player.players = [test_player_4]
+    return team_alone_player
+
+
+@pytest.fixture
+def team_two_players_1(test_player_1, test_player_2) -> Team:
+    team_two_players_1 = Team(team_name="TeamTwoPlayers1")
+    team_two_players_1.players = [test_player_1, test_player_2]
+    return team_two_players_1
+
+
+@pytest.fixture
+def team_two_players_2(test_player_3, test_player_4) -> Team:
+    team_two_players_2 = Team(team_name="TeamTwoPlayers2")
+    team_two_players_2.players = [test_player_3, test_player_4]
+    return team_two_players_2
+
+
+@pytest.fixture
+def team_three_players(test_player_2, test_player_3, test_player_4) -> Team:
+    team_alone_player = Team(team_name="TeamThreePlayers")
+    team_alone_player.players = [test_player_2, test_player_3, test_player_4]
+    return team_alone_player

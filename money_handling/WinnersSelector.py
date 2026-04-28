@@ -67,7 +67,7 @@ class RamschWinnersSelector(WinnersSelector):
                 player
                 for team in self.teams
                 for player in team.players
-                if team not in most_point_teams and player
+                if team not in most_point_teams
             ]
             losers = [
                 player
