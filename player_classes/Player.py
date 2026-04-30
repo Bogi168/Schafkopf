@@ -1,7 +1,5 @@
 from __future__ import annotations
 from typing import Callable, TYPE_CHECKING
-from input_validators.GameDecisionValidator import GameDecisionValidator
-from card_classes.Cards import Card, Color
 from system.text import (
     error_message,
     prompt_ask_player_card_decision,
@@ -19,6 +17,8 @@ import random
 if TYPE_CHECKING:
     from game_classes.Game import Game
     from system.Renderer import Renderer
+    from card_classes.Cards import Card, Color
+    from input_validators.GameDecisionValidator import GameDecisionValidator
 
 
 class Player:
@@ -45,10 +45,10 @@ class Player:
         self.player_cards: list[Card] = []
         self.collected_cards: list[Card] = []
         self.money: int = 0
-        self.yes_decisions = ("Y", "YES")
-        self.no_decisions = ("N", "NO")
+        self.yes_decisions: tuple[str, str] = ("Y", "YES")
+        self.no_decisions: tuple[str, str] = ("N", "NO")
         self.string_decisions = self.yes_decisions + self.no_decisions
-        self.quit_decisions = ("QUIT", "Q")
+        self.quit_decisions: tuple[str, str] = ("QUIT", "Q")
 
     def __repr__(self) -> str:
         return self.player_name
@@ -93,7 +93,7 @@ class Player:
         """
         Asks the player for a sau color
         :return: The sau color chosen by the player
-        :rtype: str
+        :rtype: Color
         """
 
         valid_color_inputs: dict[str, Color] = (
@@ -119,7 +119,7 @@ class Player:
         """
         Asks the player for a trump color
         :return: The trump color chosen by the player
-        :rtype: str
+        :rtype: Color
         """
 
         valid_color_inputs: dict[str, Color] = (
@@ -145,12 +145,13 @@ class Player:
         quitting_possible: bool = False,
     ) -> type[Game] | None:
         """
-        Returns a valid game decision input made by the player
-        :param prev_game_mode: The previously chosen game mode
+        Returns a valid game decision made by the player
+        :param prev_game_mode: The previously chosen game mode by another player
         :type prev_game_mode: type[Game] | None
         :param quitting_possible: A boolean value that indicates whether quitting the game choosing process is legal
         :type quitting_possible: bool
-        :return: A boolean value which indicates whether the player chose a valid game mode or not
+        :return: A game_mode decision or nothing if the player decides to quit the choosing process
+        :rtype: type[Game] | None
         """
 
         valid_game_mode_decisions = (
@@ -233,10 +234,11 @@ class Player:
         move_validator: Callable[[Card], bool],
     ) -> Card:
         """
-        Asks the player to choose make a card decision
+        Asks the player to make a card decision
         :param move_validator: A function that checks whether the decision by the player is legal
         :type move_validator: Callable[[Card], bool]
-        :rtype: None
+        :return: A valid card decision made by the player
+        :rtype: Card
         """
 
         self.renderer.render(

@@ -107,8 +107,18 @@ class MoneyDistributer(ABC):
 
     @abstractmethod
     def calculate_game_value(self) -> int:
-        """calculates the game value for the whole game"""
+        """
+        calculates the game value for the whole game
+        :return: The game value
+        :rtype: int
+        """
         pass
+
+    def calculate_solo_game_value(self) -> int:
+        game_value = 0
+        game_value += self.alone_price
+        game_value = self.basic_game_value_adds(game_value=game_value)
+        return game_value
 
     def distribute_money(self, game_value: int, winners: list[Player]) -> None:
         """
@@ -117,6 +127,7 @@ class MoneyDistributer(ABC):
         :type game_value: int
         :param winners: The winners of the game
         :type winners: list[Player]
+        :rtype: None
         """
 
         losers = [loser for loser in self.players if loser not in winners]
@@ -161,6 +172,7 @@ class RamschMoneyDistributer(MoneyDistributer):
     def count_virgins(self) -> int:
         """
         :return: The amount of players who didn't collect any cards during the game
+        :rtype: int
         """
 
         virgins_count = 0
@@ -242,10 +254,7 @@ class WenzMoneyDistributer(MoneyDistributer):
         )
 
     def calculate_game_value(self) -> int:
-        game_value = 0
-        game_value += self.alone_price
-        game_value = self.basic_game_value_adds(game_value=game_value)
-        return game_value
+        return self.calculate_solo_game_value()
 
 
 class SoloMoneyDistributer(MoneyDistributer):
@@ -276,7 +285,4 @@ class SoloMoneyDistributer(MoneyDistributer):
         )
 
     def calculate_game_value(self) -> int:
-        game_value = 0
-        game_value += self.alone_price
-        game_value = self.basic_game_value_adds(game_value=game_value)
-        return game_value
+        return self.calculate_solo_game_value()
