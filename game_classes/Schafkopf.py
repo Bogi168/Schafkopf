@@ -24,7 +24,6 @@ class Schafkopf:
     ) -> None:
         self.players: list[Player] = []
         self.starter: Player | None = None
-        self.game_chooser: Player | None = None
         self.game_choosers: list[Player] = []
         self.amount_game_value_doubles = 0
 
@@ -34,15 +33,15 @@ class Schafkopf:
         self.call_price = call_price
         self.alone_price = alone_price
 
-        self.game_mapping: dict[int, type[Game]] = Game.game_mapping.copy()
-        self.choosable_game_mapping: dict[int, type[Game]] = {
-            key: game_mode
-            for key, game_mode in self.game_mapping.items()
-            if game_mode.is_choosable
+        self.game_mapping: dict[type[Game], bool] = Game.game_mapping.copy()
+        self.choosable_game_mapping: dict[type[Game], bool] = {
+            game_mode: is_choosable
+            for game_mode, is_choosable in self.game_mapping.items()
+            if is_choosable
         }
         self.game_rank_mapping: dict[type[Game], int] = {
             game: rank
-            for rank, game in enumerate(self.choosable_game_mapping.values(), start=1)
+            for rank, game in enumerate(self.choosable_game_mapping.keys(), start=1)
         }
         self.game_decision_validator: GameDecisionValidator = GameDecisionValidator(
             choosable_game_mapping=self.choosable_game_mapping,
@@ -123,14 +122,13 @@ class Schafkopf:
             )
 
     def get_game(self, game_mode: type[Game], player: Player) -> Game:
-        assert self.game_chooser is not None
         if game_mode is Sauspiel:
             sau_color = player.get_sau_color()
             return Sauspiel(
                 cards=self.cards,
                 renderer=self.renderer,
                 players=self.players,
-                game_chooser=self.game_chooser,
+                game_chooser=player,
                 base_price=self.base_price,
                 call_price=self.call_price,
                 amount_game_value_doubles=self.amount_game_value_doubles,
@@ -142,7 +140,7 @@ class Schafkopf:
                 cards=self.cards,
                 renderer=self.renderer,
                 players=self.players,
-                game_chooser=self.game_chooser,
+                game_chooser=player,
                 base_price=self.base_price,
                 alone_price=self.alone_price,
                 amount_game_value_doubles=self.amount_game_value_doubles,
@@ -155,7 +153,7 @@ class Schafkopf:
                 cards=self.cards,
                 renderer=self.renderer,
                 players=self.players,
-                game_chooser=self.game_chooser,
+                game_chooser=player,
                 base_price=self.base_price,
                 alone_price=self.alone_price,
                 amount_game_value_doubles=self.amount_game_value_doubles,
@@ -183,7 +181,6 @@ class Schafkopf:
                     )
                     assert decision is not None
                     game_mode: type[Game] = decision
-                    self.game_chooser = player
                     game: Game = self.get_game(game_mode=game_mode, player=player)
 
                 elif game_mode == Solo:
@@ -203,7 +200,6 @@ class Schafkopf:
                         continue
                     else:
                         game_mode: type[Game] = decision
-                        self.game_chooser = player
                         game: Game = self.get_game(game_mode=game_mode, player=player)
 
                 else:
@@ -212,7 +208,6 @@ class Schafkopf:
                     )
                     assert decision is not None
                     game_mode: type[Game] = decision
-                    self.game_chooser = player
                     game: Game = self.get_game(game_mode=game_mode, player=player)
         assert game is not None
         return game

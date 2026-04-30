@@ -49,12 +49,12 @@ class Game(ABC):
     """An object that represents the game"""
 
     name = "Game"
-    game_mapping: dict[int, type[Game]] = {}
+    game_mapping: dict[type[Game], bool] = {}
     is_choosable = False
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-        Game.game_mapping[len(Game.game_mapping) + 1] = cls
+        Game.game_mapping[cls] = cls.is_choosable
 
     def __init__(
         self,
@@ -89,10 +89,28 @@ class Game(ABC):
         )
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
+        self.trump_types: list[Type] | None = None
+        self.trump_color: Color | None = None
         self.trumps: list[Card] = []
         self.active_team: Team | None = None
         self.minimum_runners: int = 0
         self.runners_amount: int = 0
+
+    def set_trumps(self) -> list[Card]:
+        """
+        Creates a list of all trump cards of the game
+        :return: The list of trump cards
+        :rtype: list[Card]
+        """
+
+        assert self.trump_types is not None
+        trumps: list[Card] = [
+            card
+            for card in self.cards.full_deck
+            if card.card_type in self.trump_types or card.card_color == self.trump_color
+        ]
+        trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
+        return trumps
 
     @property
     def lead_card(self) -> Card | None:
@@ -318,9 +336,10 @@ class Game(ABC):
         :return: None
         """
 
+        self.trumps: list[Card] = self.set_trumps()
         self.sort_player_hands()
         self.create_teams()
-        self.runners_amount = self.count_game_runners(trumps=self.trumps)
+        self.runners_amount: int = self.count_game_runners(trumps=self.trumps)
         for rounds in range(len(self.players[0].player_cards)):
             self.play_round(rounds=rounds + 1)
         self.handle_winners()
@@ -373,12 +392,6 @@ class Ramsch(Game):
         self.alone_price = alone_price
         self.trump_color = Color.HERZ
         self.trump_types = [Type.OBER, Type.UNTER]
-        self.trumps: list[Card] = [
-            card
-            for card in self.cards.full_deck
-            if card.card_type in self.trump_types or card.card_color == self.trump_color
-        ]
-        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.active_players: list[Player] = []
 
     def create_teams(self) -> None:
@@ -483,12 +496,6 @@ class Sauspiel(Game):
         self.call_price = call_price
         self.trump_color = Color.HERZ
         self.trump_types = [Type.OBER, Type.UNTER]
-        self.trumps: list[Card] = [
-            card
-            for card in self.cards.full_deck
-            if card.card_type in self.trump_types or card.card_color == self.trump_color
-        ]
-        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
         self.minimum_runners: int = 3
 
@@ -578,10 +585,6 @@ class Wenz(Game):
         )
         self.game_chooser = game_chooser
         self.trump_types = [Type.UNTER]
-        self.trumps: list[Card] = [
-            card for card in self.cards.full_deck if card.card_type in self.trump_types
-        ]
-        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.alone_price = alone_price
         self.base_price = base_price
         self.minimum_runners: int = 2
@@ -665,12 +668,6 @@ class Solo(Game):
         self.game_chooser = game_chooser
         self.trump_color: Color = trump_color
         self.trump_types = [Type.OBER, Type.UNTER]
-        self.trumps: list[Card] = [
-            card
-            for card in self.cards.full_deck
-            if card.card_type in self.trump_types or card.card_color == self.trump_color
-        ]
-        self.trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         self.alone_price = alone_price
         self.base_price = base_price
         self.minimum_runners: int = 3

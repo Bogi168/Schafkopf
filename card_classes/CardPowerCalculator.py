@@ -21,9 +21,9 @@ class CardPowerCalculator:
         :return: the power of the card
         :rtype: int
         """
-        trump_type_power = 1000
-        trump_type_power_difference = 100
-        power = 0
+        trump_type_power: int = 1000
+        trump_type_power_difference: int = 100
+        power: int = 0
 
         match card.card_color:
             case Color.EICHEL:
@@ -74,8 +74,8 @@ class CardPowerCalculator:
         :rtype: Card
         """
 
-        lead_card = played_cards[0]
-        strongest_card = lead_card
+        lead_card: Card = played_cards[0]
+        strongest_card: Card = lead_card
 
         for played_card in played_cards:
 
@@ -142,6 +142,7 @@ class WenzCardPowerCalculator(CardPowerCalculator):
 
         if card.card_type == Type.OBER:
             power -= 5
+
         return power
 
 
@@ -160,4 +161,5 @@ class SoloCardPowerCalculator(CardPowerCalculator):
             return power
 
         power = super().get_card_power(card=card)
+
         return power

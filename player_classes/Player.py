@@ -39,16 +39,16 @@ class Player:
         :type game_decision_validator: GameDecisionValidator
         """
 
-        self.player_name = player_name
-        self.renderer = renderer
+        self.player_name: str = player_name
+        self.renderer: Renderer = renderer
         self.game_decision_validator: GameDecisionValidator = game_decision_validator
         self.player_cards: list[Card] = []
         self.collected_cards: list[Card] = []
         self.money: int = 0
-        self.yes_decisions: tuple[str, str] = ("Y", "YES")
-        self.no_decisions: tuple[str, str] = ("N", "NO")
-        self.string_decisions = self.yes_decisions + self.no_decisions
-        self.quit_decisions: tuple[str, str] = ("QUIT", "Q")
+        self.yes_decisions: tuple[str, ...] = ("Y", "YES")
+        self.no_decisions: tuple[str, ...] = ("N", "NO")
+        self.string_decisions: tuple[str, ...] = self.yes_decisions + self.no_decisions
+        self.quit_decisions: tuple[str, ...] = ("QUIT", "Q")
 
     def __repr__(self) -> str:
         return self.player_name
@@ -274,6 +274,9 @@ class Bot(Player):
             renderer=renderer,
             game_decision_validator=game_decision_validator,
         )
+
+    def is_doubles_game_value(self) -> bool:
+        return False
 
     def get_card_decision(
         self,

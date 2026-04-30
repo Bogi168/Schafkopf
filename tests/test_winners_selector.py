@@ -1,5 +1,4 @@
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
-from tests.conftest import eichel_unter, eichel_ober, schellen_koenig
 
 
 def test_alone_most_points_teams(

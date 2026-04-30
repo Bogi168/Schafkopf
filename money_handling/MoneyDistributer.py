@@ -74,8 +74,7 @@ class MoneyDistributer(ABC):
         for team in self.teams:
             if player in team.players:
                 return team
-        else:
-            raise PlayerHasNoTeamError(f"{player} has no team!")
+        raise PlayerHasNoTeamError(f"{player} has no team!")
 
     def basic_game_value_adds(self, game_value: int) -> int:
         """
@@ -113,12 +112,6 @@ class MoneyDistributer(ABC):
         :rtype: int
         """
         pass
-
-    def calculate_solo_game_value(self) -> int:
-        game_value = 0
-        game_value += self.alone_price
-        game_value = self.basic_game_value_adds(game_value=game_value)
-        return game_value
 
     def distribute_money(self, game_value: int, winners: list[Player]) -> None:
         """
@@ -226,8 +219,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
         return game_value
 
 
-class WenzMoneyDistributer(MoneyDistributer):
-
+class AloneMoneyDistributer(MoneyDistributer):
     def __init__(
         self,
         base_price: int,
@@ -254,35 +246,15 @@ class WenzMoneyDistributer(MoneyDistributer):
         )
 
     def calculate_game_value(self) -> int:
-        return self.calculate_solo_game_value()
+        game_value = 0
+        game_value += self.alone_price
+        game_value = self.basic_game_value_adds(game_value=game_value)
+        return game_value
 
 
-class SoloMoneyDistributer(MoneyDistributer):
+class WenzMoneyDistributer(AloneMoneyDistributer):
+    pass
 
-    def __init__(
-        self,
-        base_price: int,
-        alone_price: int,
-        players: list[Player],
-        teams: list[Team],
-        amount_game_value_doubles: int,
-        active_team: Team,
-        winners: list[Player],
-        runners_amount: int,
-        amount_game_card_points: int,
-    ) -> None:
-        super().__init__(
-            base_price=base_price,
-            call_price=0,
-            alone_price=alone_price,
-            players=players,
-            teams=teams,
-            active_team=active_team,
-            amount_game_value_doubles=amount_game_value_doubles,
-            winners=winners,
-            runners_amount=runners_amount,
-            amount_game_card_points=amount_game_card_points,
-        )
 
-    def calculate_game_value(self) -> int:
-        return self.calculate_solo_game_value()
+class SoloMoneyDistributer(AloneMoneyDistributer):
+    pass

@@ -16,16 +16,17 @@ class GameDecisionValidator:
 
     def __init__(
         self,
-        choosable_game_mapping: dict[int, type[Game]],
+        choosable_game_mapping: dict[type[Game], bool],
         game_rank_mapping: dict[type[Game], int],
     ) -> None:
         """
         :param choosable_game_mapping: A dictionary of all the implemented games
-        :type choosable_game_mapping: dict[str, type[Game]]
+        and a boolean value that indicates whether the game is choosable or not
+        :type choosable_game_mapping: dict[type[Game], bool]
         :param game_rank_mapping: A dictionary of all the implemented games with their ranks
         :type game_rank_mapping: dict[str, type[Game]]
         """
-        self.choosable_game_mapping: dict[int, type[Game]] = choosable_game_mapping
+        self.choosable_game_mapping: dict[type[Game], bool] = choosable_game_mapping
         self.game_rank_mapping: dict[type[Game], int] = game_rank_mapping
         self.sau_color_mapping = {
             "1": Color.EICHEL,
@@ -174,7 +175,7 @@ class GameDecisionValidator:
         :return: dictionary of valid inputs for a game decision to make by a player
         """
         available_game_modes = self.get_available_game_modes(
-            playable_games=[game for game in self.choosable_game_mapping.values()],
+            playable_games=[game for game in self.choosable_game_mapping.keys()],
             prev_game=prev_game_mode,
             player_cards=player_cards,
         )
