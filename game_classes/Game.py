@@ -250,12 +250,14 @@ class Game(ABC):
                         self.active_team = players_team
                     shooting_possible = False
 
-            player.card_decision(
-                played_cards=self.played_cards,
+            card_decision: Card = player.get_card_decision(
                 move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
                     player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card
                 ),
             )
+
+            self.played_cards.append(card_decision)
+
             self.renderer.render(
                 message=show_played_cards(played_cards=self.played_cards)
             )

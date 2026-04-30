@@ -228,15 +228,12 @@ class Player:
             self.player_cards
         )
 
-    def card_decision(
+    def get_card_decision(
         self,
-        played_cards: list[Card],
         move_validator: Callable[[Card], bool],
-    ) -> None:
+    ) -> Card:
         """
         Asks the player to choose make a card decision
-        :param played_cards: A list of cards played by the other players
-        :type played_cards: list[Card]
         :param move_validator: A function that checks whether the decision by the player is legal
         :type move_validator: Callable[[Card], bool]
         :rtype: None
@@ -256,9 +253,11 @@ class Player:
             validator=lambda x: self.is_card_decision_valid_number(x)
             and move_validator(self.player_cards[int(x) - 1]),
         )
+
         decision = self.player_cards[int(index_decision) - 1]
-        played_cards.append(decision)
         self.player_cards.remove(decision)
+
+        return decision
 
 
 class Bot(Player):
@@ -274,18 +273,19 @@ class Bot(Player):
             game_decision_validator=game_decision_validator,
         )
 
-    def card_decision(
+    def get_card_decision(
         self,
-        played_cards: list[Card],
         move_validator: Callable[[Card], bool],
-    ) -> None:
+    ) -> Card:
         legal_cards = [card for card in self.player_cards if move_validator(card)]
         decision = random.choice(legal_cards)
-        played_cards.append(decision)
+
         self.renderer.render(
             message=show_played_card(player_name=self.player_name, decision=decision)
         )
         self.player_cards.remove(decision)
+
+        return decision
 
     def is_shoots(self) -> bool:
         return False
