@@ -84,6 +84,9 @@ class Game(ABC):
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
         self.amount_game_value_doubles: int = amount_game_value_doubles
         self.players: list[Player] = players
+        self.total_card_points: int = sum(
+            card.card_type.points for card in cards.full_deck
+        )
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
         self.trumps: list[Card] = []
@@ -404,9 +407,7 @@ class Ramsch(Game):
             teams=self.teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             winners=winners_selector.get_game_winners(),
-            amount_game_card_points=sum(
-                card.card_type.points for card in self.cards.full_deck
-            ),
+            amount_game_card_points=self.total_card_points,
         )
         return money_distributer
 
@@ -517,9 +518,7 @@ class Sauspiel(Game):
             active_team=self.active_team,
             winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
-            amount_game_card_points=sum(
-                card.card_type.points for card in self.cards.full_deck
-            ),
+            amount_game_card_points=self.total_card_points,
         )
         return money_distributer
 
@@ -601,9 +600,7 @@ class Wenz(Game):
             active_team=self.active_team,
             winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
-            amount_game_card_points=sum(
-                card.card_type.points for card in self.cards.full_deck
-            ),
+            amount_game_card_points=self.total_card_points,
         )
         return money_distributer
 
@@ -692,8 +689,6 @@ class Solo(Game):
             active_team=self.active_team,
             winners=winners_selector.get_game_winners(),
             runners_amount=self.runners_amount,
-            amount_game_card_points=sum(
-                card.card_type.points for card in self.cards.full_deck
-            ),
+            amount_game_card_points=self.total_card_points,
         )
         return money_distributer
