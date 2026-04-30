@@ -66,12 +66,19 @@ class Player:
         :rtype: bool
         """
 
+        self.renderer.render(
+            message=show_player_cards(
+                player_name=self.player_name, player_cards=self.player_cards
+            )
+        )
+
         decision = self.renderer.ask_with_validation(
             prompt=prompt_ask_to_double_game_value(player_name=self.player_name),
             error_prefix=error_message,
             preprocess=lambda x: x.strip().upper(),
             validator=lambda x: x in self.string_decisions,
         )
+
         return decision in self.yes_decisions
 
     def is_chooses_game(self) -> bool:
