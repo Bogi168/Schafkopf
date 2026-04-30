@@ -106,7 +106,7 @@ class CardPowerCalculator:
         return strongest_card
 
 
-class RamschCardPowerCalculator(CardPowerCalculator):
+class HerzTrumpCardPowerCalculator(CardPowerCalculator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_color: Color = Color.HERZ
@@ -124,22 +124,12 @@ class RamschCardPowerCalculator(CardPowerCalculator):
         return power
 
 
-class SauspielCardPowerCalculator(CardPowerCalculator):
-    def __init__(self) -> None:
-        super().__init__()
-        self.trump_color: Color = Color.HERZ
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
+class RamschCardPowerCalculator(HerzTrumpCardPowerCalculator):
+    pass
 
-    def get_card_power(self, card: Card) -> int:
-        if (
-            card.card_type not in self.trump_types
-            and card.card_color == self.trump_color
-        ):
-            power = self.trump_color_power + card.card_type.value
-            return power
 
-        power = super().get_card_power(card=card)
-        return power
+class SauspielCardPowerCalculator(HerzTrumpCardPowerCalculator):
+    pass
 
 
 class WenzCardPowerCalculator(CardPowerCalculator):

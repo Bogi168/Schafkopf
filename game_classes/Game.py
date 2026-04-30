@@ -108,6 +108,17 @@ class Game(ABC):
         """Creates the team objects"""
         pass
 
+    def create_solo_teams(self, game_chooser) -> None:
+        team_1 = Team(team_name="Team 1")
+        team_1.players.append(game_chooser)
+        self.active_team = team_1
+        team_2 = Team(team_name="Team 2")
+        team_2.players = [
+            player for player in self.players if player not in team_1.players
+        ]
+        self.teams.append(team_1)
+        self.teams.append(team_2)
+
     def get_players_team(self, player: Player) -> Team:
         """
         Returns the team of a given player.
@@ -482,9 +493,9 @@ class Sauspiel(Game):
         team_1 = Team(team_name="Team 1")
         team_1.players.append(self.game_chooser)
         for player in self.players:
-            for card in player.player_cards:
-                if card == self.call_sau:
-                    team_1.players.append(player)
+            if any(card == self.call_sau for card in player.player_cards):
+                team_1.players.append(player)
+                break
         self.active_team = team_1
         team_2 = Team(team_name="Team 2")
         team_2.players = [
@@ -575,15 +586,7 @@ class Wenz(Game):
         self.minimum_runners: int = 2
 
     def create_teams(self) -> None:
-        team_1 = Team(team_name="Team 1")
-        team_1.players.append(self.game_chooser)
-        self.active_team = team_1
-        team_2 = Team(team_name="Team 2")
-        team_2.players = [
-            player for player in self.players if player not in team_1.players
-        ]
-        self.teams.append(team_1)
-        self.teams.append(team_2)
+        self.create_solo_teams(game_chooser=self.game_chooser)
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector
@@ -674,15 +677,7 @@ class Solo(Game):
         self.minimum_runners: int = 3
 
     def create_teams(self) -> None:
-        team_1 = Team(team_name="Team 1")
-        team_1.players.append(self.game_chooser)
-        self.active_team = team_1
-        team_2 = Team(team_name="Team 2")
-        team_2.players = [
-            player for player in self.players if player not in team_1.players
-        ]
-        self.teams.append(team_1)
-        self.teams.append(team_2)
+        self.create_solo_teams(game_chooser=self.game_chooser)
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector

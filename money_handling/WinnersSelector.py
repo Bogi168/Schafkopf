@@ -24,15 +24,10 @@ class WinnersSelector:
         :return: A list of the teams with the most points
         :rtype: list[Team]
         """
-        most_point_teams: list[Team] = []
-        most_point_team_points = 0
-        for team in self.teams:
-            if team.points > most_point_team_points:
-                most_point_team_points = team.points
-                most_point_teams.clear()
-                most_point_teams.append(team)
-            elif team.points == most_point_team_points:
-                most_point_teams.append(team)
+        most_point_team_points = max(team.points for team in self.teams)
+        most_point_teams: list[Team] = [
+            team for team in self.teams if team.points == most_point_team_points
+        ]
         return most_point_teams
 
     def get_game_winners(self) -> list[Player]:

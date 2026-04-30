@@ -89,7 +89,7 @@ class Player:
         )
         return decision in self.yes_decisions
 
-    def choose_sau_color(self) -> str:
+    def get_sau_color(self) -> Color:
         """
         Asks the player for a sau color
         :return: The sau color chosen by the player
@@ -110,19 +110,12 @@ class Player:
             preprocess=lambda x: x.strip(),
             validator=lambda x: x in valid_color_inputs.keys(),
         )
-        return sau_color_decision
 
-    def get_sau_color(self) -> Color:
-        """
-        :return: The sau color chosen by the player
-        :rtype: Color
-        """
+        sau_color = valid_color_inputs[sau_color_decision]
 
-        sau_color_decision = self.choose_sau_color()
-        sau_color = self.game_decision_validator.sau_color_mapping[sau_color_decision]
         return sau_color
 
-    def choose_trump_color(self) -> str:
+    def get_trump_color(self) -> Color:
         """
         Asks the player for a trump color
         :return: The trump color chosen by the player
@@ -141,18 +134,9 @@ class Player:
             preprocess=lambda x: x.strip(),
             validator=lambda x: x in valid_color_inputs.keys(),
         )
-        return trump_color_decision
 
-    def get_trump_color(self) -> Color:
-        """
-        :return: Sau color chosen by the player
-        :rtype: Color
-        """
+        trump_color = valid_color_inputs[trump_color_decision]
 
-        trump_color_decision = self.choose_trump_color()
-        trump_color = self.game_decision_validator.solo_trump_color_mapping[
-            trump_color_decision
-        ]
         return trump_color
 
     def choose_game_mode(
