@@ -283,15 +283,6 @@ class DummyPlayer(Player):
             renderer=MagicMock(),
             game_decision_validator=MagicMock(),
         )
-        self._points: int = 0
-
-    @property
-    def points(self) -> int:
-        return self._points
-
-    @points.setter
-    def points(self, points: int) -> None:
-        self._points = points
 
 
 class DummyTeam(Team):
