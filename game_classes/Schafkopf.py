@@ -10,7 +10,6 @@ from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
 from system.custom_exceptions import GamemodeIsNotImplementedError
 from system.text import (
     error_message,
-    prompt_games_amount,
     prompt_player_name,
     prompt_play_again_message,
     show_player_cards,
@@ -215,14 +214,8 @@ class Schafkopf:
 
     def main(self) -> None:
         self.players = self._create_players()
-        self.starter = random.choice(self.players)
-        games_amount: str = self.renderer.ask_with_validation(
-            prompt=prompt_games_amount,
-            error_prefix=error_message,
-            validator=lambda x: x.isdigit() and int(x) > 0,
-            preprocess=lambda x: x.strip(),
-        )
-        for game_num in range(int(games_amount)):
+        self.starter: Player = random.choice(self.players)
+        while True:
             self.prepare_players()
             self.prepare_cards()
             for player in self.players:
@@ -239,14 +232,13 @@ class Schafkopf:
             self.starter = self.get_new_starter(
                 prev_starter_index=self.players.index(self.starter)
             )
-            if game_num != int(games_amount) - 1:
-                play_again = self.renderer.ask_with_validation(
-                    prompt=prompt_play_again_message,
-                    error_prefix=error_message,
-                    preprocess=lambda x: x.strip().upper(),
-                    validator=lambda x: x in ("YES", "Y", "NO", "N"),
-                )
-                if play_again in ("NO", "N"):
-                    break
+            play_again = self.renderer.ask_with_validation(
+                prompt=prompt_play_again_message,
+                error_prefix=error_message,
+                preprocess=lambda x: x.strip().upper(),
+                validator=lambda x: x in ("YES", "Y", "NO", "N"),
+            )
+            if play_again in ("NO", "N"):
+                break
 
         self.renderer.render(message=words_of_thanks)

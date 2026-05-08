@@ -72,7 +72,6 @@ words_of_thanks = "\nThank you for playing!"
 error_message: str = "Your input is not valid!"
 
 prompt_player_name: str = "\nEnter your name: "
-prompt_games_amount: str = "Enter the amount of games: "
 prompt_play_again_message: str = "\nDo you want to play again? (Y/N): "
 
 
