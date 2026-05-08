@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from card_classes.Cards import Type
 
 if TYPE_CHECKING:
-    from player_classes.Player import Player
     from card_classes.Cards import Color, Card
 
 
@@ -106,7 +105,7 @@ class CardDecisionValidator:
         self,
         decision: Card,
         lead_card: Card | None,
-        player: Player,
+        player_cards: list[Card],
         trumps: list[Card],
     ) -> bool:
         """
@@ -115,13 +114,11 @@ class CardDecisionValidator:
         :type decision: Card
         :param lead_card: The first card that was played in the round
         :type lead_card: Card
-        :param player: The player who is making the decision
-        :type player: Player
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
         :param trumps: A list of the trump cards
         :type trumps: list[Card]
         """
-
-        player_cards = player.player_cards
 
         if len(player_cards) == 1:
             return True

@@ -24,7 +24,7 @@ class WinnersSelector:
         :return: A list of the teams with the most points
         :rtype: list[Team]
         """
-        most_point_team_points = max(team.points for team in self.teams)
+        most_point_team_points: int = max(team.points for team in self.teams)
         most_point_teams: list[Team] = [
             team for team in self.teams if team.points == most_point_team_points
         ]
@@ -35,11 +35,13 @@ class WinnersSelector:
         :return: A list of the winners of the game
         :rtype: list[Player]
         """
-        most_point_teams = self.get_most_points_teams()
+        most_point_teams: list[Team] = self.get_most_points_teams()
         if len(most_point_teams) == 1:
-            winners = [player for team in most_point_teams for player in team.players]
+            winners: list[Player] = [
+                player for team in most_point_teams for player in team.players
+            ]
         else:
-            winners = [
+            winners: list[Player] = [
                 player
                 for team in most_point_teams
                 if self.active_team != team
@@ -51,20 +53,20 @@ class WinnersSelector:
 class RamschWinnersSelector(WinnersSelector):
     def __init__(self, teams: list[Team], active_players: list[Player]) -> None:
         super().__init__(teams=teams, active_team=None)
-        self.run_through_threshold = 91
+        self.run_through_threshold: int = 91
         self.active_players: list[Player] = active_players
 
     def get_game_winners(self) -> list[Player]:
         winners: list[Player] = []
-        most_point_teams = self.get_most_points_teams()
+        most_point_teams: list[Team] = self.get_most_points_teams()
         if len(most_point_teams) > 1:
-            winners = [
+            winners: list[Player] = [
                 player
                 for team in self.teams
                 for player in team.players
                 if team not in most_point_teams
             ]
-            losers = [
+            losers: list[Player] = [
                 player
                 for team in self.teams
                 for player in team.players
@@ -81,7 +83,7 @@ class RamschWinnersSelector(WinnersSelector):
             if most_point_teams[0].points >= self.run_through_threshold:
                 winners.append(most_point_teams[0].players[0])
             else:
-                winners = [
+                winners: list[Player] = [
                     player
                     for team in self.teams
                     for player in team.players

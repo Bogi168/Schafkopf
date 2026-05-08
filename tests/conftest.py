@@ -1,7 +1,6 @@
 import pytest
 from card_classes.Cards import Card, Color, Type
-from system.Renderer import ConsoleRenderer
-from input_validators.GameDecisionValidator import GameDecisionValidator
+from unittest.mock import MagicMock
 from player_classes.Player import Player
 from player_classes.Team import Team
 
@@ -277,86 +276,108 @@ def wenz_trumps(eichel_unter, gruen_unter, herz_unter, schellen_unter):
     return [eichel_unter, gruen_unter, herz_unter, schellen_unter]
 
 
-@pytest.fixture
-def test_player_1() -> Player:
-    return Player(
-        player_name="Testplayer 1",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
+class DummyPlayer(Player):
+    def __init__(self, player_name: str):
+        super().__init__(
+            player_name=player_name,
+            renderer=MagicMock(),
+            game_decision_validator=MagicMock(),
+        )
+        self._points: int = 0
+
+    @property
+    def points(self) -> int:
+        return self._points
+
+    @points.setter
+    def points(self, points: int) -> None:
+        self._points = points
+
+
+class DummyTeam(Team):
+    def __init__(self, team_name: str):
+        self.team_name: str = team_name
+        self.players: list[DummyPlayer] = []
+        self._points: int = 0
+
+    @property
+    def points(self) -> int:
+        return self._points
+
+    @points.setter
+    def points(self, points: int) -> None:
+        self._points = points
 
 
 @pytest.fixture
-def test_player_2() -> Player:
-    return Player(
-        player_name="Testplayer 2",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
+def player_1() -> DummyPlayer:
+    return DummyPlayer(player_name="Testplayer 1")
 
 
 @pytest.fixture
-def test_player_3() -> Player:
-    return Player(
-        player_name="Testplayer 3",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
+def player_2() -> DummyPlayer:
+    return DummyPlayer(player_name="Testplayer 2")
 
 
 @pytest.fixture
-def test_player_4() -> Player:
-    return Player(
-        player_name="Testplayer 4",
-        renderer=ConsoleRenderer(),
-        game_decision_validator=GameDecisionValidator({}, {}),
-    )
+def player_3() -> DummyPlayer:
+    return DummyPlayer(player_name="Testplayer 3")
 
 
 @pytest.fixture
-def team_alone_player_1(test_player_1) -> Team:
-    team_alone_player = Team(team_name="TeamAlonePlayer1")
-    team_alone_player.players = [test_player_1]
+def player_4() -> DummyPlayer:
+    return DummyPlayer(player_name="Testplayer 4")
+
+
+@pytest.fixture
+def players(player_1, player_2, player_3, player_4) -> list[DummyPlayer]:
+    return [player_1, player_2, player_3, player_4]
+
+
+@pytest.fixture
+def team_alone_player_1(player_1) -> DummyTeam:
+    team_alone_player = DummyTeam(team_name="TeamAlonePlayer1")
+    team_alone_player.players = [player_1]
     return team_alone_player
 
 
 @pytest.fixture
-def team_alone_player_2(test_player_2) -> Team:
-    team_alone_player = Team(team_name="TeamAlonePlayer2")
-    team_alone_player.players = [test_player_2]
+def team_alone_player_2(player_2) -> DummyTeam:
+    team_alone_player = DummyTeam(team_name="TeamAlonePlayer2")
+    team_alone_player.players = [player_2]
     return team_alone_player
 
 
 @pytest.fixture
-def team_alone_player_3(test_player_3) -> Team:
-    team_alone_player = Team(team_name="TeamAlonePlayer3")
-    team_alone_player.players = [test_player_3]
+def team_alone_player_3(player_3) -> DummyTeam:
+    team_alone_player = DummyTeam(team_name="TeamAlonePlayer3")
+    team_alone_player.players = [player_3]
     return team_alone_player
 
 
 @pytest.fixture
-def team_alone_player_4(test_player_4) -> Team:
-    team_alone_player = Team(team_name="TeamAlonePlayer4")
-    team_alone_player.players = [test_player_4]
+def team_alone_player_4(player_4) -> DummyTeam:
+    team_alone_player = DummyTeam(team_name="TeamAlonePlayer4")
+    team_alone_player.players = [player_4]
     return team_alone_player
 
 
 @pytest.fixture
-def team_two_players_1(test_player_1, test_player_2) -> Team:
-    team_two_players_1 = Team(team_name="TeamTwoPlayers1")
-    team_two_players_1.players = [test_player_1, test_player_2]
+def team_two_players_1(player_1, player_2) -> DummyTeam:
+    team_two_players_1 = DummyTeam(team_name="TeamTwoPlayers1")
+    team_two_players_1.players = [player_1, player_2]
     return team_two_players_1
 
 
 @pytest.fixture
-def team_two_players_2(test_player_3, test_player_4) -> Team:
-    team_two_players_2 = Team(team_name="TeamTwoPlayers2")
-    team_two_players_2.players = [test_player_3, test_player_4]
+def team_two_players_2(player_3, player_4) -> DummyTeam:
+    team_two_players_2 = DummyTeam(team_name="TeamTwoPlayers2")
+    team_two_players_2.players = [player_3, player_4]
     return team_two_players_2
 
 
 @pytest.fixture
-def team_three_players(test_player_2, test_player_3, test_player_4) -> Team:
-    team_alone_player = Team(team_name="TeamThreePlayers")
-    team_alone_player.players = [test_player_2, test_player_3, test_player_4]
+def team_three_players(player_2, player_3, player_4) -> DummyTeam:
+    team_alone_player = DummyTeam(team_name="TeamThreePlayers")
+    team_alone_player.players = [player_2, player_3, player_4]
     return team_alone_player

@@ -270,7 +270,10 @@ class Game(ABC):
 
             card_decision: Card = player.get_card_decision(
                 move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
-                    player=p, decision=d, trumps=self.trumps, lead_card=self.lead_card
+                    player_cards=p.player_cards,
+                    decision=d,
+                    trumps=self.trumps,
+                    lead_card=self.lead_card,
                 ),
             )
 
@@ -303,8 +306,8 @@ class Game(ABC):
         """
 
         winners_selector: WinnersSelector = self.create_winners_selector()
-        winners = winners_selector.get_game_winners()
-        most_point_teams = winners_selector.get_most_points_teams()
+        winners: list[Player] = winners_selector.get_game_winners()
+        most_point_teams: list[Team] = winners_selector.get_most_points_teams()
         self.renderer.render(
             message=tell_most_point_teams(most_point_teams=most_point_teams)
         )
@@ -320,7 +323,7 @@ class Game(ABC):
         money_distributer: MoneyDistributer = self.create_money_distributer(
             winners_selector=winners_selector
         )
-        game_value = money_distributer.calculate_game_value()
+        game_value: int = money_distributer.calculate_game_value()
         money_distributer.distribute_money(game_value=game_value, winners=winners)
         self.renderer.render(message=tell_winners(winners=winners))
         for player in self.players:
@@ -389,14 +392,14 @@ class Ramsch(Game):
             amount_game_value_doubles=amount_game_value_doubles,
             card_decision_validator=RamschCardDecisionValidator(),
         )
-        self.alone_price = alone_price
-        self.trump_color = Color.HERZ
-        self.trump_types = [Type.OBER, Type.UNTER]
+        self.alone_price: int = alone_price
+        self.trump_color: Color = Color.HERZ
+        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.active_players: list[Player] = []
 
     def create_teams(self) -> None:
         for index in range(len(self.players)):
-            team = Team(team_name=f"Team {index + 1}")
+            team: Team = Team(team_name=f"Team {index + 1}")
             team.players.append(self.players[index])
             self.teams.append(team)
 
@@ -491,11 +494,11 @@ class Sauspiel(Game):
                 call_sau=Card(card_color=sau_color, card_type=Type.SAU)
             ),
         )
-        self.game_chooser = game_chooser
-        self.base_price = base_price
-        self.call_price = call_price
-        self.trump_color = Color.HERZ
-        self.trump_types = [Type.OBER, Type.UNTER]
+        self.game_chooser: Player = game_chooser
+        self.base_price: int = base_price
+        self.call_price: int = call_price
+        self.trump_color: Color = Color.HERZ
+        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
         self.minimum_runners: int = 3
 
@@ -518,7 +521,7 @@ class Sauspiel(Game):
         self, winners_selector: WinnersSelector
     ) -> MoneyDistributer:
         assert self.active_team is not None
-        money_distributer = SauspielMoneyDistributer(
+        money_distributer: MoneyDistributer = SauspielMoneyDistributer(
             base_price=self.base_price,
             call_price=self.call_price,
             players=self.players,
@@ -583,10 +586,10 @@ class Wenz(Game):
             amount_game_value_doubles=amount_game_value_doubles,
             card_decision_validator=WenzCardDecisionValidator(),
         )
-        self.game_chooser = game_chooser
-        self.trump_types = [Type.UNTER]
-        self.alone_price = alone_price
-        self.base_price = base_price
+        self.game_chooser: Player = game_chooser
+        self.trump_types: list[Type] = [Type.UNTER]
+        self.alone_price: int = alone_price
+        self.base_price: int = base_price
         self.minimum_runners: int = 2
 
     def create_teams(self) -> None:
@@ -596,7 +599,7 @@ class Wenz(Game):
         self, winners_selector: WinnersSelector
     ) -> MoneyDistributer:
         assert self.active_team is not None
-        money_distributer = WenzMoneyDistributer(
+        money_distributer: MoneyDistributer = WenzMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
             players=self.players,
@@ -665,11 +668,11 @@ class Solo(Game):
             amount_game_value_doubles=amount_game_value_doubles,
             card_decision_validator=SoloCardDecisionValidator(),
         )
-        self.game_chooser = game_chooser
+        self.game_chooser: Player = game_chooser
         self.trump_color: Color = trump_color
-        self.trump_types = [Type.OBER, Type.UNTER]
-        self.alone_price = alone_price
-        self.base_price = base_price
+        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
+        self.alone_price: int = alone_price
+        self.base_price: int = base_price
         self.minimum_runners: int = 3
 
     def create_teams(self) -> None:
@@ -679,7 +682,7 @@ class Solo(Game):
         self, winners_selector: WinnersSelector
     ) -> MoneyDistributer:
         assert self.active_team is not None
-        money_distributer = SoloMoneyDistributer(
+        money_distributer: MoneyDistributer = SoloMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
             players=self.players,
