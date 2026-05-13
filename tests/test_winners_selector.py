@@ -3,26 +3,26 @@ from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelecto
 
 def test_alone_most_points_teams(
     team_alone_player_1,
-    team_three_players,
+    team_three_players_2_3_4,
 ):
-    teams = [team_alone_player_1, team_three_players]
+    teams = [team_alone_player_1, team_three_players_2_3_4]
     winners_selector = WinnersSelector(teams=teams, active_team=team_alone_player_1)
 
-    team_three_players.points = 64
+    team_three_players_2_3_4.points = 64
     team_alone_player_1.points = 25
 
     assert sorted(
         winners_selector.get_most_points_teams(), key=lambda x: x.team_name
-    ) == sorted([team_three_players], key=lambda x: x.team_name)
+    ) == sorted([team_three_players_2_3_4], key=lambda x: x.team_name)
 
-    team_three_players.points = 0
+    team_three_players_2_3_4.points = 0
     team_alone_player_1.points = 11
 
     assert sorted(
         winners_selector.get_most_points_teams(), key=lambda x: x.team_name
     ) == sorted([team_alone_player_1], key=lambda x: x.team_name)
 
-    team_three_players.points = 60
+    team_three_players_2_3_4.points = 60
     team_alone_player_1.points = 60
 
     assert sorted(
@@ -30,7 +30,7 @@ def test_alone_most_points_teams(
     ) == sorted(
         [
             team_alone_player_1,
-            team_three_players,
+            team_three_players_2_3_4,
         ],
         key=lambda x: x.team_name,
     )
@@ -73,34 +73,36 @@ def test_duo_most_points_teams(
 
 def test_alone_get_game_winners(
     team_alone_player_1,
-    team_three_players,
+    team_three_players_2_3_4,
 ):
-    teams = [team_alone_player_1, team_three_players]
+    teams = [team_alone_player_1, team_three_players_2_3_4]
     winners_selector = WinnersSelector(teams=teams, active_team=team_alone_player_1)
 
-    team_three_players.points = 64
+    team_three_players_2_3_4.points = 64
     team_alone_player_1.points = 24
 
     assert sorted(
         winners_selector.get_game_winners(), key=lambda x: x.player_name
     ) == sorted(
-        [player for player in team_three_players.players], key=lambda x: x.player_name
+        [player for player in team_three_players_2_3_4.players],
+        key=lambda x: x.player_name,
     )
 
-    team_three_players.points = 0
+    team_three_players_2_3_4.points = 0
     team_alone_player_1.points = 11
 
     assert sorted(
         winners_selector.get_game_winners(), key=lambda x: x.player_name
     ) == sorted([team_alone_player_1.players[0]], key=lambda x: x.player_name)
 
-    team_three_players.points = 60
+    team_three_players_2_3_4.points = 60
     team_alone_player_1.points = 60
 
     assert sorted(
         winners_selector.get_game_winners(), key=lambda x: x.player_name
     ) == sorted(
-        [player for player in team_three_players.players], key=lambda x: x.player_name
+        [player for player in team_three_players_2_3_4.players],
+        key=lambda x: x.player_name,
     )
 
 

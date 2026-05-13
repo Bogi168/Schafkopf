@@ -284,6 +284,12 @@ class DummyPlayer(Player):
             game_decision_validator=MagicMock(),
         )
 
+    def __eq__(self, other):
+        return self.player_name == other.player_name
+
+    def __hash__(self):
+        return hash(self.player_name)
+
 
 class DummyTeam(Team):
     def __init__(self, team_name: str):
@@ -368,7 +374,7 @@ def team_two_players_2(player_3, player_4) -> DummyTeam:
 
 
 @pytest.fixture
-def team_three_players(player_2, player_3, player_4) -> DummyTeam:
+def team_three_players_2_3_4(player_2, player_3, player_4) -> DummyTeam:
     team_alone_player = DummyTeam(team_name="TeamThreePlayers")
     team_alone_player.players = [player_2, player_3, player_4]
     return team_alone_player
