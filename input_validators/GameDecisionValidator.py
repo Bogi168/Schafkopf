@@ -28,12 +28,12 @@ class GameDecisionValidator:
         """
         self.choosable_game_mapping: dict[type[Game], bool] = choosable_game_mapping
         self.game_rank_mapping: dict[type[Game], int] = game_rank_mapping
-        self.sau_color_mapping = {
+        self.sau_color_mapping: dict[str, Color] = {
             "1": Color.EICHEL,
             "2": Color.GRUEN,
             "3": Color.SCHELLEN,
         }
-        self.solo_trump_color_mapping = {
+        self.solo_trump_color_mapping: dict[str, Color] = {
             "1": Color.EICHEL,
             "2": Color.GRUEN,
             "3": Color.HERZ,
