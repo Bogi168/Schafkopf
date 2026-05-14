@@ -115,24 +115,29 @@ class Schafkopf:
                 key=card_power_calculator.get_card_power, reverse=True
             )
 
-    def get_game(self, game_mode: type[Game], player: Player) -> Game:
+    def get_game(self, game_mode: type[Game], chooser: Player | None) -> Game:
         kwargs = dict(
             cards=self.cards,
             renderer=self.renderer,
             players=self.players,
-            game_chooser=player,
-            base_price=self.base_price,
             amount_game_value_doubles=self.amount_game_value_doubles,
         )
+        if game_mode is Ramsch:
+            kwargs["alone_price"] = self.alone_price
+            return game_mode(**kwargs)
+
+        assert chooser is not None
+        kwargs.update(game_chooser=chooser, base_price=self.base_price)  # type: ignore
+
         if game_mode is Sauspiel:
-            sau_color: Color = player.get_sau_color()
+            sau_color: Color = chooser.get_sau_color()
             kwargs.update(call_price=self.call_price, sau_color=sau_color)  # type: ignore
 
         elif game_mode is Wenz:
-            kwargs["alone_price"] = self.alone_price
+            kwargs.update(alone_price=self.alone_price)
 
         elif game_mode is Solo:
-            trump_color = player.get_trump_color()
+            trump_color = chooser.get_trump_color()
             kwargs.update(trump_color=trump_color, alone_price=self.alone_price)  # type: ignore
 
         else:
@@ -144,13 +149,8 @@ class Schafkopf:
         game_mode: type[Game] | None = None
         game: Game | None = None
         if not self.game_choosers:
-            return Ramsch(
-                cards=self.cards,
-                renderer=self.renderer,
-                players=self.players,
-                alone_price=self.alone_price,
-                amount_game_value_doubles=self.amount_game_value_doubles,
-            )
+            game: Game = self.get_game(game_mode=Ramsch, chooser=None)
+            return game
         else:
             for player in self.game_choosers:
                 if game_mode is None:
@@ -159,7 +159,7 @@ class Schafkopf:
                     )
                     assert decision is not None
                     game_mode: type[Game] = decision
-                    game: Game = self.get_game(game_mode=game_mode, player=player)
+                    game: Game = self.get_game(game_mode=game_mode, chooser=player)
 
                 elif game_mode == Solo:
                     assert game is not None
@@ -178,7 +178,7 @@ class Schafkopf:
                         continue
                     else:
                         game_mode: type[Game] = decision
-                        game: Game = self.get_game(game_mode=game_mode, player=player)
+                        game: Game = self.get_game(game_mode=game_mode, chooser=player)
 
                 else:
                     decision: type[Game] | None = player.choose_game_mode(
@@ -186,7 +186,7 @@ class Schafkopf:
                     )
                     assert decision is not None
                     game_mode: type[Game] = decision
-                    game: Game = self.get_game(game_mode=game_mode, player=player)
+                    game: Game = self.get_game(game_mode=game_mode, chooser=player)
         assert game is not None
         return game
 
