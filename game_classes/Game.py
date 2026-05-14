@@ -179,12 +179,7 @@ class Game(ABC):
         :rtype: WinnersSelector
         """
 
-        if isinstance(self, Ramsch):
-            return RamschWinnersSelector(
-                teams=self.teams, active_players=self.active_players
-            )
-        else:
-            return WinnersSelector(teams=self.teams, active_team=self.active_team)
+        return WinnersSelector(teams=self.teams, active_team=self.active_team)
 
     @abstractmethod
     def create_money_distributer(
@@ -422,6 +417,11 @@ class Ramsch(Game):
                     self.amount_game_value_doubles += 1
                     self.active_players.append(player)
         super().play_round(rounds=rounds)
+
+    def create_winners_selector(self) -> WinnersSelector:
+        return RamschWinnersSelector(
+            teams=self.teams, active_players=self.active_players
+        )
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector

@@ -172,7 +172,7 @@ class GameDecisionValidator:
         :type player_cards: list[Card]
         :return: dictionary of valid inputs for a game decision to make by a player
         """
-        available_game_modes = self.get_available_game_modes(
+        available_game_modes: list[type[Game]] = self.get_available_game_modes(
             playable_games=[game for game in self.choosable_game_rank_mapping.keys()],
             prev_game=prev_game_mode,
             player_cards=player_cards,
@@ -192,8 +192,8 @@ class GameDecisionValidator:
         :rtype: list[Color]
         """
 
-        sau_colors = [color for color in self.sau_color_mapping.values()]
-        playable_colors = sau_colors.copy()
+        sau_colors: list[Color] = [color for color in self.sau_color_mapping.values()]
+        playable_colors: list[Color] = sau_colors.copy()
 
         for color in sau_colors:
             player_has_sau = self.is_player_owns_sau(
