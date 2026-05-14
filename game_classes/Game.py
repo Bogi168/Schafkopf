@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from system.custom_exceptions import PlayerHasNoTeamError
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
@@ -49,12 +49,18 @@ class Game(ABC):
     """An object that represents the game"""
 
     name = "Game"
-    game_mapping: dict[type[Game], bool] = {}
+    rank = 0
+    game_mapping: list[dict[str, Any]] = []
     is_choosable = False
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-        Game.game_mapping[cls] = cls.is_choosable
+        class_map: dict[str, Any] = dict()
+        class_map["name"] = cls.name
+        class_map["rank"] = cls.rank
+        class_map["is_choosable"] = cls.is_choosable
+        class_map["class"] = cls
+        Game.game_mapping.append(class_map)
 
     def __init__(
         self,
@@ -366,6 +372,7 @@ class Ramsch(Game):
     """
 
     name = "Ramsch"
+    rank = 1
     is_choosable = False
 
     def __init__(
@@ -452,6 +459,7 @@ class Sauspiel(Game):
     """
 
     name = "Sauspiel"
+    rank = 2
     is_choosable = True
 
     def __init__(
@@ -549,6 +557,7 @@ class Wenz(Game):
     """
 
     name = "Wenz"
+    rank = 3
     is_choosable = True
 
     def __init__(
@@ -628,6 +637,7 @@ class Solo(Game):
     """
 
     name = "Solo"
+    rank = 4
     is_choosable = True
 
     def __init__(

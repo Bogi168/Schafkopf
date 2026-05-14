@@ -16,18 +16,16 @@ class GameDecisionValidator:
 
     def __init__(
         self,
-        choosable_game_mapping: dict[type[Game], bool],
-        game_rank_mapping: dict[type[Game], int],
+        choosable_game_rank_mapping: dict[type[Game], int],
     ) -> None:
         """
-        :param choosable_game_mapping: A dictionary of all the implemented games
-        and a boolean value that indicates whether the game is choosable or not
-        :type choosable_game_mapping: dict[type[Game], bool]
-        :param game_rank_mapping: A dictionary of all the implemented games with their ranks
-        :type game_rank_mapping: dict[str, type[Game]]
+        :param choosable_game_rank_mapping: A dictionary of all the implemented games with their ranks
+        :type choosable_game_rank_mapping: dict[type[Game], int]
+        :rtype: None
         """
-        self.choosable_game_mapping: dict[type[Game], bool] = choosable_game_mapping
-        self.game_rank_mapping: dict[type[Game], int] = game_rank_mapping
+        self.choosable_game_rank_mapping: dict[type[Game], int] = (
+            choosable_game_rank_mapping
+        )
         self.sau_color_mapping: dict[str, Color] = {
             "1": Color.EICHEL,
             "2": Color.GRUEN,
@@ -144,13 +142,13 @@ class GameDecisionValidator:
         if prev_game is None:
             prev_game_rank = 0
         else:
-            prev_game_rank = self.game_rank_mapping[prev_game]
+            prev_game_rank = self.choosable_game_rank_mapping[prev_game]
 
         if prev_game_rank != 0:
             available_game_modes: list[type[Game]] = [
                 game
                 for game in playable_games
-                if self.game_rank_mapping[game] > prev_game_rank
+                if self.choosable_game_rank_mapping[game] > prev_game_rank
             ]
         else:
             if self.is_sauspiel_playable(player_cards=player_cards):
@@ -175,7 +173,7 @@ class GameDecisionValidator:
         :return: dictionary of valid inputs for a game decision to make by a player
         """
         available_game_modes = self.get_available_game_modes(
-            playable_games=[game for game in self.choosable_game_mapping.keys()],
+            playable_games=[game for game in self.choosable_game_rank_mapping.keys()],
             prev_game=prev_game_mode,
             player_cards=player_cards,
         )

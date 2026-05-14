@@ -1,5 +1,6 @@
 from __future__ import annotations
 import random
+from typing import Any
 
 from system.Renderer import Renderer
 from card_classes.Cards import Cards, Color
@@ -32,19 +33,14 @@ class Schafkopf:
         self.call_price = call_price
         self.alone_price = alone_price
 
-        self.game_mapping: dict[type[Game], bool] = Game.game_mapping.copy()
-        self.choosable_game_mapping: dict[type[Game], bool] = {
-            game_mode: is_choosable
-            for game_mode, is_choosable in self.game_mapping.items()
-            if is_choosable
-        }
-        self.game_rank_mapping: dict[type[Game], int] = {
-            game: rank
-            for rank, game in enumerate(self.choosable_game_mapping.keys(), start=1)
+        self.implemented_games: list[dict[str, Any]] = Game.game_mapping.copy()
+        self.choosable_game_rank_mapping: dict[type[Game], int] = {
+            class_dict["class"]: class_dict["rank"]
+            for class_dict in self.implemented_games
+            if class_dict["is_choosable"]
         }
         self.game_decision_validator: GameDecisionValidator = GameDecisionValidator(
-            choosable_game_mapping=self.choosable_game_mapping,
-            game_rank_mapping=self.game_rank_mapping,
+            choosable_game_rank_mapping=self.choosable_game_rank_mapping,
         )
 
     def _create_players(self) -> list[Player]:
@@ -169,8 +165,8 @@ class Schafkopf:
 
                 elif (
                     game_mode is not None
-                    and self.game_rank_mapping[game_mode]
-                    > self.game_rank_mapping[Sauspiel]
+                    and self.choosable_game_rank_mapping[game_mode]
+                    > self.choosable_game_rank_mapping[Sauspiel]
                 ):
                     decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
