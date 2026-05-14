@@ -141,7 +141,9 @@ class Schafkopf:
             kwargs.update(trump_color=trump_color, alone_price=self.alone_price)  # type: ignore
 
         else:
-            raise GamemodeIsNotImplementedError(f"{game_mode} is not implemented yet")
+            raise GamemodeIsNotImplementedError(
+                f"{game_mode.name} is not implemented yet"
+            )
 
         return game_mode(**kwargs)
 

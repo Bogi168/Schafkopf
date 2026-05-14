@@ -96,6 +96,18 @@ class Game(ABC):
         self.minimum_runners: int = 0
         self.runners_amount: int = 0
 
+    @property
+    def lead_card(self) -> Card | None:
+        """
+        :return: The first played card of the round
+        :rtype: Card | None
+        """
+
+        if self.played_cards:
+            return self.played_cards[0]
+        else:
+            return None
+
     def set_trumps(self) -> list[Card]:
         """
         Creates a list of all trump cards of the game
@@ -111,18 +123,6 @@ class Game(ABC):
         ]
         trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         return trumps
-
-    @property
-    def lead_card(self) -> Card | None:
-        """
-        :return: The first played card of the round
-        :rtype: Card | None
-        """
-
-        if self.played_cards:
-            return self.played_cards[0]
-        else:
-            return None
 
     @abstractmethod
     def create_teams(self) -> None:
@@ -173,7 +173,12 @@ class Game(ABC):
         :rtype: WinnersSelector
         """
 
-        return WinnersSelector(teams=self.teams, active_team=self.active_team)
+        if isinstance(self, Ramsch):
+            return RamschWinnersSelector(
+                teams=self.teams, active_players=self.active_players
+            )
+        else:
+            return WinnersSelector(teams=self.teams, active_team=self.active_team)
 
     @abstractmethod
     def create_money_distributer(
@@ -402,11 +407,6 @@ class Ramsch(Game):
             team: Team = Team(team_name=f"Team {index + 1}")
             team.players.append(self.players[index])
             self.teams.append(team)
-
-    def create_winners_selector(self) -> WinnersSelector:
-        return RamschWinnersSelector(
-            teams=self.teams, active_players=self.active_players
-        )
 
     def play_round(self, rounds: int) -> None:
         if rounds == 1:
