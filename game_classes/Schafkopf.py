@@ -2,7 +2,7 @@ from __future__ import annotations
 import random
 
 from system.Renderer import Renderer
-from card_classes.Cards import Cards
+from card_classes.Cards import Cards, Color
 from player_classes.Player import Player, Bot
 from game_classes.Game import Game, Sauspiel, Wenz, Solo, Ramsch
 from input_validators.GameDecisionValidator import GameDecisionValidator
@@ -116,45 +116,29 @@ class Schafkopf:
             )
 
     def get_game(self, game_mode: type[Game], player: Player) -> Game:
+        kwargs = dict(
+            cards=self.cards,
+            renderer=self.renderer,
+            players=self.players,
+            game_chooser=player,
+            base_price=self.base_price,
+            amount_game_value_doubles=self.amount_game_value_doubles,
+        )
         if game_mode is Sauspiel:
-            sau_color = player.get_sau_color()
-            return Sauspiel(
-                cards=self.cards,
-                renderer=self.renderer,
-                players=self.players,
-                game_chooser=player,
-                base_price=self.base_price,
-                call_price=self.call_price,
-                amount_game_value_doubles=self.amount_game_value_doubles,
-                sau_color=sau_color,
-            )
+            sau_color: Color = player.get_sau_color()
+            kwargs.update(call_price=self.call_price, sau_color=sau_color)  # type: ignore
 
         elif game_mode is Wenz:
-            return Wenz(
-                cards=self.cards,
-                renderer=self.renderer,
-                players=self.players,
-                game_chooser=player,
-                base_price=self.base_price,
-                alone_price=self.alone_price,
-                amount_game_value_doubles=self.amount_game_value_doubles,
-            )
+            kwargs["alone_price"] = self.alone_price
 
         elif game_mode is Solo:
             trump_color = player.get_trump_color()
-            return Solo(
-                trump_color=trump_color,
-                cards=self.cards,
-                renderer=self.renderer,
-                players=self.players,
-                game_chooser=player,
-                base_price=self.base_price,
-                alone_price=self.alone_price,
-                amount_game_value_doubles=self.amount_game_value_doubles,
-            )
+            kwargs.update(trump_color=trump_color, alone_price=self.alone_price)  # type: ignore
 
         else:
             raise GamemodeIsNotImplementedError(f"{game_mode} is not implemented yet")
+
+        return game_mode(**kwargs)
 
     def players_choose_game(self) -> Game:
         game_mode: type[Game] | None = None

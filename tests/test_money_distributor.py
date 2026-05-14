@@ -21,13 +21,13 @@ def make_distributer(
     players: list[Player],
     teams: list[Team],
     winners: list[Player],
-    active_team=None,
-    amount_game_value_doubles=0,
-    runners_amount=0,
-    base_price=10,
-    call_price=20,
-    alone_price=50,
-    amount_game_card_points=TOTAL_POINTS,
+    active_team: Team | None = None,
+    amount_game_value_doubles: int = 0,
+    runners_amount: int = 0,
+    base_price: int = 10,
+    call_price: int = 20,
+    alone_price: int = 50,
+    amount_game_card_points: int = TOTAL_POINTS,
 ) -> MoneyDistributer:
     kwargs = dict(
         players=players,
@@ -42,14 +42,14 @@ def make_distributer(
         kwargs.update(
             base_price=base_price,
             call_price=call_price,
-            active_team=active_team,
+            active_team=active_team,  # type: ignore
             runners_amount=runners_amount,
         )
     else:  # Wenz / Solo
         kwargs.update(
             base_price=base_price,
             alone_price=alone_price,
-            active_team=active_team,
+            active_team=active_team,  # type: ignore
             runners_amount=runners_amount,
         )
     return cls(**kwargs)
