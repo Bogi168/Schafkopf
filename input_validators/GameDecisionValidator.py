@@ -39,6 +39,22 @@ class GameDecisionValidator:
         }
 
     @staticmethod
+    def is_player_owns_sau(player_cards: list[Card], sau_color: Color) -> bool:
+        """
+        Checks whether a player owns the sau of a given color.
+        :param player_cards: The player's cards
+        :type player_cards: list[Card]
+        :param sau_color: The color of the sau for which the player's cards should be checked
+        :type sau_color: Color
+        :return: A boolean value indicating whether the player owns the sau
+        :rtype: bool
+        """
+        return any(
+            (card.card_type == Type.SAU and card.card_color == sau_color)
+            for card in player_cards
+        )
+
+    @staticmethod
     def count_color_cards(
         player_cards: list[Card], color: Color, trump_types: list[Type]
     ) -> int:
@@ -54,26 +70,10 @@ class GameDecisionValidator:
         :return: The amount of cards the player has of the given color
         :rtype: int
         """
-        count = 0
-        for card in player_cards:
-            if card.card_color == color and card.card_type not in trump_types:
-                count += 1
-        return count
-
-    @staticmethod
-    def is_player_owns_sau(player_cards: list[Card], sau_color: Color) -> bool:
-        """
-        Checks whether a player owns the sau of a given color.
-        :param player_cards: The player's cards
-        :type player_cards: list[Card]
-        :param sau_color: The color of the sau for which the player's cards should be checked
-        :type sau_color: Color
-        :return: A boolean value indicating whether the player owns the sau
-        :rtype: bool
-        """
-        return any(
-            (card.card_color == sau_color and card.card_type == Type.SAU)
+        return sum(
+            1
             for card in player_cards
+            if card.card_color == color and card.card_type not in trump_types
         )
 
     def is_sauspiel_playable(self, player_cards: list[Card]) -> bool:
@@ -87,42 +87,22 @@ class GameDecisionValidator:
         :rtype: bool
         """
         colors = [color for color in self.sau_color_mapping.values()]
-        eichel_count = 0
-        gruen_count = 0
-        schellen_count = 0
+        callable_color_cards = 0
 
         for card_color in colors:
-            match card_color:
-                case Color.EICHEL:
-                    eichel_count = self.count_color_cards(
-                        player_cards=player_cards,
-                        color=card_color,
-                        trump_types=[Type.OBER, Type.UNTER],
-                    )
-                case Color.GRUEN:
-                    gruen_count = self.count_color_cards(
-                        player_cards=player_cards,
-                        color=card_color,
-                        trump_types=[Type.OBER, Type.UNTER],
-                    )
-                case Color.SCHELLEN:
-                    schellen_count = self.count_color_cards(
-                        player_cards=player_cards,
-                        color=card_color,
-                        trump_types=[Type.OBER, Type.UNTER],
-                    )
+            if self.is_player_owns_sau(sau_color=card_color, player_cards=player_cards):
+                continue
 
-        for color in colors:
-            if self.is_player_owns_sau(sau_color=color, player_cards=player_cards):
-                match color:
-                    case Color.EICHEL:
-                        eichel_count = 0
-                    case Color.GRUEN:
-                        gruen_count = 0
-                    case Color.SCHELLEN:
-                        schellen_count = 0
+            callable_color_cards += self.count_color_cards(
+                player_cards=player_cards,
+                color=card_color,
+                trump_types=[Type.OBER, Type.UNTER],
+            )
 
-        return eichel_count + gruen_count + schellen_count != 0
+            if callable_color_cards != 0:
+                return True
+
+        return False
 
     def get_available_game_modes(
         self,
