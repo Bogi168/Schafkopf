@@ -55,7 +55,7 @@ class CardPowerCalculator:
         :rtype: Card
         """
 
-        if self.get_card_power(card=first_card) > self.get_card_power(second_card):
+        if self.get_card_power(card=first_card) >= self.get_card_power(second_card):
             return first_card
         else:
             return second_card

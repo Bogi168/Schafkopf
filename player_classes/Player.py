@@ -104,7 +104,7 @@ class Player:
         """
 
         valid_color_inputs: dict[str, Color] = (
-            self.game_decision_validator.get_available_sau_color_decisions(
+            self.game_decision_validator.get_valid_call_sau_color_inputs(
                 player_cards=self.player_cards
             )
         )
@@ -130,7 +130,7 @@ class Player:
         """
 
         valid_color_inputs: dict[str, Color] = (
-            self.game_decision_validator.get_valid_solo_trump_colors()
+            self.game_decision_validator.get_valid_solo_color_inputs()
         )
 
         trump_color_decision = self.renderer.ask_with_validation(

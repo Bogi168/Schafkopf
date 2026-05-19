@@ -186,9 +186,10 @@ class GameDecisionValidator:
             )
             if color_count == 0 or player_has_sau:
                 playable_colors.remove(color)
+
         return playable_colors
 
-    def get_available_sau_color_decisions(
+    def get_valid_call_sau_color_inputs(
         self, player_cards: list[Card]
     ) -> dict[str, Color]:
         """
@@ -204,7 +205,7 @@ class GameDecisionValidator:
         }
         return valid_inputs
 
-    def get_valid_solo_trump_colors(self) -> dict[str, Color]:
+    def get_valid_solo_color_inputs(self) -> dict[str, Color]:
         valid_inputs: dict[str, Color] = {
             str(key): color
             for key, color in enumerate(self.solo_trump_color_mapping.values(), start=1)
