@@ -93,7 +93,7 @@ class Schafkopf:
         self.sort_player_hands()
         self.amount_game_value_doubles = 0
         for player in self.players:
-            if player.is_doubles_game_value():
+            if player.ask_double_game_value():
                 self.amount_game_value_doubles += 1
         self.deal_cards(cards_amount_per_player=cards_per_player_per_dealing_round)
         self.sort_player_hands()
@@ -206,7 +206,7 @@ class Schafkopf:
                         player_name=player.player_name, player_cards=player.player_cards
                     )
                 )
-                if player.is_chooses_game():
+                if player.ask_want_choose_game():
                     self.game_choosers.append(player)
             game: Game = self.players_choose_game()
             game.play_game()

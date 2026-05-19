@@ -178,7 +178,7 @@ class RamschMoneyDistributer(MoneyDistributer):
         game_value = self.alone_price
 
         for _ in range(self.count_virgins()):
-            self.amount_game_value_doubles += 1
+            game_value *= 2
 
         for _ in range(self.amount_game_value_doubles):
             game_value *= 2

@@ -59,7 +59,7 @@ class Player:
 
         return sum(card.card_type.points for card in self.collected_cards)
 
-    def is_doubles_game_value(self) -> bool:
+    def ask_double_game_value(self) -> bool:
         """
         Asks the player whether he wants to double the game value or not
         :return: A boolean indicating whether the player wants to double the game value or not
@@ -81,7 +81,7 @@ class Player:
 
         return decision in self.yes_decisions
 
-    def is_chooses_game(self) -> bool:
+    def ask_want_choose_game(self) -> bool:
         """
         Asks the player whether he wants to choose a game or not
         :return: A boolean indicating whether the player wants to choose a game or not
@@ -182,10 +182,12 @@ class Player:
         else:
             return valid_game_mode_decisions[decision]
 
-    def is_shoots(self) -> bool:
+    def ask_shoot(self, ask_shoot_back: bool = False) -> bool:
         """
         Asks the player whether he wants to shoot or not.
         By shooting, the player doubles the game value and his team turns to the active team.
+        :param ask_shoot_back: If the player is asked to shoot back, it should be set to True
+        :type ask_shoot_back: bool
         :return: A boolean indicating whether the player wants to shoot or not
         :rtype: bool
         """
@@ -195,29 +197,13 @@ class Player:
                 player_name=self.player_name, player_cards=self.player_cards
             )
         )
-        decision = self.renderer.ask_with_validation(
-            prompt=prompt_ask_player_shoots(player_name=self.player_name),
-            error_prefix=error_message,
-            preprocess=lambda x: x.strip().upper(),
-            validator=lambda x: x in self.string_decisions,
-        )
-        return decision in self.yes_decisions
+        if ask_shoot_back:
+            prompt: str = prompt_ask_player_shoots_back(player_name=self.player_name)
+        else:
+            prompt: str = prompt_ask_player_shoots(player_name=self.player_name)
 
-    def is_shoots_back(self) -> bool:
-        """
-        Asks the player whether he wants to shoot back after someone else shot at him or not.
-        By shooting back, the player doubles the game value and his team turns to the active team.
-        :return: A boolean indicating whether the player wants to shoot back or not
-        :rtype: bool
-        """
-
-        self.renderer.render(
-            show_player_cards(
-                player_name=self.player_name, player_cards=self.player_cards
-            )
-        )
         decision = self.renderer.ask_with_validation(
-            prompt=prompt_ask_player_shoots_back(player_name=self.player_name),
+            prompt=prompt,
             error_prefix=error_message,
             preprocess=lambda x: x.strip().upper(),
             validator=lambda x: x in self.string_decisions,
@@ -282,7 +268,7 @@ class Bot(Player):
             game_decision_validator=game_decision_validator,
         )
 
-    def is_doubles_game_value(self) -> bool:
+    def ask_double_game_value(self) -> bool:
         return False
 
     def get_card_decision(
@@ -299,8 +285,5 @@ class Bot(Player):
 
         return decision
 
-    def is_shoots(self) -> bool:
-        return False
-
-    def is_shoots_back(self) -> bool:
+    def ask_shoot(self, ask_shoot_back: bool = False) -> bool:
         return False

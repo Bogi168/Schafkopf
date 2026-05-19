@@ -158,7 +158,7 @@ class Game(ABC):
         for team in self.teams:
             if player in team.players:
                 return team
-        raise PlayerHasNoTeamError(f"{player} has no team!")
+        raise PlayerHasNoTeamError(f"{player.player_name} has no team!")
 
     def sort_players(self, starter: Player) -> None:
         """
@@ -215,7 +215,7 @@ class Game(ABC):
         :rtype: int
         """
 
-        runners_count = 0
+        runners_count: int = 0
         for trump in trumps:
             if any(
                 card == trump for player in team.players for card in player.player_cards
@@ -264,10 +264,10 @@ class Game(ABC):
                 and self.active_team is not None
                 and players_team != self.active_team
             ):
-                if player.is_shoots():
+                if player.ask_shoot():
                     self.amount_game_value_doubles += 1
                     for prev_active_player in self.active_team.players:
-                        if prev_active_player.is_shoots_back():
+                        if prev_active_player.ask_shoot(ask_shoot_back=True):
                             self.amount_game_value_doubles += 1
                             break
                     else:
@@ -288,10 +288,10 @@ class Game(ABC):
             self.renderer.render(
                 message=show_played_cards(played_cards=self.played_cards)
             )
-        strongest_card = self.card_power_calculator.get_strongest_played_card(
+        strongest_card: Card = self.card_power_calculator.get_strongest_played_card(
             played_cards=self.played_cards, trumps=self.trumps
         )
-        round_winner_index = self.played_cards.index(strongest_card)
+        round_winner_index: int = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[round_winner_index].collected_cards.append(card)
         self.renderer.render(
@@ -300,7 +300,7 @@ class Game(ABC):
                 collected_cards=self.players[round_winner_index].collected_cards,
             )
         )
-        starter = self.players[round_winner_index]
+        starter: Player = self.players[round_winner_index]
         self.sort_players(starter=starter)
         self.played_cards.clear()
 
@@ -413,7 +413,7 @@ class Ramsch(Game):
     def play_round(self, rounds: int) -> None:
         if rounds == 1:
             for player in self.players:
-                if player.is_shoots():
+                if player.ask_shoot():
                     self.amount_game_value_doubles += 1
                     self.active_players.append(player)
         super().play_round(rounds=rounds)
