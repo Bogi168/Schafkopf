@@ -23,6 +23,7 @@ class GameDecisionValidator:
         :type choosable_game_rank_mapping: dict[type[Game], int]
         :rtype: None
         """
+
         self.choosable_game_rank_mapping: dict[type[Game], int] = (
             choosable_game_rank_mapping
         )
@@ -49,6 +50,7 @@ class GameDecisionValidator:
         :return: A boolean value indicating whether the player owns the sau
         :rtype: bool
         """
+
         return any(
             (card.card_type == Type.SAU and card.card_color == sau_color)
             for card in player_cards
@@ -70,6 +72,7 @@ class GameDecisionValidator:
         :return: The amount of cards the player has of the given color
         :rtype: int
         """
+
         return sum(
             1
             for card in player_cards
@@ -86,6 +89,7 @@ class GameDecisionValidator:
         :return: A boolean value indicating whether the player is able to choose sauspiel as a game mode
         :rtype: bool
         """
+
         colors = [color for color in self.sau_color_mapping.values()]
         callable_color_cards = 0
 
@@ -119,26 +123,25 @@ class GameDecisionValidator:
         :param player_cards: The player's cards
         :type player_cards: list[Card]
         """
+
         if prev_game is None:
             prev_game_rank = 0
         else:
             prev_game_rank = self.choosable_game_rank_mapping[prev_game]
 
+        available_game_modes: list[type[Game]] = playable_games.copy()
+
         if prev_game_rank != 0:
             available_game_modes: list[type[Game]] = [
                 game
-                for game in playable_games
+                for game in available_game_modes
                 if self.choosable_game_rank_mapping[game] > prev_game_rank
             ]
-        else:
-            if self.is_sauspiel_playable(player_cards=player_cards):
-                available_game_modes: list[type[Game]] = [
-                    game for game in playable_games
-                ]
-            else:
-                available_game_modes: list[type[Game]] = [
-                    game for game in playable_games if game != Sauspiel
-                ]
+        elif Sauspiel in playable_games and not self.is_sauspiel_playable(
+            player_cards=player_cards
+        ):
+            available_game_modes.remove(Sauspiel)
+
         return available_game_modes
 
     def get_valid_game_mode_decisions(
@@ -152,6 +155,7 @@ class GameDecisionValidator:
         :type player_cards: list[Card]
         :return: dictionary of valid inputs for a game decision to make by a player
         """
+
         available_game_modes: list[type[Game]] = self.get_available_game_modes(
             playable_games=[game for game in self.choosable_game_rank_mapping.keys()],
             prev_game=prev_game_mode,
@@ -197,6 +201,7 @@ class GameDecisionValidator:
         :param player_cards: The player's cards
         :type player_cards: list[Card]
         """
+
         available_colors: list[Color] = self.get_valid_call_sau_colors(
             player_cards=player_cards
         )
