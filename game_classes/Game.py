@@ -6,6 +6,12 @@ from system.custom_exceptions import PlayerHasNoTeamError
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
 from player_classes.Team import Team
 from card_classes.Cards import Card, Type, Color
+from player_classes.TeamBuilder import (
+    RamschTeamBuilder,
+    SauspielTeamBuilder,
+    WenzTeamBuilder,
+    SoloTeamBuilder,
+)
 from card_classes.CardPowerCalculator import (
     CardPowerCalculator,
     RamschCardPowerCalculator,
@@ -44,6 +50,7 @@ if TYPE_CHECKING:
     from player_classes.Player import Player
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
+    from player_classes.TeamBuilder import TeamSetup, TeamBuilder
 
 
 class Game(ABC):
@@ -67,6 +74,7 @@ class Game(ABC):
         self,
         cards: Cards,
         renderer: Renderer,
+        team_builder: TeamBuilder,
         card_power_calculator: CardPowerCalculator,
         card_decision_validator: CardDecisionValidator,
         players: list[Player],
@@ -87,6 +95,7 @@ class Game(ABC):
 
         self.cards: Cards = cards
         self.renderer: Renderer = renderer
+        self.team_builder: TeamBuilder = team_builder
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
         self.amount_game_value_doubles: int = amount_game_value_doubles
@@ -131,10 +140,11 @@ class Game(ABC):
         trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
         return trumps
 
-    @abstractmethod
     def create_teams(self) -> None:
         """Creates the team objects and adds them to the teams list."""
-        pass
+        teams_setup: TeamSetup = self.team_builder.create_teams()
+        self.teams = teams_setup.teams
+        self.active_team = teams_setup.active_team
 
     def create_solo_teams(self, game_chooser) -> None:
         team_1 = Team(team_name="Team 1")
@@ -401,6 +411,7 @@ class Ramsch(Game):
         super().__init__(
             cards=cards,
             renderer=renderer,
+            team_builder=RamschTeamBuilder(players=players),
             card_power_calculator=RamschCardPowerCalculator(),
             players=players,
             amount_game_value_doubles=amount_game_value_doubles,
@@ -410,12 +421,6 @@ class Ramsch(Game):
         self.trump_color: Color = Color.HERZ
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.active_players: list[Player] = []
-
-    def create_teams(self) -> None:
-        for index in range(len(self.players)):
-            team: Team = Team(team_name=f"Team {index + 1}")
-            team.players.append(self.players[index])
-            self.teams.append(team)
 
     def play_round(self, rounds: int) -> None:
         if rounds == 1:
@@ -502,6 +507,11 @@ class Sauspiel(Game):
         super().__init__(
             cards=cards,
             renderer=renderer,
+            team_builder=SauspielTeamBuilder(
+                players=players,
+                call_sau=Card(card_color=sau_color, card_type=Type.SAU),
+                game_chooser=game_chooser,
+            ),
             card_power_calculator=SauspielCardPowerCalculator(),
             players=players,
             amount_game_value_doubles=amount_game_value_doubles,
@@ -516,21 +526,6 @@ class Sauspiel(Game):
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
         self.minimum_runners: int = 3
-
-    def create_teams(self) -> None:
-        team_1 = Team(team_name="Team 1")
-        team_1.players.append(self.game_chooser)
-        for player in self.players:
-            if any(card == self.call_sau for card in player.player_cards):
-                team_1.players.append(player)
-                break
-        self.active_team = team_1
-        team_2 = Team(team_name="Team 2")
-        team_2.players = [
-            player for player in self.players if player not in team_1.players
-        ]
-        self.teams.append(team_1)
-        self.teams.append(team_2)
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector
@@ -597,6 +592,7 @@ class Wenz(Game):
         super().__init__(
             cards=cards,
             renderer=renderer,
+            team_builder=WenzTeamBuilder(players=players, game_chooser=game_chooser),
             card_power_calculator=WenzCardPowerCalculator(),
             players=players,
             amount_game_value_doubles=amount_game_value_doubles,
@@ -607,9 +603,6 @@ class Wenz(Game):
         self.alone_price: int = alone_price
         self.base_price: int = base_price
         self.minimum_runners: int = 2
-
-    def create_teams(self) -> None:
-        self.create_solo_teams(game_chooser=self.game_chooser)
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector
@@ -680,6 +673,7 @@ class Solo(Game):
         super().__init__(
             cards=cards,
             renderer=renderer,
+            team_builder=SoloTeamBuilder(players=players, game_chooser=game_chooser),
             card_power_calculator=SoloCardPowerCalculator(trump_color=trump_color),
             players=players,
             amount_game_value_doubles=amount_game_value_doubles,
@@ -691,9 +685,6 @@ class Solo(Game):
         self.alone_price: int = alone_price
         self.base_price: int = base_price
         self.minimum_runners: int = 3
-
-    def create_teams(self) -> None:
-        self.create_solo_teams(game_chooser=self.game_chooser)
 
     def create_money_distributer(
         self, winners_selector: WinnersSelector
