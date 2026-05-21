@@ -136,17 +136,6 @@ class Game(ABC):
         self.teams = teams_setup.teams
         self.active_team = teams_setup.active_team
 
-    def create_solo_teams(self, game_chooser) -> None:
-        team_1 = Team(team_name="Team 1")
-        team_1.players.append(game_chooser)
-        self.active_team = team_1
-        team_2 = Team(team_name="Team 2")
-        team_2.players = [
-            player for player in self.players if player not in team_1.players
-        ]
-        self.teams.append(team_1)
-        self.teams.append(team_2)
-
     def get_players_team(self, player: Player) -> Team:
         """
         Returns the team of a given player.
