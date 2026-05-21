@@ -73,10 +73,9 @@ def tell_game_value_calculation(
     )
 
     if isinstance(distributer, SauspielMoneyDistributer):
-        call_or_alone_price = distributer.call_price
+        string = f"\n{"Call price:":<11} {distributer.call_price} cents\n"
     else:
-        call_or_alone_price = distributer.alone_price
-    string = f"\n{"Base price:":<11} {call_or_alone_price} cents\n"
+        string = f"\n{"Alone price:":<11} {distributer.alone_price} cents\n"
     if distributer.schneider:
         string += f"{"Schneider:":<11} + {distributer.base_price} cents\n"
     if distributer.black:
