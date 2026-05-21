@@ -1,5 +1,5 @@
 import pytest
-from game_classes.Game import Sauspiel, Wenz, Solo, Ramsch
+from game_classes.Game import Sauspiel, Wenz, Solo
 from card_classes.Cards import Color, Type
 from input_validators.GameDecisionValidator import GameDecisionValidator
 
@@ -260,8 +260,8 @@ def test_valid_call_sau_colors_excludes_color_without_cards(
 def test_valid_call_sau_colors_only_non_trump_cards_count(
     validator, eichel_ober, eichel_ten
 ):
-    # eichel_ober ist Trump-Typ → zählt nicht als Eichel-Karte
-    # eichel_ten ist keine Sau und kein Trump-Typ → Eichel rufbar
+    # eichel_ober is of trump type → doesn't count as color card
+    # eichel_ten is not a sau → Eichel is choosable
     player_cards = [eichel_ober, eichel_ten]
     colors = validator.get_valid_call_sau_colors(player_cards=player_cards)
     assert Color.EICHEL in colors
