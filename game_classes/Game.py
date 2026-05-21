@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 from system.custom_exceptions import PlayerHasNoTeamError
+from game_classes.GameRenderer import GameRenderer
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
 from player_classes.Team import Team
 from card_classes.Cards import Card, Type, Color
@@ -33,17 +34,6 @@ from money_handling.MoneyDistributer import (
     SauspielMoneyDistributer,
     WenzMoneyDistributer,
     SoloMoneyDistributer,
-)
-
-from system.text import (
-    show_played_cards,
-    show_collector_of_cards,
-    tell_most_point_teams,
-    tell_team_points,
-    tell_team_players,
-    tell_winners,
-    tell_player_money,
-    tell_game_value_calculation,
 )
 
 if TYPE_CHECKING:
@@ -94,10 +84,10 @@ class Game(ABC):
         """
 
         self.cards: Cards = cards
-        self.renderer: Renderer = renderer
         self.team_builder: TeamBuilder = team_builder
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
+        self.game_renderer: GameRenderer = GameRenderer(renderer=renderer)
         self.amount_game_value_doubles: int = amount_game_value_doubles
         self.players: list[Player] = players
         self.total_card_points: int = sum(
@@ -294,20 +284,15 @@ class Game(ABC):
 
             self.played_cards.append(card_decision)
 
-            self.renderer.render(
-                message=show_played_cards(played_cards=self.played_cards)
-            )
+            self.game_renderer.render_played_cards(played_cards=self.played_cards)
         strongest_card: Card = self.card_power_calculator.get_strongest_played_card(
             played_cards=self.played_cards, trumps=self.trumps
         )
         round_winner_index: int = self.played_cards.index(strongest_card)
         for card in self.played_cards:
             self.players[round_winner_index].collected_cards.append(card)
-        self.renderer.render(
-            message=show_collector_of_cards(
-                player_name=self.players[round_winner_index].player_name,
-                collected_cards=self.players[round_winner_index].collected_cards,
-            )
+        self.game_renderer.render_collector_of_cards(
+            collector=self.players[round_winner_index]
         )
         starter: Player = self.players[round_winner_index]
         self.sort_players(starter=starter)
@@ -323,36 +308,21 @@ class Game(ABC):
         winners_selector: WinnersSelector = self.create_winners_selector()
         winners: list[Player] = winners_selector.get_game_winners()
         most_point_teams: list[Team] = winners_selector.get_most_points_teams()
-        self.renderer.render(
-            message=tell_most_point_teams(most_point_teams=most_point_teams)
-        )
+        self.game_renderer.render_most_point_teams(most_point_teams=most_point_teams)
         for team in most_point_teams:
-            self.renderer.render(
-                message=tell_team_points(team_name=team.team_name, points=team.points)
-            )
-            self.renderer.render(
-                message=tell_team_players(
-                    team_name=team.team_name, players=team.players
-                )
-            )
-        self.renderer.render(message=tell_winners(winners=winners))
+            self.game_renderer.render_team_points(team=team)
+            self.game_renderer.render_team_players(team=team)
+        self.game_renderer.render_winners(winners=winners)
         money_distributer: MoneyDistributer = self.create_money_distributer(
             winners=winners
         )
         game_value: int = money_distributer.calculate_game_value()
         money_distributer.distribute_money(game_value=game_value, winners=winners)
-        self.renderer.render(
-            message=tell_game_value_calculation(
-                distributer=money_distributer,
-                game_value=game_value,
-            )
+        self.game_renderer.render_game_value_calculation(
+            money_distributer=money_distributer, game_value=game_value
         )
         for player in self.players:
-            self.renderer.render(
-                message=tell_player_money(
-                    player_name=player.player_name, money=player.money
-                )
-            )
+            self.game_renderer.render_player_money(player=player)
 
     def play_game(self) -> None:
         """
