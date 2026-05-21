@@ -64,7 +64,7 @@ def tell_winners(winners: list[Player]) -> str:
 
 
 def tell_game_value_calculation(
-    distributer: MoneyDistributer,
+    money_distributer: MoneyDistributer,
     game_value: int,
 ) -> str:
     from money_handling.MoneyDistributer import (
@@ -72,20 +72,22 @@ def tell_game_value_calculation(
         RamschMoneyDistributer,
     )
 
-    if isinstance(distributer, SauspielMoneyDistributer):
-        string = f"\n{"Call price:":<11} {distributer.call_price} cents\n"
+    if isinstance(money_distributer, SauspielMoneyDistributer):
+        string = f"\n{"Call price:":<11} {money_distributer.call_price} cents\n"
     else:
-        string = f"\n{"Alone price:":<11} {distributer.alone_price} cents\n"
-    if distributer.schneider:
-        string += f"{"Schneider:":<11} + {distributer.base_price} cents\n"
-    if distributer.black:
-        string += f"{"Black:":<11} + {distributer.base_price} cents\n"
-    if distributer.runners_amount:
-        string += f"{"Runners:":<11} + {distributer.runners_amount * distributer.base_price} cents\n"
-    if distributer.amount_game_value_doubles:
-        string += f"{"Doubles:":<11} * {2 ** distributer.amount_game_value_doubles}\n"
-    if isinstance(distributer, RamschMoneyDistributer):
-        virgins_amount: int = distributer.count_virgins()
+        string = f"\n{"Alone price:":<11} {money_distributer.alone_price} cents\n"
+    if money_distributer.schneider:
+        string += f"{"Schneider:":<11} + {money_distributer.base_price} cents\n"
+    if money_distributer.black:
+        string += f"{"Black:":<11} + {money_distributer.base_price} cents\n"
+    if money_distributer.runners_amount:
+        string += f"{"Runners:":<11} + {money_distributer.runners_amount * money_distributer.base_price} cents\n"
+    if money_distributer.amount_game_value_doubles:
+        string += (
+            f"{"Doubles:":<11} * {2 ** money_distributer.amount_game_value_doubles}\n"
+        )
+    if isinstance(money_distributer, RamschMoneyDistributer):
+        virgins_amount: int = money_distributer.count_virgins()
         if virgins_amount:
             string += f"{"Virgins:":<11} * {2 ** virgins_amount}\n"
     string += f"\nThe game value is: {game_value}\n"
