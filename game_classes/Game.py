@@ -193,9 +193,7 @@ class Game(ABC):
         return WinnersSelector(teams=self.teams, active_team=self.active_team)
 
     @abstractmethod
-    def create_money_distributer(
-        self, winners_selector: WinnersSelector
-    ) -> MoneyDistributer:
+    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         """
         Creates a money distributer object.
         :return: A money distributer object
@@ -339,7 +337,7 @@ class Game(ABC):
             )
         self.renderer.render(message=tell_winners(winners=winners))
         money_distributer: MoneyDistributer = self.create_money_distributer(
-            winners_selector=winners_selector
+            winners=winners
         )
         game_value: int = money_distributer.calculate_game_value()
         money_distributer.distribute_money(game_value=game_value, winners=winners)
@@ -435,15 +433,13 @@ class Ramsch(Game):
             teams=self.teams, active_players=self.active_players
         )
 
-    def create_money_distributer(
-        self, winners_selector: WinnersSelector
-    ) -> MoneyDistributer:
+    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         money_distributer: MoneyDistributer = RamschMoneyDistributer(
             alone_price=self.alone_price,
             players=self.players,
             teams=self.teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
-            winners=winners_selector.get_game_winners(),
+            winners=winners,
             amount_game_card_points=self.total_card_points,
         )
         return money_distributer
@@ -527,9 +523,7 @@ class Sauspiel(Game):
         self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
         self.minimum_runners: int = 3
 
-    def create_money_distributer(
-        self, winners_selector: WinnersSelector
-    ) -> MoneyDistributer:
+    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         assert self.active_team is not None
         money_distributer: MoneyDistributer = SauspielMoneyDistributer(
             base_price=self.base_price,
@@ -538,7 +532,7 @@ class Sauspiel(Game):
             teams=self.teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
-            winners=winners_selector.get_game_winners(),
+            winners=winners,
             runners_amount=self.runners_amount,
             amount_game_card_points=self.total_card_points,
         )
@@ -604,9 +598,7 @@ class Wenz(Game):
         self.base_price: int = base_price
         self.minimum_runners: int = 2
 
-    def create_money_distributer(
-        self, winners_selector: WinnersSelector
-    ) -> MoneyDistributer:
+    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         assert self.active_team is not None
         money_distributer: MoneyDistributer = WenzMoneyDistributer(
             base_price=self.base_price,
@@ -615,7 +607,7 @@ class Wenz(Game):
             teams=self.teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
-            winners=winners_selector.get_game_winners(),
+            winners=winners,
             runners_amount=self.runners_amount,
             amount_game_card_points=self.total_card_points,
         )
@@ -686,9 +678,7 @@ class Solo(Game):
         self.base_price: int = base_price
         self.minimum_runners: int = 3
 
-    def create_money_distributer(
-        self, winners_selector: WinnersSelector
-    ) -> MoneyDistributer:
+    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         assert self.active_team is not None
         money_distributer: MoneyDistributer = SoloMoneyDistributer(
             base_price=self.base_price,
@@ -697,7 +687,7 @@ class Solo(Game):
             teams=self.teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
-            winners=winners_selector.get_game_winners(),
+            winners=winners,
             runners_amount=self.runners_amount,
             amount_game_card_points=self.total_card_points,
         )
