@@ -1,11 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from money_handling.MoneyDistributer import (
-    RamschMoneyDistributer,
-    SauspielMoneyDistributer,
-)
-
 if TYPE_CHECKING:
     from card_classes.Cards import Card, Color
     from player_classes.Player import Player
@@ -72,6 +67,11 @@ def tell_game_value_calculation(
     distributer: MoneyDistributer,
     game_value: int,
 ) -> str:
+    from money_handling.MoneyDistributer import (
+        SauspielMoneyDistributer,
+        RamschMoneyDistributer,
+    )
+
     if isinstance(distributer, SauspielMoneyDistributer):
         call_or_alone_price = distributer.call_price
     else:
