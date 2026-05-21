@@ -37,6 +37,7 @@ from system.text import (
     tell_team_players,
     tell_winners,
     tell_player_money,
+    tell_game_value_calculation,
 )
 
 if TYPE_CHECKING:
@@ -50,8 +51,8 @@ class Game(ABC):
 
     name = "Game"
     rank = 0
-    game_mapping: list[dict[str, Any]] = []
     is_choosable = False
+    game_mapping: list[dict[str, Any]] = []
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -132,7 +133,7 @@ class Game(ABC):
 
     @abstractmethod
     def create_teams(self) -> None:
-        """Creates the team objects"""
+        """Creates the team objects and adds them to the teams list."""
         pass
 
     def create_solo_teams(self, game_chooser) -> None:
@@ -326,12 +327,18 @@ class Game(ABC):
                     team_name=team.team_name, players=team.players
                 )
             )
+        self.renderer.render(message=tell_winners(winners=winners))
         money_distributer: MoneyDistributer = self.create_money_distributer(
             winners_selector=winners_selector
         )
         game_value: int = money_distributer.calculate_game_value()
         money_distributer.distribute_money(game_value=game_value, winners=winners)
-        self.renderer.render(message=tell_winners(winners=winners))
+        self.renderer.render(
+            message=tell_game_value_calculation(
+                distributer=money_distributer,
+                game_value=game_value,
+            )
+        )
         for player in self.players:
             self.renderer.render(
                 message=tell_player_money(

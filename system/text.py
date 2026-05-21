@@ -1,15 +1,21 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from money_handling.MoneyDistributer import (
+    RamschMoneyDistributer,
+    SauspielMoneyDistributer,
+)
+
 if TYPE_CHECKING:
     from card_classes.Cards import Card, Color
     from player_classes.Player import Player
     from player_classes.Team import Team
     from game_classes.Game import Game
+    from money_handling.MoneyDistributer import MoneyDistributer
 
 
 # regular text
-def show_player_cards(player_name: str, player_cards: list[Card]):
+def show_player_cards(player_name: str, player_cards: list[Card]) -> str:
     player_card_names = [card.card_name for card in player_cards]
     prepared_list = [
         f"{i}: {player_card_name}"
@@ -18,23 +24,23 @@ def show_player_cards(player_name: str, player_cards: list[Card]):
     return f"\n{player_name}: {" | ".join(prepared_list)}"
 
 
-def show_played_card(player_name: str, decision: Card):
+def show_played_card(player_name: str, decision: Card) -> str:
     return f"\n{player_name} played the card: {decision.card_name}"
 
 
-def show_played_cards(played_cards: list[Card]):
+def show_played_cards(played_cards: list[Card]) -> str:
     played_card_names = [card.card_name for card in played_cards]
     return f"The played cards are: {" | ".join(played_card_names)}"
 
 
-def show_collector_of_cards(player_name: str, collected_cards: list[Card]):
+def show_collector_of_cards(player_name: str, collected_cards: list[Card]) -> str:
     collected_cards_names = [
         collected_card.card_name for collected_card in collected_cards
     ]
     return f"\n{player_name} collected {", ".join(collected_cards_names[-4:])}\n"
 
 
-def tell_most_point_teams(most_point_teams: list[Team]):
+def tell_most_point_teams(most_point_teams: list[Team]) -> str:
     most_point_team_names = [team.team_name for team in most_point_teams]
     if len(most_point_teams) == 1:
         return f"The team with the most points is: {most_point_teams[0].team_name}"
@@ -42,7 +48,7 @@ def tell_most_point_teams(most_point_teams: list[Team]):
         return f"The teams with the most points are: {", ".join(most_point_team_names)}"
 
 
-def tell_team_players(team_name: str, players: list[Player]):
+def tell_team_players(team_name: str, players: list[Player]) -> str:
     player_names = [player.player_name for player in players]
     if len(players) == 1:
         return f"The only player in {team_name} is: {player_names[0]}"
@@ -50,20 +56,45 @@ def tell_team_players(team_name: str, players: list[Player]):
         return f"The players in {team_name} are: {", ".join(player_names)}"
 
 
-def tell_team_points(team_name: str, points: int):
+def tell_team_points(team_name: str, points: int) -> str:
     return f"{team_name} has {points} points"
 
 
-def tell_winners(winners: list[Player]):
+def tell_winners(winners: list[Player]) -> str:
     winner_names = [winner.player_name for winner in winners]
     if len(winners) == 1:
-        return f"\nThe only game winner is: {winner_names[0]}\n"
+        return f"The only game winner is: {winner_names[0]}\n"
     else:
-        return f"\nThe game winners are: {", ".join(winner_names)}\n"
+        return f"The game winners are: {", ".join(winner_names)}\n"
 
 
-def tell_player_money(player_name: str, money: int):
-    return f"{player_name} has {money} cents"
+def tell_game_value_calculation(
+    distributer: MoneyDistributer,
+    game_value: int,
+) -> str:
+    if isinstance(distributer, SauspielMoneyDistributer):
+        call_or_alone_price = distributer.call_price
+    else:
+        call_or_alone_price = distributer.alone_price
+    string = f"\n{"Base price:":<11} {call_or_alone_price} cents\n"
+    if distributer.schneider:
+        string += f"{"Schneider:":<11} + {distributer.base_price} cents\n"
+    if distributer.black:
+        string += f"{"Black:":<11} + {distributer.base_price} cents\n"
+    if distributer.runners_amount:
+        string += f"{"Runners:":<11} + {distributer.runners_amount * distributer.base_price} cents\n"
+    if distributer.amount_game_value_doubles:
+        string += f"{"Doubles:":<11} * {2 ** distributer.amount_game_value_doubles}\n"
+    if isinstance(distributer, RamschMoneyDistributer):
+        virgins_amount: int = distributer.count_virgins()
+        if virgins_amount:
+            string += f"{"Virgins:":<11} * {2 ** virgins_amount}\n"
+    string += f"\nThe game value is: {game_value}\n"
+    return string
+
+
+def tell_player_money(player_name: str, money: int) -> str:
+    return f"{player_name:<6} has {money:^4} cents"
 
 
 words_of_thanks = "\nThank you for playing!"
@@ -75,7 +106,7 @@ prompt_player_name: str = "\nEnter your name: "
 prompt_play_again_message: str = "\nDo you want to play again? (Y/N): "
 
 
-def prompt_ask_to_double_game_value(player_name: str):
+def prompt_ask_to_double_game_value(player_name: str) -> str:
     return f"{player_name}: Do you want to double the game value? (Y/N): "
 
 

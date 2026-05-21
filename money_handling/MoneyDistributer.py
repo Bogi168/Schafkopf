@@ -60,7 +60,9 @@ class MoneyDistributer(ABC):
         self.schneider_threshold: int = amount_game_card_points - (
             amount_game_card_points // 4
         )
+        self.schneider = False
         self.black_threshold: int = amount_game_card_points
+        self.black = False
 
     def get_players_team(self, player: Player) -> Team:
         """
@@ -95,9 +97,11 @@ class MoneyDistributer(ABC):
             and self.active_team != winning_team
         ):
             game_value += self.base_price
+            self.schneider = True
 
         if winning_team.points == self.black_threshold:
             game_value += self.base_price
+            self.black = True
 
         for _ in range(self.amount_game_value_doubles):
             game_value *= 2
