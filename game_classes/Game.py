@@ -238,10 +238,10 @@ class Game(ABC):
         :return: None
         """
 
-        shooting_possible: bool = False
-
         if rounds == 1:
             shooting_possible: bool = True
+        else:
+            shooting_possible: bool = False
 
         for player in self.players:
 
