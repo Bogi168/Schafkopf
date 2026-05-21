@@ -2,7 +2,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
-from system.custom_exceptions import PlayerHasNoTeamError
 from game_classes.GameRenderer import GameRenderer
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
 from player_classes.Team import Team
@@ -93,6 +92,7 @@ class Game(ABC):
         self.total_card_points: int = sum(
             card.card_type.points for card in cards.full_deck
         )
+        self.player_teams: dict[Player, Team] = dict()
         self.teams: list[Team] = []
         self.played_cards: list[Card] = []
         self.trump_types: list[Type] | None = None
@@ -133,22 +133,9 @@ class Game(ABC):
     def create_teams(self) -> None:
         """Creates the team objects and adds them to the teams list."""
         teams_setup: TeamSetup = self.team_builder.create_teams()
-        self.teams = teams_setup.teams
-        self.active_team = teams_setup.active_team
-
-    def get_players_team(self, player: Player) -> Team:
-        """
-        Returns the team of a given player.
-        :param player: The player for whose team is to be returned
-        :type player: Player
-        :return: The player's team
-        :rtype: Team
-        """
-
-        for team in self.teams:
-            if player in team.players:
-                return team
-        raise PlayerHasNoTeamError(f"{player.player_name} has no team!")
+        self.player_teams: dict[Player, Team] = teams_setup.player_teams
+        self.active_team: Team = teams_setup.active_team
+        self.teams: list[Team] = list(set(self.player_teams.values()))
 
     def sort_players(self, starter: Player) -> None:
         """
@@ -245,7 +232,7 @@ class Game(ABC):
 
         for player in self.players:
 
-            players_team: Team = self.get_players_team(player)
+            players_team: Team = self.player_teams[player]
 
             if (
                 shooting_possible
@@ -395,8 +382,7 @@ class Ramsch(Game):
     def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         money_distributer: MoneyDistributer = RamschMoneyDistributer(
             alone_price=self.alone_price,
-            players=self.players,
-            teams=self.teams,
+            player_teams=self.player_teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             winners=winners,
             amount_game_card_points=self.total_card_points,
@@ -487,8 +473,7 @@ class Sauspiel(Game):
         money_distributer: MoneyDistributer = SauspielMoneyDistributer(
             base_price=self.base_price,
             call_price=self.call_price,
-            players=self.players,
-            teams=self.teams,
+            player_teams=self.player_teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
             winners=winners,
@@ -562,8 +547,7 @@ class Wenz(Game):
         money_distributer: MoneyDistributer = WenzMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
-            players=self.players,
-            teams=self.teams,
+            player_teams=self.player_teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
             winners=winners,
@@ -642,8 +626,7 @@ class Solo(Game):
         money_distributer: MoneyDistributer = SoloMoneyDistributer(
             base_price=self.base_price,
             alone_price=self.alone_price,
-            players=self.players,
-            teams=self.teams,
+            player_teams=self.player_teams,
             amount_game_value_doubles=self.amount_game_value_doubles,
             active_team=self.active_team,
             winners=winners,

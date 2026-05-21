@@ -2,8 +2,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from system.custom_exceptions import PlayerHasNoTeamError
-
 if TYPE_CHECKING:
     from player_classes.Team import Team
     from player_classes.Player import Player
@@ -17,8 +15,7 @@ class MoneyDistributer(ABC):
         base_price: int,
         call_price: int,
         alone_price: int,
-        players: list[Player],
-        teams: list[Team],
+        player_teams: dict[Player, Team],
         active_team: Team | None,
         winners: list[Player],
         amount_game_value_doubles: int,
@@ -32,10 +29,8 @@ class MoneyDistributer(ABC):
         :type call_price: int
         :param alone_price: alone price for game value calculations
         :type alone_price: int
-        :param players: A list of all the players of the game
-        :type players: list[Player]
-        :param teams: A list of all the teams of the game
-        :type teams: list[Team]
+        :param player_teams: A dictionary which contains the players and their teams
+        :type player_teams: dict[Player, Team]
         :param active_team: The active team of the game
         :type active_team: Team | None
         :param winners: The winners of the game
@@ -51,8 +46,8 @@ class MoneyDistributer(ABC):
         self.base_price: int = base_price
         self.call_price: int = call_price
         self.alone_price: int = alone_price
-        self.players: list[Player] = players
-        self.teams: list[Team] = teams
+        self.player_teams: dict[Player, Team] = player_teams
+        self.players: list[Player] = [player for player in player_teams.keys()]
         self.active_team: Team | None = active_team
         self.winners: list[Player] = winners
         self.amount_game_value_doubles: int = amount_game_value_doubles
@@ -63,20 +58,6 @@ class MoneyDistributer(ABC):
         self.schneider = False
         self.black_threshold: int = amount_game_card_points
         self.black = False
-
-    def get_players_team(self, player: Player) -> Team:
-        """
-        Returns the team of a given player.
-        :param player: The player for whose team is to be returned
-        :type player: Player
-        :return: The player's team
-        :rtype: Team
-        """
-
-        for team in self.teams:
-            if player in team.players:
-                return team
-        raise PlayerHasNoTeamError(f"{player} has no team!")
 
     def basic_game_value_adds(self, game_value: int) -> int:
         """
@@ -90,7 +71,7 @@ class MoneyDistributer(ABC):
 
         game_value += self.runners_amount * self.base_price
 
-        winning_team: Team = self.get_players_team(player=self.winners[0])
+        winning_team: Team = self.player_teams[self.winners[0]]
 
         if winning_team.points > self.schneider_threshold or (
             winning_team.points == self.schneider_threshold
@@ -147,8 +128,7 @@ class RamschMoneyDistributer(MoneyDistributer):
     def __init__(
         self,
         alone_price: int,
-        players: list[Player],
-        teams: list[Team],
+        player_teams: dict[Player, Team],
         amount_game_value_doubles: int,
         winners: list[Player],
         amount_game_card_points: int,
@@ -157,8 +137,7 @@ class RamschMoneyDistributer(MoneyDistributer):
             base_price=0,
             call_price=0,
             alone_price=alone_price,
-            players=players,
-            teams=teams,
+            player_teams=player_teams,
             active_team=None,
             amount_game_value_doubles=amount_game_value_doubles,
             winners=winners,
@@ -195,8 +174,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
         self,
         base_price: int,
         call_price: int,
-        players: list[Player],
-        teams: list[Team],
+        player_teams: dict[Player, Team],
         amount_game_value_doubles: int,
         active_team: Team,
         winners: list[Player],
@@ -207,8 +185,7 @@ class SauspielMoneyDistributer(MoneyDistributer):
             base_price=base_price,
             call_price=call_price,
             alone_price=0,
-            players=players,
-            teams=teams,
+            player_teams=player_teams,
             amount_game_value_doubles=amount_game_value_doubles,
             active_team=active_team,
             winners=winners,
@@ -228,8 +205,7 @@ class AloneMoneyDistributer(MoneyDistributer):
         self,
         base_price: int,
         alone_price: int,
-        players: list[Player],
-        teams: list[Team],
+        player_teams: dict[Player, Team],
         amount_game_value_doubles: int,
         active_team: Team,
         winners: list[Player],
@@ -240,8 +216,7 @@ class AloneMoneyDistributer(MoneyDistributer):
             base_price=base_price,
             call_price=0,
             alone_price=alone_price,
-            players=players,
-            teams=teams,
+            player_teams=player_teams,
             active_team=active_team,
             amount_game_value_doubles=amount_game_value_doubles,
             winners=winners,

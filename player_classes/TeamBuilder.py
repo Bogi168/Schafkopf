@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class TeamSetup:
-    teams: list[Team]
+    player_teams: dict[Player, Team]
     active_team: Team | None = None
 
 
@@ -28,12 +28,12 @@ class TeamBuilder(ABC):
 
 class RamschTeamBuilder(TeamBuilder):
     def create_teams(self) -> TeamSetup:
-        teams: list[Team] = []
+        player_teams: dict[Player, Team] = dict()
         for index in range(len(self.players)):
             team: Team = Team(team_name=f"Team {index + 1}")
             team.players.append(self.players[index])
-            teams.append(team)
-        return TeamSetup(teams=teams)
+            player_teams[self.players[index]] = team
+        return TeamSetup(player_teams=player_teams)
 
 
 class SauspielTeamBuilder(TeamBuilder):
@@ -45,7 +45,7 @@ class SauspielTeamBuilder(TeamBuilder):
         self.call_sau: Card = call_sau
 
     def create_teams(self) -> TeamSetup:
-        teams: list[Team] = []
+        player_teams: dict[Player, Team] = dict()
         team_1 = Team(team_name="Team 1")
         team_1.players.append(self.game_chooser)
         for player in self.players:
@@ -57,9 +57,11 @@ class SauspielTeamBuilder(TeamBuilder):
         team_2.players = [
             player for player in self.players if player not in team_1.players
         ]
-        teams.append(team_1)
-        teams.append(team_2)
-        return TeamSetup(teams=teams, active_team=active_team)
+        for player in team_1.players:
+            player_teams[player] = team_1
+        for player in team_2.players:
+            player_teams[player] = team_2
+        return TeamSetup(player_teams=player_teams, active_team=active_team)
 
 
 class AloneTeamBuilder(TeamBuilder):
@@ -68,7 +70,7 @@ class AloneTeamBuilder(TeamBuilder):
         self.game_chooser: Player = game_chooser
 
     def create_teams(self) -> TeamSetup:
-        teams: list[Team] = []
+        player_teams: dict[Player, Team] = dict()
         team_1 = Team(team_name="Team 1")
         team_1.players.append(self.game_chooser)
         active_team = team_1
@@ -76,9 +78,11 @@ class AloneTeamBuilder(TeamBuilder):
         team_2.players = [
             player for player in self.players if player not in team_1.players
         ]
-        teams.append(team_1)
-        teams.append(team_2)
-        return TeamSetup(teams=teams, active_team=active_team)
+        for player in team_1.players:
+            player_teams[player] = team_1
+        for player in team_2.players:
+            player_teams[player] = team_2
+        return TeamSetup(player_teams=player_teams, active_team=active_team)
 
 
 class WenzTeamBuilder(AloneTeamBuilder):
