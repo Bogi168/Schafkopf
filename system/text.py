@@ -63,9 +63,9 @@ def tell_team_points(team_name: str, points: int) -> str:
 def tell_winners(winners: list[Player]) -> str:
     winner_names = [winner.player_name for winner in winners]
     if len(winners) == 1:
-        return f"The only game winner is: {winner_names[0]}\n"
+        return f"The only game winner is: {winner_names[0]}"
     else:
-        return f"The game winners are: {", ".join(winner_names)}\n"
+        return f"The game winners are: {", ".join(winner_names)}"
 
 
 def tell_game_value_calculation(
@@ -94,7 +94,7 @@ def tell_game_value_calculation(
 
 
 def tell_player_money(player_name: str, money: int) -> str:
-    return f"{player_name:<6} has {money:^4} cents"
+    return f"{player_name:<6} has {money:^5} cents"
 
 
 words_of_thanks = "\nThank you for playing!"
