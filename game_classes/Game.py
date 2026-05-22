@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from game_classes.GameRenderer import GameRenderer
@@ -12,6 +13,11 @@ from player_classes.TeamBuilder import (
     SauspielTeamBuilder,
     WenzTeamBuilder,
     SoloTeamBuilder,
+)
+from game_classes.RunnersCalculator import (
+    RunnersCalculator,
+    WenzRunnersCalculator,
+    RamschRunnersCalculator,
 )
 from card_classes.CardPowerCalculator import (
     CardPowerCalculator,
@@ -41,6 +47,7 @@ if TYPE_CHECKING:
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
     from player_classes.TeamBuilder import TeamSetup, TeamBuilder
+    from game_classes.RunnersCalculator import RunnersSetup
 
 
 class Game(ABC):
@@ -67,6 +74,9 @@ class Game(ABC):
         team_builder: TeamBuilder,
         card_power_calculator: CardPowerCalculator,
         card_decision_validator: CardDecisionValidator,
+        runners_calculator: Callable[[list[Card]], RunnersCalculator],
+        trump_types: list[Type],
+        trump_color: Color | None,
         players: list[Player],
         amount_game_value_doubles: int,
     ) -> None:
@@ -87,37 +97,26 @@ class Game(ABC):
         self.team_builder: TeamBuilder = team_builder
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
+        self.runners_calculator: Callable[[list[Card]], RunnersCalculator] = (
+            runners_calculator
+        )
         self.game_renderer: GameRenderer = GameRenderer(renderer=renderer)
         self.amount_game_value_doubles: int = amount_game_value_doubles
         self.players: list[Player] = players
+        self.trumps: list[Card] = [
+            card
+            for card in cards.full_deck
+            if card.card_type in trump_types or card.card_color == trump_color
+        ]
+        self.trumps.sort(key=card_power_calculator.get_card_power, reverse=True)
         self.round_manager: RoundManager | None = None
         self.total_card_points: int = sum(
             card.card_type.points for card in cards.full_deck
         )
         self.player_teams: dict[Player, Team] = dict()
         self.teams: list[Team] = []
-        self.trump_types: list[Type] | None = None
-        self.trump_color: Color | None = None
-        self.trumps: list[Card] = []
         self.active_team: Team | None = None
-        self.minimum_runners: int = 0
         self.runners_amount: int = 0
-
-    def set_trumps(self) -> list[Card]:
-        """
-        Creates a list of all trump cards of the game
-        :return: The list of trump cards
-        :rtype: list[Card]
-        """
-
-        assert self.trump_types is not None
-        trumps: list[Card] = [
-            card
-            for card in self.cards.full_deck
-            if card.card_type in self.trump_types or card.card_color == self.trump_color
-        ]
-        trumps.sort(key=self.card_power_calculator.get_card_power, reverse=True)
-        return trumps
 
     def create_teams(self) -> None:
         """Creates the team objects and adds them to the teams list."""
@@ -172,42 +171,12 @@ class Game(ABC):
                 key=self.card_power_calculator.get_card_power, reverse=True
             )
 
-    @staticmethod
-    def count_team_runners(team: Team, trumps: list[Card]) -> int:
-        """
-        Counts the amount of runners a team has.
-        :param team: The team object
-        :type team: Team
-        :param trumps: A list of all the trump cards
-        :type trumps: list[Card]
-        :return: The amount of runners the given team has
-        :rtype: int
-        """
-
-        runners_count: int = 0
-        for trump in trumps:
-            if any(
-                card == trump for player in team.players for card in player.player_cards
-            ):
-                runners_count += 1
-            else:
-                return runners_count
-        return runners_count
-
-    def count_game_runners(self, trumps: list[Card]) -> int:
-        """
-        Counts the amount of runners for each team and returns the game runners count.
-        :param trumps: A list of all the trump cards
-        :type trumps: list[Card]
-        :return: The amount of runners the game has
-        :rtype: int
-        """
-
-        for team in self.teams:
-            runners_count: int = self.count_team_runners(team=team, trumps=trumps)
-            if runners_count >= self.minimum_runners:
-                return runners_count
-        return 0
+    def calculate_runners_amount(self) -> None:
+        runners_calculator: RunnersCalculator = self.runners_calculator(self.trumps)
+        runners_setup: RunnersSetup = runners_calculator.count_game_runners(
+            teams=self.teams
+        )
+        self.runners_amount: int = runners_setup.runners_amount
 
     def handle_winners(self):
         """
@@ -241,10 +210,9 @@ class Game(ABC):
         :return: None
         """
 
-        self.trumps: list[Card] = self.set_trumps()
         self.sort_player_hands()
         self.create_teams()
-        self.runners_amount: int = self.count_game_runners(trumps=self.trumps)
+        self.calculate_runners_amount()
         self.round_manager: RoundManager = self.create_round_manager()
         assert self.round_manager is not None
         for i in range(len(self.players[0].player_cards)):
@@ -295,14 +263,15 @@ class Ramsch(Game):
             cards=cards,
             renderer=renderer,
             team_builder=RamschTeamBuilder(players=players),
+            runners_calculator=RamschRunnersCalculator,
             card_power_calculator=RamschCardPowerCalculator(),
             players=players,
+            trump_types=[Type.OBER, Type.UNTER],
+            trump_color=Color.HERZ,
             amount_game_value_doubles=amount_game_value_doubles,
             card_decision_validator=RamschCardDecisionValidator(),
         )
         self.alone_price: int = alone_price
-        self.trump_color: Color = Color.HERZ
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.active_players: list[Player] = []
 
     def create_round_manager(self) -> RoundManager:
@@ -388,28 +357,28 @@ class Sauspiel(Game):
         :type amount_game_value_doubles: int
         """
 
+        call_sau = Card(card_color=sau_color, card_type=Type.SAU)
+
         super().__init__(
             cards=cards,
             renderer=renderer,
             team_builder=SauspielTeamBuilder(
                 players=players,
-                call_sau=Card(card_color=sau_color, card_type=Type.SAU),
+                call_sau=call_sau,
                 game_chooser=game_chooser,
             ),
+            runners_calculator=RunnersCalculator,
             card_power_calculator=SauspielCardPowerCalculator(),
             players=players,
+            trump_types=[Type.OBER, Type.UNTER],
+            trump_color=Color.HERZ,
             amount_game_value_doubles=amount_game_value_doubles,
-            card_decision_validator=SauspielCardDecisionValidator(
-                call_sau=Card(card_color=sau_color, card_type=Type.SAU)
-            ),
+            card_decision_validator=SauspielCardDecisionValidator(call_sau=call_sau),
         )
         self.game_chooser: Player = game_chooser
         self.base_price: int = base_price
         self.call_price: int = call_price
-        self.trump_color: Color = Color.HERZ
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
-        self.call_sau: Card = Card(card_color=sau_color, card_type=Type.SAU)
-        self.minimum_runners: int = 3
+        self.call_sau: Card = call_sau
 
     def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         assert self.active_team is not None
@@ -474,16 +443,17 @@ class Wenz(Game):
             cards=cards,
             renderer=renderer,
             team_builder=WenzTeamBuilder(players=players, game_chooser=game_chooser),
+            runners_calculator=WenzRunnersCalculator,
             card_power_calculator=WenzCardPowerCalculator(),
             players=players,
+            trump_types=[Type.UNTER],
+            trump_color=None,
             amount_game_value_doubles=amount_game_value_doubles,
             card_decision_validator=WenzCardDecisionValidator(),
         )
         self.game_chooser: Player = game_chooser
-        self.trump_types: list[Type] = [Type.UNTER]
         self.alone_price: int = alone_price
         self.base_price: int = base_price
-        self.minimum_runners: int = 2
 
     def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         assert self.active_team is not None
@@ -552,17 +522,17 @@ class Solo(Game):
             cards=cards,
             renderer=renderer,
             team_builder=SoloTeamBuilder(players=players, game_chooser=game_chooser),
+            runners_calculator=RunnersCalculator,
             card_power_calculator=SoloCardPowerCalculator(trump_color=trump_color),
             players=players,
+            trump_types=[Type.OBER, Type.UNTER],
+            trump_color=trump_color,
             amount_game_value_doubles=amount_game_value_doubles,
             card_decision_validator=SoloCardDecisionValidator(),
         )
         self.game_chooser: Player = game_chooser
-        self.trump_color: Color = trump_color
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.alone_price: int = alone_price
         self.base_price: int = base_price
-        self.minimum_runners: int = 3
 
     def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
         assert self.active_team is not None
