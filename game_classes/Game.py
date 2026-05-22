@@ -125,7 +125,7 @@ class Game(ABC):
         teams_setup: TeamSetup = self.team_builder.create_teams()
         self.player_teams: dict[Player, Team] = teams_setup.player_teams
         self.active_team: Team = teams_setup.active_team
-        self.teams: list[Team] = list(set(self.player_teams.values()))
+        self.teams: list[Team] = teams_setup.teams
 
     def create_round_manager(self) -> RoundManager:
         """
