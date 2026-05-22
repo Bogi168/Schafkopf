@@ -8,7 +8,6 @@ from money_handling.MoneyDistributer import (
     WenzMoneyDistributer,
     SoloMoneyDistributer,
 )
-from tests.conftest import team_alone_player_1, team_three_players_2_3_4
 
 if TYPE_CHECKING:
     from player_classes.Player import Player
