@@ -247,8 +247,8 @@ class Game(ABC):
         self.runners_amount: int = self.count_game_runners(trumps=self.trumps)
         self.round_manager: RoundManager = self.create_round_manager()
         assert self.round_manager is not None
-        for rounds in range(len(self.players[0].player_cards)):
-            self.round_manager.play_round(rounds=rounds + 1)
+        for i in range(len(self.players[0].player_cards)):
+            self.round_manager.play_round(is_first_round=(i == 0))
         self.amount_game_value_doubles += self.round_manager.amt_round_game_val_doubles
         self.active_team: Team = self.round_manager.active_team
         self.handle_winners()

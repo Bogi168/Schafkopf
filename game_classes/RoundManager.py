@@ -56,17 +56,17 @@ class RoundManager:
         starter_index = self.players.index(starter)
         self.players = self.players[starter_index:] + self.players[:starter_index]
 
-    def play_round(self, rounds: int) -> None:
+    def play_round(self, is_first_round: bool) -> None:
         """
         Simulates one round. Every player gets to play a card.
         The player who plays the strongest card is the round winner
         and starts the next round.
-        :param rounds: The number of the current round (first round must be 1)
-        :type rounds: int
+        :param is_first_round: A boolean indicating whether it is the first round of the game
+        :type is_first_round: bool
         :return: None
         """
 
-        if rounds == 1:
+        if is_first_round:
             shooting_possible: bool = True
         else:
             shooting_possible: bool = False
