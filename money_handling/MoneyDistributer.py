@@ -194,9 +194,9 @@ class SauspielMoneyDistributer(MoneyDistributer):
         )
 
     def calculate_game_value(self) -> int:
-        game_value = 0
+        game_value: int = 0
         game_value += self.call_price
-        game_value = self.basic_game_value_adds(game_value=game_value)
+        game_value: int = self.basic_game_value_adds(game_value=game_value)
         return game_value
 
 
