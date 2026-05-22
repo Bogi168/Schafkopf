@@ -138,10 +138,10 @@ class RamschRoundManager(RoundManager):
         )
         self.active_players: list[Player] = []
 
-    def play_round(self, rounds: int) -> None:
-        if rounds == 1:
+    def play_round(self, is_first_round: bool) -> None:
+        if is_first_round:
             for player in self.players:
                 if player.ask_shoot():
                     self.amt_round_game_val_doubles += 1
                     self.active_players.append(player)
-        super().play_round(rounds=rounds)
+        super().play_round(is_first_round=is_first_round)
