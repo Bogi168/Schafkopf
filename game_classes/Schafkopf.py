@@ -148,11 +148,14 @@ class Schafkopf:
         game_mode: type[Game] | None = None
         game: Game | None = None
         if not self.game_choosers:
-            game: Game = self.get_game(game_mode=Ramsch, chooser=None)
-            return game
+            return self.get_game(game_mode=Ramsch, chooser=None)
         else:
             for player in self.game_choosers:
-                if game_mode is None:
+                if game_mode is Solo:
+                    assert game is not None
+                    return game
+
+                elif game_mode is None:
                     decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
@@ -160,13 +163,8 @@ class Schafkopf:
                     game_mode: type[Game] = decision
                     game: Game = self.get_game(game_mode=game_mode, chooser=player)
 
-                elif game_mode == Solo:
-                    assert game is not None
-                    return game
-
                 elif (
-                    game_mode is not None
-                    and self.choosable_game_rank_mapping[game_mode]
+                    self.choosable_game_rank_mapping[game_mode]
                     > self.choosable_game_rank_mapping[Sauspiel]
                 ):
                     decision: type[Game] | None = player.choose_game_mode(
