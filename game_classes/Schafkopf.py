@@ -22,16 +22,17 @@ class Schafkopf:
     def __init__(
         self, renderer: Renderer, base_price: int, call_price: int, alone_price: int
     ) -> None:
-        self.players: list[Player] = []
-        self.starter: Player | None = None
-        self.game_choosers: list[Player] = []
-        self.amount_game_value_doubles = 0
 
         self.cards = Cards()
         self.renderer = renderer
         self.base_price = base_price
         self.call_price = call_price
         self.alone_price = alone_price
+
+        self.players: list[Player] = []
+        self.starter: Player | None = None
+        self.game_choosers: list[Player] = []
+        self.amount_game_value_doubles = 0
 
         self.implemented_games: list[dict[str, Any]] = Game.game_mapping.copy()
         self.choosable_game_rank_mapping: dict[type[Game], int] = {
