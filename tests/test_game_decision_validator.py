@@ -1,5 +1,7 @@
 import pytest
-from game_classes.Game import Sauspiel, Wenz, Solo
+from game_classes.game_modes.Sauspiel import Sauspiel
+from game_classes.game_modes.Wenz import Wenz
+from game_classes.game_modes.Solo import Solo
 from card_classes.Cards import Color, Type
 from input_validators.GameDecisionValidator import GameDecisionValidator
 

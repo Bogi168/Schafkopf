@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from card_classes.Cards import Color, Type
-from game_classes.Game import Sauspiel
+from game_classes.game_modes.Sauspiel import Sauspiel
 
 if TYPE_CHECKING:
     from game_classes.Game import Game
