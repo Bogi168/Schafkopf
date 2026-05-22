@@ -214,13 +214,13 @@ class Schafkopf:
             self.starter = self.get_new_starter(
                 prev_starter_index=self.players.index(self.starter)
             )
-            play_again = self.renderer.ask_with_validation(
+            play_again_decision: str = self.renderer.ask_with_validation(
                 prompt=prompt_play_again_message,
                 error_prefix=error_message,
                 preprocess=lambda x: x.strip().upper(),
                 validator=lambda x: x in ("YES", "Y", "NO", "N"),
             )
-            if play_again in ("NO", "N"):
+            if play_again_decision in ("NO", "N"):
                 break
 
         self.renderer.render(message=words_of_thanks)
