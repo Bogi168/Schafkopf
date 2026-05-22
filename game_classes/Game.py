@@ -119,7 +119,10 @@ class Game(ABC):
         self.runners_amount: int = 0
 
     def create_teams(self) -> None:
-        """Creates the team objects and adds them to the teams list."""
+        """
+        Creates the team objects and sets player_teams, active_team and teams of Game
+        :rtype: None
+        """
         teams_setup: TeamSetup = self.team_builder.create_teams()
         self.player_teams: dict[Player, Team] = teams_setup.player_teams
         self.active_team: Team = teams_setup.active_team
@@ -172,6 +175,11 @@ class Game(ABC):
             )
 
     def calculate_runners_amount(self) -> None:
+        """
+        Creates a RunnersCalculator object, calculates the amount of
+        game runners and sets the runners_amount variable of Game.
+        :rtype: None
+        """
         runners_calculator: RunnersCalculator = self.runners_calculator(self.trumps)
         runners_setup: RunnersSetup = runners_calculator.count_game_runners(
             teams=self.teams
