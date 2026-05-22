@@ -96,7 +96,6 @@ class Game(ABC):
         )
         self.player_teams: dict[Player, Team] = dict()
         self.teams: list[Team] = []
-        self.played_cards: list[Card] = []
         self.trump_types: list[Type] | None = None
         self.trump_color: Color | None = None
         self.trumps: list[Card] = []
@@ -250,7 +249,7 @@ class Game(ABC):
         assert self.round_manager is not None
         for rounds in range(len(self.players[0].player_cards)):
             self.round_manager.play_round(rounds=rounds + 1)
-        self.amount_game_value_doubles += self.round_manager.amount_game_value_doubles
+        self.amount_game_value_doubles += self.round_manager.amt_round_game_val_doubles
         self.active_team: Team = self.round_manager.active_team
         self.handle_winners()
 

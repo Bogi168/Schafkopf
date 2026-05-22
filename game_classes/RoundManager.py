@@ -30,7 +30,7 @@ class RoundManager:
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
         self.game_renderer: GameRenderer = game_renderer
         self.played_cards: list[Card] = []
-        self.amount_game_value_doubles: int = 0
+        self.amt_round_game_val_doubles: int = 0
 
     @property
     def lead_card(self) -> Card | None:
@@ -81,10 +81,10 @@ class RoundManager:
                 and players_team != self.active_team
             ):
                 if player.ask_shoot():
-                    self.amount_game_value_doubles += 1
+                    self.amt_round_game_val_doubles += 1
                     for prev_active_player in self.active_team.players:
                         if prev_active_player.ask_shoot(ask_shoot_back=True):
-                            self.amount_game_value_doubles += 1
+                            self.amt_round_game_val_doubles += 1
                             break
                     else:
                         self.active_team = players_team
@@ -142,6 +142,6 @@ class RamschRoundManager(RoundManager):
         if rounds == 1:
             for player in self.players:
                 if player.ask_shoot():
-                    self.amount_game_value_doubles += 1
+                    self.amt_round_game_val_doubles += 1
                     self.active_players.append(player)
         super().play_round(rounds=rounds)
