@@ -8,6 +8,7 @@ from money_handling.MoneyDistributer import (
     WenzMoneyDistributer,
     SoloMoneyDistributer,
 )
+from tests.conftest import team_alone_player_1, team_three_players_2_3_4
 
 if TYPE_CHECKING:
     from player_classes.Player import Player
@@ -18,8 +19,7 @@ TOTAL_POINTS = 120
 
 def make_distributer(
     cls: type[MoneyDistributer],
-    players: list[Player],
-    teams: list[Team],
+    player_teams: dict[Player, Team],
     winners: list[Player],
     active_team: Team | None = None,
     amount_game_value_doubles: int = 0,
@@ -30,8 +30,7 @@ def make_distributer(
     amount_game_card_points: int = TOTAL_POINTS,
 ) -> MoneyDistributer:
     kwargs = dict(
-        players=players,
-        teams=teams,
+        player_teams=player_teams,
         winners=winners,
         amount_game_value_doubles=amount_game_value_doubles,
         amount_game_card_points=amount_game_card_points,
@@ -66,13 +65,17 @@ def test_distribute_money_one_winner(
     player_2 = team_three_players_2_3_4.players[0]
     player_3 = team_three_players_2_3_4.players[1]
     player_4 = team_three_players_2_3_4.players[2]
-    players = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_three_players_2_3_4,
+        player_3: team_three_players_2_3_4,
+        player_4: team_three_players_2_3_4,
+    }
     winners: list[Player] = [player_1]
 
     distributer: MoneyDistributer = make_distributer(
         SoloMoneyDistributer,
-        players=players,
-        teams=[team_alone_player_1, team_three_players_2_3_4],
+        player_teams=player_teams,
         winners=winners,
         active_team=team_alone_player_1,
     )
@@ -93,13 +96,17 @@ def test_distribute_money_two_winners(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
     winners: list[Player] = [player_1, player_2]
 
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=winners,
         active_team=team_two_players_1,
     )
@@ -120,13 +127,17 @@ def test_distribute_money_three_winners(
     player_2: Player = team_three_players_2_3_4.players[0]
     player_3: Player = team_three_players_2_3_4.players[1]
     player_4: Player = team_three_players_2_3_4.players[2]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_three_players_2_3_4,
+        player_3: team_three_players_2_3_4,
+        player_4: team_three_players_2_3_4,
+    }
     winners: list[Player] = [player_2, player_3, player_4]
 
     distributer: MoneyDistributer = make_distributer(
         WenzMoneyDistributer,
-        players=players,
-        teams=[team_alone_player_1, team_three_players_2_3_4],
+        player_teams=player_teams,
         winners=winners,
         active_team=team_three_players_2_3_4,
     )
@@ -151,14 +162,18 @@ def test_basic_game_value_adds_no_extras(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 61
     team_two_players_2.points = 59
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
     )
@@ -174,14 +189,18 @@ def test_basic_game_value_adds_runners(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 61
     team_two_players_2.points = 59
     distributer: MoneyDistributer = make_distributer(
         SoloMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
         runners_amount=3,
@@ -198,14 +217,18 @@ def test_basic_game_value_adds_schneider(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 91
     team_two_players_2.points = 29
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
     )
@@ -221,14 +244,18 @@ def test_basic_game_value_adds_schneider_threshold_active_team_loses(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 90
     team_two_players_2.points = 30
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_2,  # active_team is the loser
     )
@@ -244,14 +271,18 @@ def test_basic_game_value_adds_schneider_threshold_active_team_wins(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 90
     team_two_players_2.points = 30
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,  # active_team is the winner
     )
@@ -267,14 +298,18 @@ def test_basic_game_value_adds_black(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = TOTAL_POINTS
     team_two_players_2.points = 0
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
     )
@@ -291,14 +326,18 @@ def test_basic_game_value_adds_doubles(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 61
     team_two_players_2.points = 59
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
         amount_game_value_doubles=2,
@@ -318,14 +357,18 @@ def test_sauspiel_calculate_game_value_base(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 61
     team_two_players_2.points = 59
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
         call_price=20,
@@ -341,14 +384,18 @@ def test_sauspiel_calculate_game_value_with_runners_and_schneider(
     player_2: Player = team_two_players_1.players[1]
     player_3: Player = team_two_players_2.players[0]
     player_4: Player = team_two_players_2.players[1]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_two_players_1,
+        player_2: team_two_players_1,
+        player_3: team_two_players_2,
+        player_4: team_two_players_2,
+    }
 
     team_two_players_1.points = 91
     team_two_players_2.points = 29
     distributer: MoneyDistributer = make_distributer(
         SauspielMoneyDistributer,
-        players=players,
-        teams=[team_two_players_1, team_two_players_2],
+        player_teams=player_teams,
         winners=[player_1, player_2],
         active_team=team_two_players_1,
         call_price=20,
@@ -367,14 +414,18 @@ def test_wenz_calculate_game_value_base(
     player_2: Player = team_three_players_2_3_4.players[0]
     player_3: Player = team_three_players_2_3_4.players[1]
     player_4: Player = team_three_players_2_3_4.players[2]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_three_players_2_3_4,
+        player_3: team_three_players_2_3_4,
+        player_4: team_three_players_2_3_4,
+    }
 
     team_alone_player_1.points = 61
     team_three_players_2_3_4.points = 59
     distributer: MoneyDistributer = make_distributer(
         WenzMoneyDistributer,
-        players=players,
-        teams=[team_alone_player_1, team_three_players_2_3_4],
+        player_teams=player_teams,
         winners=[player_1],
         active_team=team_alone_player_1,
         alone_price=50,
@@ -390,14 +441,18 @@ def test_solo_calculate_game_value_with_doubles(
     player_2: Player = team_three_players_2_3_4.players[0]
     player_3: Player = team_three_players_2_3_4.players[1]
     player_4: Player = team_three_players_2_3_4.players[2]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_three_players_2_3_4,
+        player_3: team_three_players_2_3_4,
+        player_4: team_three_players_2_3_4,
+    }
 
     team_alone_player_1.points = 61
     team_three_players_2_3_4.points = 59
     distributer: MoneyDistributer = make_distributer(
         SoloMoneyDistributer,
-        players=players,
-        teams=[team_alone_player_1, team_three_players_2_3_4],
+        player_teams=player_teams,
         winners=[player_1],
         active_team=team_alone_player_1,
         alone_price=50,
@@ -416,14 +471,13 @@ def test_ramsch_calculate_game_value_base(
     player_2: Player = team_alone_player_2.players[0]
     player_3: Player = team_alone_player_3.players[0]
     player_4: Player = team_alone_player_4.players[0]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_alone_player_2,
+        player_3: team_alone_player_3,
+        player_4: team_alone_player_4,
+    }
 
-    teams: list[Team] = [
-        team_alone_player_1,
-        team_alone_player_2,
-        team_alone_player_3,
-        team_alone_player_4,
-    ]
     # All the players collected cards -> no virgins
     player_2.collected_cards = [MagicMock()]
     player_1.collected_cards = [MagicMock()]
@@ -432,8 +486,7 @@ def test_ramsch_calculate_game_value_base(
 
     distributer: MoneyDistributer = make_distributer(
         RamschMoneyDistributer,
-        players=players,
-        teams=teams,
+        player_teams=player_teams,
         winners=[player_2, player_3, player_4],
         alone_price=20,
     )
@@ -451,22 +504,20 @@ def test_ramsch_calculate_game_value_one_virgin(
     player_2: Player = team_alone_player_2.players[0]
     player_3: Player = team_alone_player_3.players[0]
     player_4: Player = team_alone_player_4.players[0]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_alone_player_2,
+        player_3: team_alone_player_3,
+        player_4: team_alone_player_4,
+    }
 
     player_2.collected_cards = []
     player_1.collected_cards = [MagicMock()]
     player_3.collected_cards = [MagicMock()]
     player_4.collected_cards = [MagicMock()]
-    teams = [
-        team_alone_player_1,
-        team_alone_player_2,
-        team_alone_player_3,
-        team_alone_player_4,
-    ]
     distributer: MoneyDistributer = make_distributer(
         RamschMoneyDistributer,
-        players=players,
-        teams=teams,
+        player_teams=player_teams,
         winners=[player_1, player_3, player_4],
         alone_price=20,
     )
@@ -484,22 +535,20 @@ def test_ramsch_calculate_game_value_two_virgins(
     player_2: Player = team_alone_player_2.players[0]
     player_3: Player = team_alone_player_3.players[0]
     player_4: Player = team_alone_player_4.players[0]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_alone_player_2,
+        player_3: team_alone_player_3,
+        player_4: team_alone_player_4,
+    }
 
     player_2.collected_cards = []
     player_3.collected_cards = []
     player_1.collected_cards = [MagicMock()]
     player_4.collected_cards = [MagicMock()]
-    teams: list[Team] = [
-        team_alone_player_1,
-        team_alone_player_2,
-        team_alone_player_3,
-        team_alone_player_4,
-    ]
     distributer: MoneyDistributer = make_distributer(
         RamschMoneyDistributer,
-        players=players,
-        teams=teams,
+        player_teams=player_teams,
         winners=[player_1, player_4],
         alone_price=20,
     )
@@ -517,22 +566,20 @@ def test_ramsch_calculate_game_value_existing_doubles_combined_with_virgin(
     player_2: Player = team_alone_player_2.players[0]
     player_3: Player = team_alone_player_3.players[0]
     player_4: Player = team_alone_player_4.players[0]
-    players: list[Player] = [player_1, player_2, player_3, player_4]
+    player_teams: dict[Player, Team] = {
+        player_1: team_alone_player_1,
+        player_2: team_alone_player_2,
+        player_3: team_alone_player_3,
+        player_4: team_alone_player_4,
+    }
 
     player_2.collected_cards = []
     player_1.collected_cards = [MagicMock()]
     player_3.collected_cards = [MagicMock()]
     player_4.collected_cards = [MagicMock()]
-    teams = [
-        team_alone_player_1,
-        team_alone_player_2,
-        team_alone_player_3,
-        team_alone_player_4,
-    ]
     distributer: MoneyDistributer = make_distributer(
         RamschMoneyDistributer,
-        players=players,
-        teams=teams,
+        player_teams=player_teams,
         winners=[player_1, player_3, player_4],
         alone_price=20,
         amount_game_value_doubles=1,
