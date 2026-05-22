@@ -30,7 +30,7 @@ class RoundManager:
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
         self.game_renderer: GameRenderer = game_renderer
         self.played_cards: list[Card] = []
-        self.amt_round_game_val_doubles: int = 0
+        self.amt_game_val_doubles: int = 0
 
     @property
     def lead_card(self) -> Card | None:
@@ -43,6 +43,49 @@ class RoundManager:
             return self.played_cards[0]
         else:
             return None
+
+    def handle_shooting(self, players_team: Team, player: Player) -> bool:
+        if self.active_team is None or players_team == self.active_team:
+            return True
+        if player.ask_shoot():
+            self.amt_game_val_doubles += 1
+            for prev_active_player in self.active_team.players:
+                if prev_active_player.ask_shoot(ask_shoot_back=True):
+                    self.amt_game_val_doubles += 1
+                    break
+            else:
+                self.active_team = players_team
+            shooting_possible: bool = False
+            return shooting_possible
+        else:
+            shooting_possible: bool = True
+            return shooting_possible
+
+    def play_card(self, player: Player) -> None:
+        card_decision: Card = player.get_card_decision(
+            move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
+                player_cards=p.player_cards,
+                decision=d,
+                trumps=self.trumps,
+                lead_card=self.lead_card,
+            ),
+        )
+        self.played_cards.append(card_decision)
+        self.game_renderer.render_played_cards(played_cards=self.played_cards)
+
+    def get_round_winner(self) -> Player:
+        strongest_card: Card = self.card_power_calculator.get_strongest_played_card(
+            played_cards=self.played_cards, trumps=self.trumps
+        )
+        round_winner_index: int = self.played_cards.index(strongest_card)
+        round_winner: Player = self.players[round_winner_index]
+        return round_winner
+
+    def reward_round_winner(self, round_winner: Player) -> None:
+        for card in self.played_cards:
+            round_winner.collected_cards.append(card)
+        self.game_renderer.render_collector_of_cards(collector=round_winner)
+        self.played_cards.clear()
 
     def sort_players(self, starter: Player) -> None:
         """
@@ -72,48 +115,15 @@ class RoundManager:
             shooting_possible: bool = False
 
         for player in self.players:
+            if shooting_possible:
+                shooting_possible: bool = self.handle_shooting(
+                    players_team=self.player_teams[player], player=player
+                )
+            self.play_card(player=player)
 
-            players_team: Team = self.player_teams[player]
-
-            if (
-                shooting_possible
-                and isinstance(self.active_team, Team)
-                and players_team != self.active_team
-            ):
-                if player.ask_shoot():
-                    self.amt_round_game_val_doubles += 1
-                    for prev_active_player in self.active_team.players:
-                        if prev_active_player.ask_shoot(ask_shoot_back=True):
-                            self.amt_round_game_val_doubles += 1
-                            break
-                    else:
-                        self.active_team = players_team
-                    shooting_possible = False
-
-            card_decision: Card = player.get_card_decision(
-                move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
-                    player_cards=p.player_cards,
-                    decision=d,
-                    trumps=self.trumps,
-                    lead_card=self.lead_card,
-                ),
-            )
-
-            self.played_cards.append(card_decision)
-
-            self.game_renderer.render_played_cards(played_cards=self.played_cards)
-        strongest_card: Card = self.card_power_calculator.get_strongest_played_card(
-            played_cards=self.played_cards, trumps=self.trumps
-        )
-        round_winner_index: int = self.played_cards.index(strongest_card)
-        for card in self.played_cards:
-            self.players[round_winner_index].collected_cards.append(card)
-        self.game_renderer.render_collector_of_cards(
-            collector=self.players[round_winner_index]
-        )
-        starter: Player = self.players[round_winner_index]
-        self.sort_players(starter=starter)
-        self.played_cards.clear()
+        round_winner: Player = self.get_round_winner()
+        self.reward_round_winner(round_winner=round_winner)
+        self.sort_players(starter=round_winner)
 
 
 class RamschRoundManager(RoundManager):
@@ -138,10 +148,9 @@ class RamschRoundManager(RoundManager):
         )
         self.active_players: list[Player] = []
 
-    def play_round(self, is_first_round: bool) -> None:
-        if is_first_round:
-            for player in self.players:
-                if player.ask_shoot():
-                    self.amt_round_game_val_doubles += 1
-                    self.active_players.append(player)
-        super().play_round(is_first_round=is_first_round)
+    def handle_shooting(self, players_team: Team, player: Player) -> bool:
+        if player.ask_shoot():
+            self.amt_game_val_doubles += 1
+            self.active_players.append(player)
+        shooting_possible: bool = True
+        return shooting_possible
