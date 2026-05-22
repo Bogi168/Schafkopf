@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 from game_classes.GameRenderer import GameRenderer
+from game_classes.RoundManager import RoundManager, RamschRoundManager
 from money_handling.WinnersSelector import WinnersSelector, RamschWinnersSelector
 from player_classes.Team import Team
 from card_classes.Cards import Card, Type, Color
@@ -89,6 +90,7 @@ class Game(ABC):
         self.game_renderer: GameRenderer = GameRenderer(renderer=renderer)
         self.amount_game_value_doubles: int = amount_game_value_doubles
         self.players: list[Player] = players
+        self.round_manager: RoundManager | None = None
         self.total_card_points: int = sum(
             card.card_type.points for card in cards.full_deck
         )
@@ -101,18 +103,6 @@ class Game(ABC):
         self.active_team: Team | None = None
         self.minimum_runners: int = 0
         self.runners_amount: int = 0
-
-    @property
-    def lead_card(self) -> Card | None:
-        """
-        :return: The first played card of the round
-        :rtype: Card | None
-        """
-
-        if self.played_cards:
-            return self.played_cards[0]
-        else:
-            return None
 
     def set_trumps(self) -> list[Card]:
         """
@@ -137,17 +127,22 @@ class Game(ABC):
         self.active_team: Team = teams_setup.active_team
         self.teams: list[Team] = list(set(self.player_teams.values()))
 
-    def sort_players(self, starter: Player) -> None:
+    def create_round_manager(self) -> RoundManager:
         """
-        Sorts the list of Players.
-        The given starter moves to Index 0, but the order remains the same.
-        :param starter: The player who should start the next game or round
-        :type starter: Player
-        :return: None
+        Creates a round manager object.
+        :return: A round manager object
+        :rtype: RoundManager
         """
 
-        starter_index = self.players.index(starter)
-        self.players = self.players[starter_index:] + self.players[:starter_index]
+        return RoundManager(
+            players=self.players,
+            player_teams=self.player_teams,
+            trumps=self.trumps,
+            card_power_calculator=self.card_power_calculator,
+            card_decision_validator=self.card_decision_validator,
+            active_team=self.active_team,
+            game_renderer=self.game_renderer,
+        )
 
     def create_winners_selector(self) -> WinnersSelector:
         """
@@ -215,65 +210,6 @@ class Game(ABC):
                 return runners_count
         return 0
 
-    def play_round(self, rounds: int) -> None:
-        """
-        Simulates one round. Every player gets to play a card.
-        The player who plays the strongest card is the round winner
-        and starts the next round.
-        :param rounds: The number of the current round (first round must be 1)
-        :type rounds: int
-        :return: None
-        """
-
-        if rounds == 1:
-            shooting_possible: bool = True
-        else:
-            shooting_possible: bool = False
-
-        for player in self.players:
-
-            players_team: Team = self.player_teams[player]
-
-            if (
-                shooting_possible
-                and self.active_team is not None
-                and players_team != self.active_team
-            ):
-                if player.ask_shoot():
-                    self.amount_game_value_doubles += 1
-                    for prev_active_player in self.active_team.players:
-                        if prev_active_player.ask_shoot(ask_shoot_back=True):
-                            self.amount_game_value_doubles += 1
-                            break
-                    else:
-                        self.active_team = players_team
-                    shooting_possible = False
-
-            card_decision: Card = player.get_card_decision(
-                move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
-                    player_cards=p.player_cards,
-                    decision=d,
-                    trumps=self.trumps,
-                    lead_card=self.lead_card,
-                ),
-            )
-
-            self.played_cards.append(card_decision)
-
-            self.game_renderer.render_played_cards(played_cards=self.played_cards)
-        strongest_card: Card = self.card_power_calculator.get_strongest_played_card(
-            played_cards=self.played_cards, trumps=self.trumps
-        )
-        round_winner_index: int = self.played_cards.index(strongest_card)
-        for card in self.played_cards:
-            self.players[round_winner_index].collected_cards.append(card)
-        self.game_renderer.render_collector_of_cards(
-            collector=self.players[round_winner_index]
-        )
-        starter: Player = self.players[round_winner_index]
-        self.sort_players(starter=starter)
-        self.played_cards.clear()
-
     def handle_winners(self):
         """
         Creates an object that selects the winners.
@@ -310,8 +246,12 @@ class Game(ABC):
         self.sort_player_hands()
         self.create_teams()
         self.runners_amount: int = self.count_game_runners(trumps=self.trumps)
+        self.round_manager: RoundManager = self.create_round_manager()
+        assert self.round_manager is not None
         for rounds in range(len(self.players[0].player_cards)):
-            self.play_round(rounds=rounds + 1)
+            self.round_manager.play_round(rounds=rounds + 1)
+        self.amount_game_value_doubles += self.round_manager.amount_game_value_doubles
+        self.active_team: Team = self.round_manager.active_team
         self.handle_winners()
 
 
@@ -366,15 +306,19 @@ class Ramsch(Game):
         self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.active_players: list[Player] = []
 
-    def play_round(self, rounds: int) -> None:
-        if rounds == 1:
-            for player in self.players:
-                if player.ask_shoot():
-                    self.amount_game_value_doubles += 1
-                    self.active_players.append(player)
-        super().play_round(rounds=rounds)
+    def create_round_manager(self) -> RoundManager:
+        return RamschRoundManager(
+            players=self.players,
+            player_teams=self.player_teams,
+            trumps=self.trumps,
+            card_power_calculator=self.card_power_calculator,
+            card_decision_validator=self.card_decision_validator,
+            game_renderer=self.game_renderer,
+        )
 
     def create_winners_selector(self) -> WinnersSelector:
+        assert isinstance(self.round_manager, RamschRoundManager)
+        self.active_players: list[Player] = self.round_manager.active_players
         return RamschWinnersSelector(
             teams=self.teams, active_players=self.active_players
         )
