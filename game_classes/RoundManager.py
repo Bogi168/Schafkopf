@@ -1,9 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from player_classes.Team import Team
+
 if TYPE_CHECKING:
     from player_classes.Player import Player
-    from player_classes.Team import Team
     from card_classes.Cards import Card
     from card_classes.CardPowerCalculator import CardPowerCalculator
     from input_validators.CardDecisionValidator import CardDecisionValidator
