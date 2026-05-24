@@ -163,9 +163,9 @@ class Schafkopf:
                     decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
-                    assert decision is not None
-                    game_mode: type[Game] = decision
-                    game: Game = self.get_game(game_mode=game_mode, chooser=player)
+                    game_mode = decision
+                    assert game_mode is not None
+                    game = self.get_game(game_mode=game_mode, chooser=player)
 
                 elif (
                     self.choosable_game_rank_mapping[game_mode]
@@ -178,16 +178,17 @@ class Schafkopf:
                     if decision is None:
                         continue
                     else:
-                        game_mode: type[Game] = decision
-                        game: Game = self.get_game(game_mode=game_mode, chooser=player)
+                        game_mode = decision
+                        assert game_mode is not None
+                        game = self.get_game(game_mode=game_mode, chooser=player)
 
                 else:
                     decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
-                    assert decision is not None
-                    game_mode: type[Game] = decision
-                    game: Game = self.get_game(game_mode=game_mode, chooser=player)
+                    game_mode = decision
+                    assert game_mode is not None
+                    game = self.get_game(game_mode=game_mode, chooser=player)
         assert game is not None
         return game
 
