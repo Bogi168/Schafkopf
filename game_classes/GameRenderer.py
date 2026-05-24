@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from card_classes.Cards import Card
     from player_classes.Player import Player
     from player_classes.Team import Team
-    from money_handling.MoneyDistributer import MoneyDistributer
     from money_handling.GameValueCalculator import GameValueCalculator
 
 
@@ -56,13 +55,11 @@ class GameRenderer:
 
     def render_game_value_calculation(
         self,
-        money_distributer: MoneyDistributer,
         gv_calculator: GameValueCalculator,
         game_value: int,
     ):
         self.renderer.render(
             message=tell_game_value_calculation(
-                gv_calculator=money_distributer,
                 gv_calculator=gv_calculator,
                 game_value=game_value,
             )

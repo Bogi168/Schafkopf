@@ -155,7 +155,7 @@ class SauspielCardDecisionValidator(CardDecisionValidator):
             and self.count_similar_color_cards(
                 player_cards=player_cards, color=self.call_sau.card_color
             )
-            > 4
+            >= 4
         )
 
     def is_plays_call_sau_color(self, decision: Card):
