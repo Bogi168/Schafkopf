@@ -8,6 +8,7 @@ from game_classes.RunnersCalculator import WenzRunnersCalculator
 from input_validators.CardDecisionValidator import WenzCardDecisionValidator
 from money_handling.MoneyDistributer import WenzMoneyDistributer
 from player_classes.TeamBuilder import WenzTeamBuilder
+from game_classes.game_modes.GameRegistry import GameRegistry
 
 if TYPE_CHECKING:
     from player_classes.Player import Player
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from money_handling.MoneyDistributer import MoneyDistributer
 
 
+@GameRegistry.register_game
 class Wenz(Game):
     """
     The only trump type is Unter.

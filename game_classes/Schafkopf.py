@@ -12,6 +12,7 @@ from game_classes.game_modes.Solo import Solo
 from game_classes.game_modes.Ramsch import Ramsch
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
+from game_classes.game_modes.GameRegistry import GameRegistry
 from system.custom_exceptions import GamemodeIsNotImplementedError
 from system.text import (
     error_message,
@@ -38,7 +39,9 @@ class Schafkopf:
         self.game_choosers: list[Player] = []
         self.amount_game_value_doubles = 0
 
-        self.implemented_games: list[dict[str, Any]] = Game.game_mapping.copy()
+        self.implemented_games: list[dict[str, Any]] = (
+            GameRegistry.get_game_mapping().copy()
+        )
         self.choosable_game_rank_mapping: dict[type[Game], int] = {
             class_dict["class"]: class_dict["rank"]
             for class_dict in self.implemented_games

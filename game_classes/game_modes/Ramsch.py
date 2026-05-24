@@ -10,6 +10,7 @@ from input_validators.CardDecisionValidator import RamschCardDecisionValidator
 from money_handling.MoneyDistributer import RamschMoneyDistributer
 from money_handling.WinnersSelector import RamschWinnersSelector
 from player_classes.TeamBuilder import RamschTeamBuilder
+from game_classes.game_modes.GameRegistry import GameRegistry
 
 if TYPE_CHECKING:
     from player_classes.Player import Player
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from game_classes.RoundManager import RoundManager
 
 
+@GameRegistry.register_game
 class Ramsch(Game):
     """
     The trump types are Ober and Unter.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from game_classes.GameRenderer import GameRenderer
 from game_classes.RoundManager import RoundManager
@@ -29,16 +29,6 @@ class Game(ABC):
     name = "Game"
     rank = 0
     is_choosable = False
-    game_mapping: list[dict[str, Any]] = []
-
-    def __init_subclass__(cls):
-        super().__init_subclass__()
-        class_map: dict[str, Any] = dict()
-        class_map["name"] = cls.name
-        class_map["rank"] = cls.rank
-        class_map["is_choosable"] = cls.is_choosable
-        class_map["class"] = cls
-        Game.game_mapping.append(class_map)
 
     def __init__(
         self,

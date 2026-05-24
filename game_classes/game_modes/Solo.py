@@ -8,6 +8,7 @@ from input_validators.CardDecisionValidator import SoloCardDecisionValidator
 from money_handling.MoneyDistributer import SoloMoneyDistributer
 from player_classes.TeamBuilder import SoloTeamBuilder
 from game_classes.RunnersCalculator import RunnersCalculator
+from game_classes.game_modes.GameRegistry import GameRegistry
 
 if TYPE_CHECKING:
     from player_classes.Player import Player
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from money_handling.MoneyDistributer import MoneyDistributer
 
 
+@GameRegistry.register_game
 class Solo(Game):
     """
     The trump types are Ober and Unter.
