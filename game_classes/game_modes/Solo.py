@@ -5,7 +5,7 @@ from card_classes.CardPowerCalculator import SoloCardPowerCalculator
 from game_classes.Game import Game
 from card_classes.Cards import Color, Type
 from input_validators.CardDecisionValidator import SoloCardDecisionValidator
-from money_handling.MoneyDistributer import SoloMoneyDistributer
+from money_handling.GameValueCalculator import SoloGameValueCalculator
 from player_classes.TeamBuilder import SoloTeamBuilder
 from game_classes.RunnersCalculator import RunnersCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from player_classes.Player import Player
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
-    from money_handling.MoneyDistributer import MoneyDistributer
+    from money_handling.GameValueCalculator import GameValueCalculator
 
 
 @GameRegistry.register_game
@@ -82,9 +82,11 @@ class Solo(Game):
         self.alone_price: int = alone_price
         self.base_price: int = base_price
 
-    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
+    def create_game_value_calculator(
+        self, winners: list[Player]
+    ) -> GameValueCalculator:
         assert self.active_team is not None
-        money_distributer: MoneyDistributer = SoloMoneyDistributer(
+        return SoloGameValueCalculator(
             base_price=self.base_price,
             alone_price=self.alone_price,
             player_teams=self.player_teams,
@@ -94,4 +96,3 @@ class Solo(Game):
             runners_amount=self.runners_amount,
             amount_game_card_points=self.total_card_points,
         )
-        return money_distributer

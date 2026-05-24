@@ -7,7 +7,7 @@ from card_classes.Cards import Color, Type
 from game_classes.RoundManager import RamschRoundManager
 from game_classes.RunnersCalculator import RamschRunnersCalculator
 from input_validators.CardDecisionValidator import RamschCardDecisionValidator
-from money_handling.MoneyDistributer import RamschMoneyDistributer
+from money_handling.GameValueCalculator import RamschGameValueCalculator
 from money_handling.WinnersSelector import RamschWinnersSelector
 from player_classes.TeamBuilder import RamschTeamBuilder
 from game_classes.game_modes.GameRegistry import GameRegistry
@@ -16,9 +16,9 @@ if TYPE_CHECKING:
     from player_classes.Player import Player
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
-    from money_handling.MoneyDistributer import MoneyDistributer
     from money_handling.WinnersSelector import WinnersSelector
     from game_classes.RoundManager import RoundManager
+    from money_handling.GameValueCalculator import GameValueCalculator
 
 
 @GameRegistry.register_game
@@ -91,8 +91,10 @@ class Ramsch(Game):
             teams=self.teams, active_players=self.active_players
         )
 
-    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
-        return RamschMoneyDistributer(
+    def create_game_value_calculator(
+        self, winners: list[Player]
+    ) -> GameValueCalculator:
+        return RamschGameValueCalculator(
             alone_price=self.alone_price,
             player_teams=self.player_teams,
             amount_game_value_doubles=self.amount_game_value_doubles,

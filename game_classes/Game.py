@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from card_classes.Cards import Cards
     from player_classes.TeamBuilder import TeamSetup, TeamBuilder
     from game_classes.RunnersCalculator import RunnersSetup
+    from money_handling.GameValueCalculator import GameValueCalculator
 
 
 class Game(ABC):
@@ -116,12 +117,9 @@ class Game(ABC):
         return WinnersSelector(teams=self.teams, active_team=self.active_team)
 
     @abstractmethod
-    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
-        """
-        Creates a money distributer object.
-        :return: A money distributer object
-        :rtype: MoneyDistributer
-        """
+    def create_game_value_calculator(
+        self, winners: list[Player]
+    ) -> GameValueCalculator:
         pass
 
     def sort_player_hands(self) -> None:
@@ -162,13 +160,18 @@ class Game(ABC):
             self.game_renderer.render_team_points(team=team)
             self.game_renderer.render_team_players(team=team)
         self.game_renderer.render_winners(winners=winners)
-        money_distributer: MoneyDistributer = self.create_money_distributer(
+        gv_calculator: GameValueCalculator = self.create_game_value_calculator(
             winners=winners
         )
-        game_value: int = money_distributer.calculate_game_value()
-        money_distributer.distribute_money(game_value=game_value, winners=winners)
+        game_value: int = gv_calculator.calculate_game_value()
+        money_distributer: MoneyDistributer = MoneyDistributer()
+        money_distributer.distribute_money(
+            game_value=game_value, winners=winners, players=self.players
+        )
         self.game_renderer.render_game_value_calculation(
-            money_distributer=money_distributer, game_value=game_value
+            money_distributer=money_distributer,
+            gv_calculator=gv_calculator,
+            game_value=game_value,
         )
         for player in self.players:
             self.game_renderer.render_player_money(player=player)

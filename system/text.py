@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from player_classes.Player import Player
     from player_classes.Team import Team
     from game_classes.Game import Game
-    from money_handling.MoneyDistributer import MoneyDistributer
+    from money_handling.GameValueCalculator import GameValueCalculator
 
 
 # regular text
@@ -64,30 +64,28 @@ def tell_winners(winners: list[Player]) -> str:
 
 
 def tell_game_value_calculation(
-    money_distributer: MoneyDistributer,
+    gv_calculator: GameValueCalculator,
     game_value: int,
 ) -> str:
-    from money_handling.MoneyDistributer import (
-        SauspielMoneyDistributer,
-        RamschMoneyDistributer,
+    from money_handling.GameValueCalculator import (
+        RamschGameValueCalculator,
+        SauspielGameValueCalculator,
     )
 
-    if isinstance(money_distributer, SauspielMoneyDistributer):
-        string = f"\n{"Call price:":<11} {money_distributer.call_price} cents\n"
+    if isinstance(gv_calculator, SauspielGameValueCalculator):
+        string = f"\n{"Call price:":<11} {gv_calculator.call_price} cents\n"
     else:
-        string = f"\n{"Alone price:":<11} {money_distributer.alone_price} cents\n"
-    if money_distributer.schneider:
-        string += f"{"Schneider:":<11} + {money_distributer.base_price} cents\n"
-    if money_distributer.black:
-        string += f"{"Black:":<11} + {money_distributer.base_price} cents\n"
-    if money_distributer.runners_amount:
-        string += f"{"Runners:":<11} + {money_distributer.runners_amount * money_distributer.base_price} cents\n"
-    if money_distributer.amount_game_value_doubles:
-        string += (
-            f"{"Doubles:":<11} * {2 ** money_distributer.amount_game_value_doubles}\n"
-        )
-    if isinstance(money_distributer, RamschMoneyDistributer):
-        virgins_amount: int = money_distributer.count_virgins()
+        string = f"\n{"Alone price:":<11} {gv_calculator.alone_price} cents\n"
+    if gv_calculator.schneider:
+        string += f"{"Schneider:":<11} + {gv_calculator.base_price} cents\n"
+    if gv_calculator.black:
+        string += f"{"Black:":<11} + {gv_calculator.base_price} cents\n"
+    if gv_calculator.runners_amount:
+        string += f"{"Runners:":<11} + {gv_calculator.runners_amount * gv_calculator.base_price} cents\n"
+    if gv_calculator.amount_game_value_doubles:
+        string += f"{"Doubles:":<11} * {2 ** gv_calculator.amount_game_value_doubles}\n"
+    if isinstance(gv_calculator, RamschGameValueCalculator):
+        virgins_amount: int = gv_calculator.count_virgins()
         if virgins_amount:
             string += f"{"Virgins:":<11} * {2 ** virgins_amount}\n"
     string += f"\nThe game value is: {game_value}\n"

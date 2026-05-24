@@ -5,7 +5,7 @@ from game_classes.Game import Game
 from card_classes.Cards import Card, Color, Type
 from input_validators.CardDecisionValidator import SauspielCardDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
-from money_handling.MoneyDistributer import SauspielMoneyDistributer
+from money_handling.GameValueCalculator import SauspielGameValueCalculator
 from player_classes.TeamBuilder import SauspielTeamBuilder
 from game_classes.RunnersCalculator import RunnersCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from player_classes.Player import Player
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
-    from money_handling.MoneyDistributer import MoneyDistributer
+    from money_handling.GameValueCalculator import GameValueCalculator
 
 
 @GameRegistry.register_game
@@ -96,9 +96,11 @@ class Sauspiel(Game):
         self.call_price: int = call_price
         self.call_sau: Card = call_sau
 
-    def create_money_distributer(self, winners: list[Player]) -> MoneyDistributer:
+    def create_game_value_calculator(
+        self, winners: list[Player]
+    ) -> GameValueCalculator:
         assert self.active_team is not None
-        money_distributer: MoneyDistributer = SauspielMoneyDistributer(
+        return SauspielGameValueCalculator(
             base_price=self.base_price,
             call_price=self.call_price,
             player_teams=self.player_teams,
@@ -108,4 +110,3 @@ class Sauspiel(Game):
             runners_amount=self.runners_amount,
             amount_game_card_points=self.total_card_points,
         )
-        return money_distributer
