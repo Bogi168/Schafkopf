@@ -1,6 +1,5 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from game_classes.GameRenderer import GameRenderer
@@ -48,7 +47,7 @@ class Game(ABC):
         team_builder: TeamBuilder,
         card_power_calculator: CardPowerCalculator,
         card_decision_validator: CardDecisionValidator,
-        runners_calculator: Callable[[list[Card]], RunnersCalculator],
+        runners_calculator: type[RunnersCalculator],
         trump_types: list[Type],
         trump_color: Color | None,
         players: list[Player],
@@ -71,9 +70,7 @@ class Game(ABC):
         self.team_builder: TeamBuilder = team_builder
         self.card_power_calculator: CardPowerCalculator = card_power_calculator
         self.card_decision_validator: CardDecisionValidator = card_decision_validator
-        self.runners_calculator: Callable[[list[Card]], RunnersCalculator] = (
-            runners_calculator
-        )
+        self.runners_calculator: type[RunnersCalculator] = runners_calculator
         self.game_renderer: GameRenderer = GameRenderer(renderer=renderer)
         self.amount_game_value_doubles: int = amount_game_value_doubles
         self.players: list[Player] = players
