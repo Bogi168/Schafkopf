@@ -11,7 +11,7 @@ class Color(Enum):
     EICHEL = 1
 
     @property
-    def name(self) -> str:
+    def display_name(self) -> str:
         names = {
             Color.EICHEL: "Eichel",
             Color.GRUEN: "Grün",
@@ -34,7 +34,7 @@ class Type(IntEnum):
     OBER = 10
 
     @property
-    def name(self) -> str:
+    def display_name(self) -> str:
         names = {
             Type.SEVEN: "7",
             Type.EIGHT: "8",
@@ -80,7 +80,9 @@ class Card:
 
     def __post_init__(self) -> None:
         if self.card_name is None:
-            self.card_name: str = f"({self.card_color.name} {self.card_type.name})"
+            self.card_name: str = (
+                f"({self.card_color.display_name} {self.card_type.display_name})"
+            )
 
 
 class Cards:
@@ -89,12 +91,15 @@ class Cards:
     """
 
     def __init__(self) -> None:
-        self.full_deck: list[Card] = [
+        self.deck: list[Card] = self.full_deck.copy()
+
+    @property
+    def full_deck(self) -> list[Card]:
+        return [
             Card(card_color=card_color, card_type=card_type)
             for card_type in Type
             for card_color in Color
         ]
-        self.deck: list[Card] = self.full_deck.copy()
 
     def reset_deck(self) -> None:
         """deck is reset to the original full deck."""

@@ -54,7 +54,7 @@ class MoneyDistributer(ABC):
         self.runners_amount: int = runners_amount
         self.schneider_threshold: int = amount_game_card_points - (
             amount_game_card_points // 4
-        )
+        )  # If total amount of points is 120, then schneider threshold is at 90 (75%)
         self.schneider = False
         self.black_threshold: int = amount_game_card_points
         self.black = False

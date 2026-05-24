@@ -35,12 +35,9 @@ class CardPowerCalculator:
             case Color.SCHELLEN:
                 power = self.schellen_power + card.card_type.value
 
-        for trump_type in self.trump_types:
+        for i, trump_type in enumerate(self.trump_types):
             if card.card_type == trump_type:
-                power += trump_type_power
-                return power
-            else:
-                trump_type_power -= trump_type_power_difference
+                return power + trump_type_power - i * trump_type_power_difference
 
         return power
 
@@ -141,7 +138,7 @@ class WenzCardPowerCalculator(CardPowerCalculator):
         power = super().get_card_power(card=card)
 
         if card.card_type == Type.OBER:
-            power -= 5
+            power -= 5  # Obers are regular color cards in Wenz -> stronger than 9 but weaker than König
 
         return power
 
