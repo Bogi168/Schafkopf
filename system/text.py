@@ -58,9 +58,9 @@ def tell_team_points(team_name: str, points: int) -> str:
 def tell_winners(winners: list[Player]) -> str:
     winner_names = [winner.player_name for winner in winners]
     if len(winners) == 1:
-        return f"The only game winner is: {winner_names[0]}"
+        return f"\nThe only game winner is: {winner_names[0]}"
     else:
-        return f"The game winners are: {", ".join(winner_names)}"
+        return f"\nThe game winners are: {", ".join(winner_names)}"
 
 
 def tell_game_value_calculation(
