@@ -6,7 +6,7 @@ from game_classes.Game import Game
 from card_classes.Cards import Color, Type
 from game_classes.RoundManager import RamschRoundManager
 from game_classes.RunnersCalculator import RamschRunnersCalculator
-from input_validators.CardDecisionValidator import CardDecisionValidator
+from input_validators.CardDecisionValidator import RamschCardDecisionValidator
 from money_handling.GameValueCalculator import RamschGameValueCalculator
 from money_handling.WinnersSelector import RamschWinnersSelector
 from player_classes.TeamBuilder import RamschTeamBuilder
@@ -69,7 +69,7 @@ class Ramsch(Game):
             trump_types=[Type.OBER, Type.UNTER],
             trump_color=Color.HERZ,
             amount_game_value_doubles=amount_game_value_doubles,
-            card_decision_validator=CardDecisionValidator(),
+            card_decision_validator=RamschCardDecisionValidator(),
         )
         self.alone_price: int = alone_price
         self.active_players: list[Player] = []

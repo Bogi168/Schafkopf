@@ -163,8 +163,12 @@ def prompt_ask_swap_card_decision(
         legal_cards: list[Card] = [card for card in player_cards if card in trumps]
     else:
         legal_cards: list[Card] = [card for card in player_cards if card not in trumps]
+
+    # the player_cards are sorted -> trumps on the left, non-trumps on the right
     first_legal_index: int = player_cards.index(legal_cards[0])
-    last_legal_index: int = player_cards.index(legal_cards[-1])
+    last_legal_index: int = (
+        len(player_cards) - 1 - player_cards[::-1].index(legal_cards[-1])
+    )
     if first_legal_index == last_legal_index:
         return f"{player_name}: Which card do you want to swap? ({first_legal_index + 1}): "
     else:

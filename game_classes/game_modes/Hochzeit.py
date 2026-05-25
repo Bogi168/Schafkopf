@@ -72,9 +72,9 @@ class Hochzeit(Game):
             )
             swap_cards.append(decision)
 
-        for player in hochzeit_players:
-            player.player_cards.append(swap_cards[-1])
-            swap_cards.pop()
+        card_a, card_b = swap_cards
+        hochzeit_players[0].player_cards.append(card_b)
+        hochzeit_players[1].player_cards.append(card_a)
 
     def create_teams(self) -> None:
         super().create_teams()

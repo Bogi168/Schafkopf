@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 class CardDecisionValidator:
     """An object that checks whether the card decision by a player is legal or not"""
 
-    def __init__(self) -> None:
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
+    def __init__(self, trump_types: list[Type]) -> None:
+        self.trump_types: list[Type] = trump_types
 
     @staticmethod
     def player_has_lead(decision: Card, player_cards: list[Card]):
@@ -137,7 +137,16 @@ class CardDecisionValidator:
         raise NotImplementedError("Card swaps are not allowed in this game_mode")
 
 
-class HochzeitCardDecisionValidator(CardDecisionValidator):
+class RegularTrumpTypeCardDecisionValidator(CardDecisionValidator):
+    def __init__(self) -> None:
+        super().__init__(trump_types=[Type.OBER, Type.UNTER])
+
+
+class RamschCardDecisionValidator(RegularTrumpTypeCardDecisionValidator):
+    pass
+
+
+class HochzeitCardDecisionValidator(RegularTrumpTypeCardDecisionValidator):
     def is_card_swap_legal(self, decision: Card, is_game_chooser: bool) -> bool:
         trump_card: bool = (
             decision.card_type in [Type.OBER, Type.UNTER]
@@ -149,7 +158,7 @@ class HochzeitCardDecisionValidator(CardDecisionValidator):
             return not trump_card
 
 
-class SauspielCardDecisionValidator(CardDecisionValidator):
+class SauspielCardDecisionValidator(RegularTrumpTypeCardDecisionValidator):
     def __init__(self, call_sau: Card) -> None:
         super().__init__()
         self.call_sau: Card = call_sau
@@ -223,7 +232,10 @@ class SauspielCardDecisionValidator(CardDecisionValidator):
             )
 
 
+class SoloCardDecisionValidator(RegularTrumpTypeCardDecisionValidator):
+    pass
+
+
 class WenzCardDecisionValidator(CardDecisionValidator):
     def __init__(self) -> None:
-        super().__init__()
-        self.trump_types: list[Type] = [Type.UNTER]
+        super().__init__(trump_types=[Type.UNTER])

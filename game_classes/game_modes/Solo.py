@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from card_classes.CardPowerCalculator import SoloCardPowerCalculator
 from game_classes.Game import Game
 from card_classes.Cards import Color, Type
-from input_validators.CardDecisionValidator import CardDecisionValidator
+from input_validators.CardDecisionValidator import SoloCardDecisionValidator
 from money_handling.GameValueCalculator import SoloGameValueCalculator
 from player_classes.TeamBuilder import SoloTeamBuilder
 from game_classes.RunnersCalculator import RunnersCalculator
@@ -76,7 +76,7 @@ class Solo(Game):
             trump_types=[Type.OBER, Type.UNTER],
             trump_color=trump_color,
             amount_game_value_doubles=amount_game_value_doubles,
-            card_decision_validator=CardDecisionValidator(),
+            card_decision_validator=SoloCardDecisionValidator(),
         )
         self.game_chooser: Player = game_chooser
         self.alone_price: int = alone_price

@@ -1,5 +1,5 @@
 from input_validators.CardDecisionValidator import (
-    CardDecisionValidator,
+    RegularTrumpTypeCardDecisionValidator,
     SauspielCardDecisionValidator,
 )
 
@@ -13,7 +13,7 @@ def test_last_card_freedom(
     eichel_ober,
     herz_seven,
 ):
-    validator = CardDecisionValidator()
+    validator = RegularTrumpTypeCardDecisionValidator()
     lead_card = eichel_ten
 
     player_cards = [eichel_seven]
@@ -57,7 +57,7 @@ def test_lead_freedom(
     eichel_ober,
     gruen_eight,
 ):
-    validator = CardDecisionValidator()
+    validator = RegularTrumpTypeCardDecisionValidator()
     lead_card = None
     player_cards = [eichel_ten, herz_seven, eichel_ober, gruen_eight]
     assert validator.is_move_legal(
@@ -93,7 +93,7 @@ def test_lead_color_obligation(
     schellen_seven,
     eichel_ober,
 ):
-    validator = CardDecisionValidator()
+    validator = RegularTrumpTypeCardDecisionValidator()
     lead_card = eichel_ten
     player_cards = [eichel_seven, schellen_seven, eichel_ober]
 
@@ -125,7 +125,7 @@ def test_lead_color_freedom(
     eichel_ober,
     gruen_eight,
 ):
-    validator = CardDecisionValidator()
+    validator = RegularTrumpTypeCardDecisionValidator()
     lead_card = gruen_eight
     player_cards = [eichel_ten, herz_seven, eichel_ober]
     assert validator.is_move_legal(
@@ -156,7 +156,7 @@ def test_lead_trump_obligation(
     eichel_ober,
     gruen_eight,
 ):
-    validator = CardDecisionValidator()
+    validator = RegularTrumpTypeCardDecisionValidator()
     lead_card = gruen_unter
     player_cards = [eichel_ten, herz_seven, eichel_ober, gruen_eight]
     assert not validator.is_move_legal(
@@ -193,7 +193,7 @@ def test_lead_trump_freedom(
     gruen_eight,
     schellen_seven,
 ):
-    validator = CardDecisionValidator()
+    validator = RegularTrumpTypeCardDecisionValidator()
     lead_card = herz_seven
     player_cards = [schellen_seven, eichel_sau, gruen_eight]
     assert validator.is_move_legal(
