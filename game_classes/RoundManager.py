@@ -62,7 +62,7 @@ class RoundManager:
             return shooting_possible
 
     def play_card(self, player: Player) -> None:
-        card_decision: Card = player.get_card_decision(
+        card_decision: Card = player.get_card_play_decision(
             move_validator=lambda d, p=player: self.card_decision_validator.is_move_legal(
                 player_cards=p.player_cards,
                 decision=d,

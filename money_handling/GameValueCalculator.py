@@ -207,6 +207,10 @@ class AloneGameValueCalculator(GameValueCalculator):
         return game_value
 
 
+class HochzeitGameValueCalculator(AloneGameValueCalculator):
+    pass
+
+
 class WenzGameValueCalculator(AloneGameValueCalculator):
     pass
 

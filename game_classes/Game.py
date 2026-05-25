@@ -169,7 +169,6 @@ class Game(ABC):
             game_value=game_value, winners=winners, players=self.players
         )
         self.game_renderer.render_game_value_calculation(
-            money_distributer=money_distributer,
             gv_calculator=gv_calculator,
             game_value=game_value,
         )
@@ -182,8 +181,8 @@ class Game(ABC):
         :return: None
         """
 
-        self.sort_player_hands()
         self.create_teams()
+        self.sort_player_hands()
         self.calculate_runners_amount()
         self.round_manager: RoundManager = self.create_round_manager()
         assert self.round_manager is not None

@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import Callable, TYPE_CHECKING
+from card_classes.Cards import Color, Type
 from system.text import (
     error_message,
-    prompt_ask_player_card_decision,
+    prompt_ask_play_card_decision,
     prompt_ask_to_double_game_value,
     prompt_ask_to_choose_game,
     prompt_choose_game,
@@ -11,13 +12,16 @@ from system.text import (
     show_player_cards,
     show_played_card,
     prompt_ask_player_shoots_back,
+    prompt_ask_for_hochzeit,
+    prompt_ask_for_ramsch,
+    prompt_ask_swap_card_decision,
 )
 import random
 
 if TYPE_CHECKING:
     from game_classes.Game import Game
     from system.Renderer import Renderer
-    from card_classes.Cards import Card, Color
+    from card_classes.Cards import Card
     from input_validators.GameDecisionValidator import GameDecisionValidator
 
 
@@ -94,6 +98,36 @@ class Player:
             preprocess=lambda x: x.strip().upper(),
             validator=lambda x: x in self.string_decisions,
         )
+        return decision in self.yes_decisions
+
+    def ask_for_hochzeit(self) -> bool:
+        """
+        Asks the player whether he wants to be the partner of a Hochzeit or not
+        :return: A boolean indicating whether the player wants to be the partner of a Hochzeit or not
+        :rtype: bool
+        """
+
+        self.renderer.render(
+            message=show_player_cards(
+                player_name=self.player_name, player_cards=self.player_cards
+            )
+        )
+
+        if all(
+            card.card_type in [Type.OBER, Type.UNTER] or card.card_color == Color.HERZ
+            for card in self.player_cards
+        ):
+            legal_decisions: tuple[str, ...] = self.no_decisions
+        else:
+            legal_decisions: tuple[str, ...] = self.string_decisions
+
+        decision = self.renderer.ask_with_validation(
+            prompt=prompt_ask_for_hochzeit(player_name=self.player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip().upper(),
+            validator=lambda x: x in legal_decisions,
+        )
+
         return decision in self.yes_decisions
 
     def get_sau_color(self) -> Color:
@@ -182,6 +216,22 @@ class Player:
         else:
             return valid_game_mode_decisions[decision]
 
+    def ask_for_ramsch(self) -> bool:
+        """
+        Asks the player whether he wants to play a Ramsch or draw the cards again.
+        :return: A boolean indicating whether the player wants to play a Ramsch.
+        :rtype: bool
+        """
+
+        decision = self.renderer.ask_with_validation(
+            prompt=prompt_ask_for_ramsch(player_name=self.player_name),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip().upper(),
+            validator=lambda x: x in self.string_decisions,
+        )
+
+        return decision in self.yes_decisions
+
     def ask_shoot(self, ask_shoot_back: bool = False) -> bool:
         """
         Asks the player whether he wants to shoot or not.
@@ -222,7 +272,48 @@ class Player:
             self.player_cards
         )
 
-    def get_card_decision(
+    def get_card_swap_decision(
+        self,
+        move_validator: Callable[[Card], bool],
+        trumps: list[Card],
+        is_game_chooser: bool,
+    ) -> Card:
+        """
+        Asks the player to make a card decision for the Hochzeit swap
+        :param move_validator: A function that checks whether the decision by the player is legal
+        :type move_validator: Callable[[Card], bool]
+        :param trumps: A list of all the trumps
+        :type trumps: list[Card]
+        :param is_game_chooser: A boolean that indicates whether the player choose the game mode or not.
+        :type is_game_chooser: bool
+        :return: A valid card decision made by the player
+        :rtype: Card
+        """
+
+        self.renderer.render(
+            message=show_player_cards(
+                player_name=self.player_name, player_cards=self.player_cards
+            )
+        )
+        index_decision = self.renderer.ask_with_validation(
+            prompt=prompt_ask_swap_card_decision(
+                player_name=self.player_name,
+                player_cards=self.player_cards,
+                trumps=trumps,
+                is_game_chooser=is_game_chooser,
+            ),
+            error_prefix=error_message,
+            preprocess=lambda x: x.strip(),
+            validator=lambda x: self.is_card_decision_valid_number(x)
+            and move_validator(self.player_cards[int(x) - 1]),
+        )
+
+        decision: Card = self.player_cards[int(index_decision) - 1]
+        self.player_cards.remove(decision)
+
+        return decision
+
+    def get_card_play_decision(
         self,
         move_validator: Callable[[Card], bool],
     ) -> Card:
@@ -240,7 +331,7 @@ class Player:
             )
         )
         index_decision = self.renderer.ask_with_validation(
-            prompt=prompt_ask_player_card_decision(
+            prompt=prompt_ask_play_card_decision(
                 player_name=self.player_name, player_cards=self.player_cards
             ),
             error_prefix=error_message,
@@ -271,7 +362,7 @@ class Bot(Player):
     def ask_double_game_value(self) -> bool:
         return False
 
-    def get_card_decision(
+    def get_card_play_decision(
         self,
         move_validator: Callable[[Card], bool],
     ) -> Card:

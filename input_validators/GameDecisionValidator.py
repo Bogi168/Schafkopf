@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from card_classes.Cards import Color, Type
+from game_classes.game_modes.Hochzeit import Hochzeit
 from game_classes.game_modes.Sauspiel import Sauspiel
 
 if TYPE_CHECKING:
@@ -38,6 +39,17 @@ class GameDecisionValidator:
             "3": Color.HERZ,
             "4": Color.SCHELLEN,
         }
+
+    @staticmethod
+    def is_hochzeit_playable(player_cards: list[Card]) -> bool:
+        trump_types: list[Type] = [Type.OBER, Type.UNTER]
+        trump_color: Color = Color.HERZ
+        player_trumps: list[Card] = [
+            card
+            for card in player_cards
+            if card.card_color == trump_color or card.card_type in trump_types
+        ]
+        return len(player_trumps) == 1
 
     @staticmethod
     def is_player_owns_sau(player_cards: list[Card], sau_color: Color) -> bool:
@@ -131,17 +143,24 @@ class GameDecisionValidator:
 
         available_game_modes: list[type[Game]] = playable_games.copy()
 
+        if Hochzeit in available_game_modes and not self.is_hochzeit_playable(
+            player_cards=player_cards
+        ):
+            available_game_modes.remove(Hochzeit)
+
+        if Sauspiel in available_game_modes and not self.is_sauspiel_playable(
+            player_cards=player_cards
+        ):
+            available_game_modes.remove(Sauspiel)
+
         if prev_game_rank != 0:
             available_game_modes: list[type[Game]] = [
                 game
                 for game in available_game_modes
                 if self.choosable_game_rank_mapping[game] > prev_game_rank
             ]
-        elif Sauspiel in playable_games and not self.is_sauspiel_playable(
-            player_cards=player_cards
-        ):
-            available_game_modes.remove(Sauspiel)
 
+        available_game_modes.sort(key=lambda x: self.choosable_game_rank_mapping[x])
         return available_game_modes
 
     def get_valid_game_mode_decisions(

@@ -7,19 +7,24 @@ from card_classes.Cards import Cards, Color
 from player_classes.Player import Player, Bot
 from game_classes.Game import Game
 from game_classes.game_modes.Sauspiel import Sauspiel
+from game_classes.game_modes.Hochzeit import Hochzeit
 from game_classes.game_modes.Wenz import Wenz
 from game_classes.game_modes.Solo import Solo
 from game_classes.game_modes.Ramsch import Ramsch
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry
-from system.custom_exceptions import GamemodeIsNotImplementedError
+from system.custom_exceptions import (
+    GamemodeIsNotImplementedError,
+    PlayerIsNotInPlayersListError,
+)
 from system.text import (
     error_message,
     prompt_player_name,
     prompt_play_again_message,
     show_player_cards,
     words_of_thanks,
+    no_game_phrase,
 )
 
 
@@ -78,9 +83,15 @@ class Schafkopf:
 
         return players
 
-    def sort_players(self, starter: Player) -> None:
-        starter_index = self.players.index(starter)
-        self.players = self.players[starter_index:] + self.players[:starter_index]
+    @staticmethod
+    def sort_players(starter: Player, players: list[Player]) -> list[Player]:
+        if starter not in players:
+            raise PlayerIsNotInPlayersListError(
+                "The starting player is not in players list"
+            )
+        starter_index = players.index(starter)
+        players = players[starter_index:] + players[:starter_index]
+        return players
 
     def deal_cards(self, cards_amount_per_player: int) -> None:
         random.shuffle(self.cards.deck)
@@ -108,7 +119,7 @@ class Schafkopf:
 
     def prepare_players(self):
         assert self.starter is not None
-        self.sort_players(starter=self.starter)
+        self.players = self.sort_players(starter=self.starter, players=self.players)
         self.game_choosers.clear()
 
     # sort cards for a Sauspiel -> easier to make game decisions
@@ -119,30 +130,47 @@ class Schafkopf:
                 key=card_power_calculator.get_card_power, reverse=True
             )
 
-    def get_game(self, game_mode: type[Game], chooser: Player | None) -> Game:
-        kwargs = dict(
+    def get_hochzeit_partner(self, game_chooser: Player) -> Player | None:
+        temp_players: list[Player] = self.sort_players(
+            starter=game_chooser, players=self.players
+        )[1:]
+        for player in temp_players:
+            decision: bool = player.ask_for_hochzeit()
+            if decision:
+                return player
+        return None
+
+    def get_game(self, game_mode: type[Game], chooser: Player | None) -> Game | None:
+        kwargs: dict[str, Any] = dict(
             cards=self.cards,
             renderer=self.renderer,
             players=self.players,
             amount_game_value_doubles=self.amount_game_value_doubles,
         )
         if game_mode is Ramsch:
-            kwargs["alone_price"] = self.alone_price
+            kwargs.update(alone_price=self.alone_price)
             return game_mode(**kwargs)
 
         assert chooser is not None
-        kwargs.update(game_chooser=chooser, base_price=self.base_price)  # type: ignore
+        kwargs.update(game_chooser=chooser, base_price=self.base_price)
 
         if game_mode is Sauspiel:
             sau_color: Color = chooser.get_sau_color()
-            kwargs.update(call_price=self.call_price, sau_color=sau_color)  # type: ignore
+            kwargs.update(call_price=self.call_price, sau_color=sau_color)
+
+        elif game_mode is Hochzeit:
+            partner: Player | None = self.get_hochzeit_partner(game_chooser=chooser)
+            if partner is None:
+                return None
+            else:
+                kwargs.update(alone_price=self.alone_price, partner=partner)
 
         elif game_mode is Wenz:
             kwargs.update(alone_price=self.alone_price)
 
         elif game_mode is Solo:
             trump_color = chooser.get_trump_color()
-            kwargs.update(trump_color=trump_color, alone_price=self.alone_price)  # type: ignore
+            kwargs.update(trump_color=trump_color, alone_price=self.alone_price)
 
         else:
             raise GamemodeIsNotImplementedError(
@@ -151,24 +179,23 @@ class Schafkopf:
 
         return game_mode(**kwargs)
 
-    def players_choose_game(self) -> Game:
+    def players_choose_game(self) -> Game | None:
         game_mode: type[Game] | None = None
-        game: Game | None = None
+        game_chooser: Player | None = None
         if not self.game_choosers:
-            return self.get_game(game_mode=Ramsch, chooser=None)
+            play_ramsch: bool = self.players[-1].ask_for_ramsch()
+            if play_ramsch:
+                return self.get_game(game_mode=Ramsch, chooser=game_chooser)
+            else:
+                return None
         else:
             for player in self.game_choosers:
-                if game_mode is Solo:
-                    assert game is not None
-                    return game
-
-                elif game_mode is None:
+                if game_mode is None:
                     decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
                     game_mode = decision
-                    assert game_mode is not None
-                    game = self.get_game(game_mode=game_mode, chooser=player)
+                    game_chooser = player
 
                 elif (
                     self.choosable_game_rank_mapping[game_mode]
@@ -182,18 +209,20 @@ class Schafkopf:
                         continue
                     else:
                         game_mode = decision
-                        assert game_mode is not None
-                        game = self.get_game(game_mode=game_mode, chooser=player)
+                        game_chooser = player
 
                 else:
                     decision: type[Game] | None = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
                     game_mode = decision
-                    assert game_mode is not None
-                    game = self.get_game(game_mode=game_mode, chooser=player)
-        assert game is not None
-        return game
+                    game_chooser = player
+
+                if game_mode is Solo:
+                    break
+
+        assert game_mode is not None
+        return self.get_game(game_mode=game_mode, chooser=game_chooser)
 
     def get_new_starter(self, prev_starter_index: int) -> Player:
         if self.players[prev_starter_index] == self.players[-1]:
@@ -215,8 +244,11 @@ class Schafkopf:
                 )
                 if player.ask_want_choose_game():
                     self.game_choosers.append(player)
-            game: Game = self.players_choose_game()
-            game.play_game()
+            game: Game | None = self.players_choose_game()
+            if game is not None:
+                game.play_game()
+            else:
+                self.renderer.render(message=no_game_phrase)
             assert self.starter is not None
             self.starter = self.get_new_starter(
                 prev_starter_index=self.players.index(self.starter)

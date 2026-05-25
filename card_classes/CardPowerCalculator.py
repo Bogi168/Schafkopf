@@ -125,6 +125,10 @@ class RamschCardPowerCalculator(HerzTrumpCardPowerCalculator):
     pass
 
 
+class HochzeitCardPowerCalculator(HerzTrumpCardPowerCalculator):
+    pass
+
+
 class SauspielCardPowerCalculator(HerzTrumpCardPowerCalculator):
     pass
 

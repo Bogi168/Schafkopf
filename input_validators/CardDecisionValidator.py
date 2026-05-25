@@ -1,17 +1,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from card_classes.Cards import Type
+from card_classes.Cards import Type, Color
 
 if TYPE_CHECKING:
-    from card_classes.Cards import Color, Card
+    from card_classes.Cards import Card
 
 
 class CardDecisionValidator:
     """An object that checks whether the card decision by a player is legal or not"""
 
     def __init__(self) -> None:
-        self.trump_types: list[Type] = []
+        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
 
     @staticmethod
     def player_has_lead(decision: Card, player_cards: list[Card]):
@@ -133,17 +133,25 @@ class CardDecisionValidator:
             trumps=trumps,
         )
 
+    def is_card_swap_legal(self, decision: Card, is_game_chooser: bool) -> bool:
+        pass
 
-class RamschCardDecisionValidator(CardDecisionValidator):
-    def __init__(self) -> None:
-        super().__init__()
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
+
+class HochzeitCardDecisionValidator(CardDecisionValidator):
+    def is_card_swap_legal(self, decision: Card, is_game_chooser: bool) -> bool:
+        trump_card: bool = (
+            decision.card_type in [Type.OBER, Type.UNTER]
+            or decision.card_color == Color.HERZ
+        )
+        if is_game_chooser:
+            return trump_card
+        else:
+            return not trump_card
 
 
 class SauspielCardDecisionValidator(CardDecisionValidator):
     def __init__(self, call_sau: Card) -> None:
         super().__init__()
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]
         self.call_sau: Card = call_sau
 
     def is_player_owns_call_sau(self, player_cards: list[Card]) -> bool:
@@ -218,9 +226,3 @@ class WenzCardDecisionValidator(CardDecisionValidator):
     def __init__(self) -> None:
         super().__init__()
         self.trump_types: list[Type] = [Type.UNTER]
-
-
-class SoloCardDecisionValidator(CardDecisionValidator):
-    def __init__(self) -> None:
-        super().__init__()
-        self.trump_types: list[Type] = [Type.OBER, Type.UNTER]

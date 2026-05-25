@@ -2,5 +2,9 @@ class GamemodeIsNotImplementedError(Exception):
     pass
 
 
-class MoneyDistributionNotPossible(Exception):
+class MoneyDistributionNotPossibleError(Exception):
+    pass
+
+
+class PlayerIsNotInPlayersListError(Exception):
     pass

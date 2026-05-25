@@ -32,7 +32,7 @@ class Wenz(Game):
     """
 
     name = "Wenz"
-    rank = 3
+    rank = 4
     is_choosable = True
 
     def __init__(

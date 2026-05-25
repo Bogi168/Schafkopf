@@ -39,6 +39,36 @@ class RamschTeamBuilder(TeamBuilder):
         return TeamSetup(player_teams=player_teams, teams=teams)
 
 
+class HochzeitTeamBuilder(TeamBuilder):
+    def __init__(
+        self, players: list[Player], game_chooser: Player, partner: Player
+    ) -> None:
+        super().__init__(players=players)
+        self.game_chooser: Player = game_chooser
+        self.partner = partner
+
+    def create_teams(self) -> TeamSetup:
+        player_teams: dict[Player, Team] = dict()
+        teams: list[Team] = []
+        team_1 = Team(team_name="Team 1")
+        team_1.players.append(self.game_chooser)
+        team_1.players.append(self.partner)
+        active_team = team_1
+        team_2 = Team(team_name="Team 2")
+        team_2.players = [
+            player for player in self.players if player not in team_1.players
+        ]
+        for player in team_1.players:
+            player_teams[player] = team_1
+        for player in team_2.players:
+            player_teams[player] = team_2
+        teams.append(team_1)
+        teams.append(team_2)
+        return TeamSetup(
+            player_teams=player_teams, active_team=active_team, teams=teams
+        )
+
+
 class SauspielTeamBuilder(TeamBuilder):
     def __init__(
         self, players: list[Player], game_chooser: Player, call_sau: Card

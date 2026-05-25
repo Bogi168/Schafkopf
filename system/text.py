@@ -96,6 +96,8 @@ def tell_player_money(player_name: str, money: int) -> str:
     return f"{player_name:<6} has {money:^5} cents"
 
 
+no_game_phrase = "\nNo game was selected."
+
 words_of_thanks = "\nThank you for playing!"
 
 # text for inputs
@@ -135,6 +137,14 @@ def prompt_choose_color(player_name: str, valid_colors: dict[str, Color]) -> str
     return f"{player_name}: Which color? ({", ".join(prepared_color_decisions)}): "
 
 
+def prompt_ask_for_hochzeit(player_name: str) -> str:
+    return f"{player_name}: Do you want to be the partner of the Hochzeit? (Y/N): "
+
+
+def prompt_ask_for_ramsch(player_name: str) -> str:
+    return f"{player_name}: Do you want to play a Ramsch? (Y/N): "
+
+
 def prompt_ask_player_shoots(player_name: str) -> str:
     return f"{player_name}: Do you want to shoot? (Y/N): "
 
@@ -143,5 +153,28 @@ def prompt_ask_player_shoots_back(player_name: str) -> str:
     return f"{player_name}: Do you want to shoot back? (Y/N): "
 
 
-def prompt_ask_player_card_decision(player_name: str, player_cards: list[Card]) -> str:
-    return f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): "
+def prompt_ask_swap_card_decision(
+    player_name: str,
+    player_cards: list[Card],
+    is_game_chooser: bool,
+    trumps: list[Card],
+) -> str:
+    if is_game_chooser:
+        legal_cards: list[Card] = [card for card in player_cards if card in trumps]
+    else:
+        legal_cards: list[Card] = [card for card in player_cards if card not in trumps]
+    first_legal_index: int = player_cards.index(legal_cards[0])
+    last_legal_index: int = player_cards.index(legal_cards[-1])
+    if first_legal_index == last_legal_index:
+        return f"{player_name}: Which card do you want to swap? ({first_legal_index + 1}): "
+    else:
+        return f"{player_name}: Which card do you want to swap? ({first_legal_index + 1}-{last_legal_index + 1}): "
+
+
+def prompt_ask_play_card_decision(player_name: str, player_cards: list[Card]) -> str:
+    if len(player_cards) == 1:
+        return f"{player_name}: Which card do you want to play? (1): "
+    else:
+        return (
+            f"{player_name}: Which card do you want to play? (1-{len(player_cards)}): "
+        )

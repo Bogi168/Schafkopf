@@ -1,0 +1,96 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+from card_classes.Cards import Color, Type
+from card_classes.CardPowerCalculator import HochzeitCardPowerCalculator
+from game_classes.Game import Game
+from game_classes.game_modes.GameRegistry import GameRegistry
+from game_classes.RunnersCalculator import RunnersCalculator
+from input_validators.CardDecisionValidator import HochzeitCardDecisionValidator
+from money_handling.GameValueCalculator import (
+    GameValueCalculator,
+    HochzeitGameValueCalculator,
+)
+from player_classes.TeamBuilder import HochzeitTeamBuilder
+
+if TYPE_CHECKING:
+    from card_classes.Cards import Cards, Card
+    from system.Renderer import Renderer
+    from player_classes.Player import Player
+
+
+@GameRegistry.register_game
+class Hochzeit(Game):
+
+    name = "Hochzeit"
+    rank = 3
+    is_choosable = True
+
+    def __init__(
+        self,
+        cards: Cards,
+        renderer: Renderer,
+        players: list[Player],
+        amount_game_value_doubles: int,
+        game_chooser: Player,
+        partner: Player,
+        base_price: int,
+        alone_price: int,
+    ):
+        super().__init__(
+            cards=cards,
+            renderer=renderer,
+            team_builder=HochzeitTeamBuilder(
+                players=players,
+                game_chooser=game_chooser,
+                partner=partner,
+            ),
+            runners_calculator=RunnersCalculator,
+            card_power_calculator=HochzeitCardPowerCalculator(),
+            players=players,
+            trump_types=[Type.OBER, Type.UNTER],
+            trump_color=Color.HERZ,
+            amount_game_value_doubles=amount_game_value_doubles,
+            card_decision_validator=HochzeitCardDecisionValidator(),
+        )
+        self.game_chooser = game_chooser
+        self.base_price = base_price
+        self.alone_price = alone_price
+
+    def hochzeit_card_swap(self):
+        hochzeit_players: list[Player] = self.player_teams[self.game_chooser].players
+        swap_cards: list[Card] = []
+
+        for player in hochzeit_players:
+            is_game_chooser: bool = player == self.game_chooser
+            decision: Card = player.get_card_swap_decision(
+                move_validator=lambda d: self.card_decision_validator.is_card_swap_legal(
+                    is_game_chooser=is_game_chooser, decision=d
+                ),
+                trumps=self.trumps,
+                is_game_chooser=is_game_chooser,
+            )
+            swap_cards.append(decision)
+
+        for player in hochzeit_players:
+            player.player_cards.append(swap_cards[-1])
+            swap_cards.pop()
+
+    def create_teams(self) -> None:
+        super().create_teams()
+        self.hochzeit_card_swap()
+
+    def create_game_value_calculator(
+        self, winners: list[Player]
+    ) -> GameValueCalculator:
+        assert self.active_team is not None
+        return HochzeitGameValueCalculator(
+            base_price=self.base_price,
+            alone_price=self.alone_price,
+            player_teams=self.player_teams,
+            amount_game_value_doubles=self.amount_game_value_doubles,
+            active_team=self.active_team,
+            winners=winners,
+            runners_amount=self.runners_amount,
+            amount_game_card_points=self.total_card_points,
+        )
