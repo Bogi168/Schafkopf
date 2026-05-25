@@ -98,6 +98,12 @@ class GameValueCalculator(ABC):
         """
         pass
 
+    @abstractmethod
+    def game_value_breakdown(self) -> str:
+        """Returns a human-readable breakdown of the game value calculation."""
+
+        pass
+
 
 class RamschGameValueCalculator(GameValueCalculator):
 
@@ -143,6 +149,15 @@ class RamschGameValueCalculator(GameValueCalculator):
             game_value *= 2
         return game_value
 
+    def game_value_breakdown(self) -> str:
+        lines: list[str] = [f"\n{"Alone price:":<11} {self.alone_price} cents"]
+        if self.amount_game_value_doubles:
+            lines.append(f"{"Doubles:":<11} * {2 ** self.amount_game_value_doubles}")
+        virgins_amount: int = self.count_virgins()
+        if virgins_amount:
+            lines.append(f"{"Virgins:":<11} * {2 ** virgins_amount}")
+        return "\n".join(lines)
+
 
 class SauspielGameValueCalculator(GameValueCalculator):
 
@@ -175,6 +190,20 @@ class SauspielGameValueCalculator(GameValueCalculator):
         game_value: int = self.basic_game_value_adds(game_value=game_value)
         return game_value
 
+    def game_value_breakdown(self) -> str:
+        lines: list[str] = [f"\n{"Call price:":<11} {self.call_price} cents"]
+        if self.schneider:
+            lines.append(f"{"Schneider:":<11} + {self.base_price} cents")
+        if self.black:
+            lines.append(f"{"Black:":<11} + {self.base_price} cents")
+        if self.runners_amount:
+            lines.append(
+                f"{"Runners:":<11} + {self.runners_amount * self.base_price} cents"
+            )
+        if self.amount_game_value_doubles:
+            lines.append(f"{"Doubles:":<11} * {2 ** self.amount_game_value_doubles}")
+        return "\n".join(lines)
+
 
 class AloneGameValueCalculator(GameValueCalculator):
     def __init__(
@@ -205,6 +234,20 @@ class AloneGameValueCalculator(GameValueCalculator):
         game_value += self.alone_price
         game_value = self.basic_game_value_adds(game_value=game_value)
         return game_value
+
+    def game_value_breakdown(self) -> str:
+        lines: list[str] = [f"\n{"Alone price:":<11} {self.alone_price} cents"]
+        if self.schneider:
+            lines.append(f"{"Schneider:":<11} + {self.base_price} cents")
+        if self.black:
+            lines.append(f"{"Black:":<11} + {self.base_price} cents")
+        if self.runners_amount:
+            lines.append(
+                f"{"Runners:":<11} + {self.runners_amount * self.base_price} cents"
+            )
+        if self.amount_game_value_doubles:
+            lines.append(f"{"Doubles:":<11} * {2 ** self.amount_game_value_doubles}")
+        return "\n".join(lines)
 
 
 class HochzeitGameValueCalculator(AloneGameValueCalculator):

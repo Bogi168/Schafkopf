@@ -67,29 +67,9 @@ def tell_game_value_calculation(
     gv_calculator: GameValueCalculator,
     game_value: int,
 ) -> str:
-    from money_handling.GameValueCalculator import (
-        RamschGameValueCalculator,
-        SauspielGameValueCalculator,
+    return (
+        gv_calculator.game_value_breakdown() + f"\n\nThe game value is: {game_value}\n"
     )
-
-    if isinstance(gv_calculator, SauspielGameValueCalculator):
-        string = f"\n{"Call price:":<11} {gv_calculator.call_price} cents\n"
-    else:
-        string = f"\n{"Alone price:":<11} {gv_calculator.alone_price} cents\n"
-    if gv_calculator.schneider:
-        string += f"{"Schneider:":<11} + {gv_calculator.base_price} cents\n"
-    if gv_calculator.black:
-        string += f"{"Black:":<11} + {gv_calculator.base_price} cents\n"
-    if gv_calculator.runners_amount:
-        string += f"{"Runners:":<11} + {gv_calculator.runners_amount * gv_calculator.base_price} cents\n"
-    if gv_calculator.amount_game_value_doubles:
-        string += f"{"Doubles:":<11} * {2 ** gv_calculator.amount_game_value_doubles}\n"
-    if isinstance(gv_calculator, RamschGameValueCalculator):
-        virgins_amount: int = gv_calculator.count_virgins()
-        if virgins_amount:
-            string += f"{"Virgins:":<11} * {2 ** virgins_amount}\n"
-    string += f"\nThe game value is: {game_value}\n"
-    return string
 
 
 def tell_player_money(player_name: str, money: int) -> str:
