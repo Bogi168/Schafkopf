@@ -134,7 +134,7 @@ class CardDecisionValidator:
         )
 
     def is_card_swap_legal(self, decision: Card, is_game_chooser: bool) -> bool:
-        pass
+        raise NotImplementedError("Card swaps are not allowed in this game_mode")
 
 
 class HochzeitCardDecisionValidator(CardDecisionValidator):

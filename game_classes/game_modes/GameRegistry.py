@@ -6,12 +6,12 @@ if TYPE_CHECKING:
 
 
 class GameRegistry:
-    game_modes: list[type[Game]] = []
+    _game_modes: list[type[Game]] = []
 
     @classmethod
     def register_game(cls, game_class: type[Game]) -> type[Game]:
-        if game_class not in cls.game_modes:
-            cls.game_modes.append(game_class)
+        if game_class not in cls._game_modes:
+            cls._game_modes.append(game_class)
         return game_class
 
     @classmethod
@@ -23,9 +23,9 @@ class GameRegistry:
                 "is_choosable": game_mode.is_choosable,
                 "class": game_mode,
             }
-            for game_mode in cls.game_modes
+            for game_mode in cls._game_modes
         ]
 
     @classmethod
     def all_games(cls) -> list[type[Game]]:
-        return cls.game_modes.copy()
+        return cls._game_modes.copy()
