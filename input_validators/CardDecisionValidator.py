@@ -159,8 +159,7 @@ class SauspielCardDecisionValidator(CardDecisionValidator):
 
     def is_player_allowed_to_run_away(self, player_cards: list[Card]) -> bool:
         return (
-            self.is_player_owns_call_sau(player_cards=player_cards)
-            and self.count_similar_color_cards(
+            self.count_similar_color_cards(
                 player_cards=player_cards, color=self.call_sau.card_color
             )
             >= 4
@@ -174,9 +173,11 @@ class SauspielCardDecisionValidator(CardDecisionValidator):
         )
 
     def run_away_prohibition(self, decision: Card, player_cards: list[Card]):
-        return not self.is_player_allowed_to_run_away(
-            player_cards=player_cards
-        ) and self.is_plays_call_sau_color(decision=decision)
+        return (
+            self.is_player_owns_call_sau(player_cards=player_cards)
+            and not self.is_player_allowed_to_run_away(player_cards=player_cards)
+            and self.is_plays_call_sau_color(decision=decision)
+        )
 
     def player_has_lead(self, decision: Card, player_cards: list[Card]) -> bool:
         if self.run_away_prohibition(decision=decision, player_cards=player_cards):
