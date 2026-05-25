@@ -11,6 +11,8 @@ from game_classes.game_modes.Hochzeit import Hochzeit
 from game_classes.game_modes.Wenz import Wenz
 from game_classes.game_modes.Solo import Solo
 from game_classes.game_modes.Ramsch import Ramsch
+from game_classes.game_modes.WenzTout import WenzTout
+from game_classes.game_modes.SoloTout import SoloTout
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry
@@ -165,10 +167,10 @@ class Schafkopf:
             else:
                 kwargs.update(alone_price=self.alone_price, partner=partner)
 
-        elif game_mode is Wenz:
+        elif game_mode is Wenz or game_mode is WenzTout:
             kwargs.update(alone_price=self.alone_price)
 
-        elif game_mode is Solo:
+        elif game_mode is Solo or game_mode is SoloTout:
             trump_color = chooser.get_trump_color()
             kwargs.update(trump_color=trump_color, alone_price=self.alone_price)
 
@@ -218,7 +220,7 @@ class Schafkopf:
                     game_mode = decision
                     game_chooser = player
 
-                if game_mode is Solo:
+                if game_mode is SoloTout:
                     break
 
         assert game_mode is not None

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from player_classes.Team import Team
     from player_classes.Player import Player
+    from card_classes.Cards import Card
 
 
 class WinnersSelector:
@@ -90,3 +91,35 @@ class RamschWinnersSelector(WinnersSelector):
                     if team not in most_point_teams
                 ]
         return winners
+
+
+class ToutWinnersSelector(WinnersSelector):
+    def __init__(
+        self,
+        teams: list[Team],
+        active_team: Team | None,
+        game_chooser: Player,
+        full_deck: list[Card],
+    ) -> None:
+        super().__init__(teams=teams, active_team=active_team)
+        self.game_chooser = game_chooser
+        self.full_deck: list[Card] = full_deck
+
+    def get_game_winners(self) -> list[Player]:
+        if len(self.game_chooser.collected_cards) == len(self.full_deck):
+            return [self.game_chooser]
+        else:
+            return [
+                player
+                for team in self.teams
+                for player in team.players
+                if player != self.game_chooser
+            ]
+
+
+class WenzToutWinnersSelector(ToutWinnersSelector):
+    pass
+
+
+class SoloToutWinnersSelector(ToutWinnersSelector):
+    pass

@@ -133,6 +133,24 @@ class Game(ABC):
                 key=self.card_power_calculator.get_card_power, reverse=True
             )
 
+    def play_rounds(self) -> None:
+        assert self.round_manager is not None
+        for i in range(len(self.players[0].player_cards)):
+            self.round_manager.play_round(is_first_round=(i == 0))
+            round_winner: Player = self.round_manager.get_round_winner()
+            self.round_manager.reward_round_winner(round_winner=round_winner)
+            self.round_manager.prepare_next_round(round_winner=round_winner)
+
+    def tout_play_rounds(self, game_chooser: Player) -> None:
+        assert self.round_manager is not None
+        for i in range(len(self.players[0].player_cards)):
+            self.round_manager.play_round(is_first_round=(i == 0))
+            round_winner: Player = self.round_manager.get_round_winner()
+            self.round_manager.reward_round_winner(round_winner=round_winner)
+            if round_winner != game_chooser:
+                break
+            self.round_manager.prepare_next_round(round_winner=round_winner)
+
     def calculate_runners_amount(self) -> None:
         """
         Creates a RunnersCalculator object, calculates the amount of
@@ -145,6 +163,13 @@ class Game(ABC):
         )
         self.runners_amount: int = runners_setup.runners_amount
 
+    def tell_most_point_teams(self, winners_selector: WinnersSelector) -> None:
+        most_point_teams: list[Team] = winners_selector.get_most_points_teams()
+        self.game_renderer.render_most_point_teams(most_point_teams=most_point_teams)
+        for team in most_point_teams:
+            self.game_renderer.render_team_points(team=team)
+            self.game_renderer.render_team_players(team=team)
+
     def handle_winners(self):
         """
         Creates an object that selects the winners.
@@ -154,11 +179,7 @@ class Game(ABC):
 
         winners_selector: WinnersSelector = self.create_winners_selector()
         winners: list[Player] = winners_selector.get_game_winners()
-        most_point_teams: list[Team] = winners_selector.get_most_points_teams()
-        self.game_renderer.render_most_point_teams(most_point_teams=most_point_teams)
-        for team in most_point_teams:
-            self.game_renderer.render_team_points(team=team)
-            self.game_renderer.render_team_players(team=team)
+        self.tell_most_point_teams(winners_selector=winners_selector)
         self.game_renderer.render_winners(winners=winners)
         gv_calculator: GameValueCalculator = self.create_game_value_calculator(
             winners=winners
@@ -184,10 +205,9 @@ class Game(ABC):
         self.create_teams()
         self.sort_player_hands()
         self.calculate_runners_amount()
-        self.round_manager: RoundManager = self.create_round_manager()
+        self.round_manager = self.create_round_manager()
         assert self.round_manager is not None
-        for i in range(len(self.players[0].player_cards)):
-            self.round_manager.play_round(is_first_round=(i == 0))
+        self.play_rounds()
         self.amount_game_value_doubles += self.round_manager.amt_game_val_doubles
         self.active_team: Team = self.round_manager.active_team
         self.handle_winners()

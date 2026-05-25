@@ -85,7 +85,6 @@ class RoundManager:
         for card in self.played_cards:
             round_winner.collected_cards.append(card)
         self.game_renderer.render_collector_of_cards(collector=round_winner)
-        self.played_cards.clear()
 
     def sort_players(self, starter: Player) -> None:
         """
@@ -98,6 +97,10 @@ class RoundManager:
 
         starter_index = self.players.index(starter)
         self.players = self.players[starter_index:] + self.players[:starter_index]
+
+    def prepare_next_round(self, round_winner: Player) -> None:
+        self.sort_players(starter=round_winner)
+        self.played_cards.clear()
 
     def play_round(self, is_first_round: bool) -> None:
         """
@@ -120,10 +123,6 @@ class RoundManager:
                     players_team=self.player_teams[player], player=player
                 )
             self.play_card(player=player)
-
-        round_winner: Player = self.get_round_winner()
-        self.reward_round_winner(round_winner=round_winner)
-        self.sort_players(starter=round_winner)
 
 
 class RamschRoundManager(RoundManager):

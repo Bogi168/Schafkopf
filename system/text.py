@@ -114,7 +114,7 @@ def prompt_choose_color(player_name: str, valid_colors: dict[str, Color]) -> str
     prepared_color_decisions: list[str] = [
         f"{key}: {color.display_name}" for key, color in valid_colors.items()
     ]
-    return f"{player_name}: Which color? ({", ".join(prepared_color_decisions)}): "
+    return f"\n{player_name}: Which color? ({", ".join(prepared_color_decisions)}): "
 
 
 def prompt_ask_for_hochzeit(player_name: str) -> str:
