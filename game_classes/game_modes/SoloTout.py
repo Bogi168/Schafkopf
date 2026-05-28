@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from money_handling.GameValueCalculator import GameValueCalculator
     from player_classes.Player import Player
     from money_handling.WinnersSelector import WinnersSelector
+    from game_classes.RoundManager import RoundManager
 
 
 @GameRegistry.register_game
@@ -22,8 +23,10 @@ class SoloTout(Solo):
     base_price: int
     alone_price: int
 
-    def play_rounds(self) -> None:
-        self.tout_play_rounds(game_chooser=self.game_chooser)
+    def play_rounds(self, round_manager: RoundManager) -> None:
+        self.tout_play_rounds(
+            game_chooser=self.game_chooser, round_manager=round_manager
+        )
 
     def create_winners_selector(self) -> WinnersSelector:
         return SoloToutWinnersSelector(

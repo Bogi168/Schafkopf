@@ -133,23 +133,23 @@ class Game(ABC):
                 key=self.card_power_calculator.get_card_power, reverse=True
             )
 
-    def play_rounds(self) -> None:
-        assert self.round_manager is not None
+    def play_rounds(self, round_manager: RoundManager) -> None:
         for i in range(len(self.players[0].player_cards)):
-            self.round_manager.play_round(is_first_round=(i == 0))
-            round_winner: Player = self.round_manager.get_round_winner()
-            self.round_manager.reward_round_winner(round_winner=round_winner)
-            self.round_manager.prepare_next_round(round_winner=round_winner)
+            round_manager.play_round(is_first_round=(i == 0))
+            round_winner: Player = round_manager.get_round_winner()
+            round_manager.reward_round_winner(round_winner=round_winner)
+            round_manager.prepare_next_round(round_winner=round_winner)
 
-    def tout_play_rounds(self, game_chooser: Player) -> None:
-        assert self.round_manager is not None
+    def tout_play_rounds(
+        self, game_chooser: Player, round_manager: RoundManager
+    ) -> None:
         for i in range(len(self.players[0].player_cards)):
-            self.round_manager.play_round(is_first_round=(i == 0))
-            round_winner: Player = self.round_manager.get_round_winner()
-            self.round_manager.reward_round_winner(round_winner=round_winner)
+            round_manager.play_round(is_first_round=(i == 0))
+            round_winner: Player = round_manager.get_round_winner()
+            round_manager.reward_round_winner(round_winner=round_winner)
             if round_winner != game_chooser:
                 break
-            self.round_manager.prepare_next_round(round_winner=round_winner)
+            round_manager.prepare_next_round(round_winner=round_winner)
 
     def calculate_runners_amount(self) -> None:
         """
@@ -205,9 +205,8 @@ class Game(ABC):
         self.create_teams()
         self.sort_player_hands()
         self.calculate_runners_amount()
-        self.round_manager = self.create_round_manager()
-        assert self.round_manager is not None
-        self.play_rounds()
-        self.amount_game_value_doubles += self.round_manager.amt_game_val_doubles
-        self.active_team: Team = self.round_manager.active_team
+        round_manager: RoundManager = self.create_round_manager()
+        self.play_rounds(round_manager=round_manager)
+        self.amount_game_value_doubles += round_manager.amt_game_val_doubles
+        self.active_team: Team = round_manager.active_team
         self.handle_winners()
