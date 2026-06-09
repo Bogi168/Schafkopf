@@ -6,7 +6,7 @@ from game_classes.Game import Game
 from card_classes.Cards import Color, Type
 from input_validators.CardDecisionValidator import SoloCardDecisionValidator
 from money_handling.GameValueCalculator import SoloGameValueCalculator
-from player_classes.TeamBuilder import SoloTeamBuilder
+from game_classes.TeamBuilder import SoloTeamBuilder
 from game_classes.RunnersCalculator import RunnersCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry
 

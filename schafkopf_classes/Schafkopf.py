@@ -6,9 +6,13 @@ from system.Renderer import Renderer
 from card_classes.Cards import Cards
 from player_classes.Player import Player, Bot
 from game_classes.Game import Game
+from game_classes.game_modes.Hochzeit import Hochzeit
 from game_classes.game_modes.Sauspiel import Sauspiel
+from game_classes.game_modes.Wenz import Wenz
+from game_classes.game_modes.Solo import Solo
 from game_classes.game_modes.Ramsch import Ramsch
 from game_classes.game_modes.SoloTout import SoloTout
+from game_classes.game_modes.WenzTout import WenzTout
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry

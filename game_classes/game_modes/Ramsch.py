@@ -9,7 +9,7 @@ from game_classes.RunnersCalculator import RamschRunnersCalculator
 from input_validators.CardDecisionValidator import RamschCardDecisionValidator
 from money_handling.GameValueCalculator import RamschGameValueCalculator
 from money_handling.WinnersSelector import RamschWinnersSelector
-from player_classes.TeamBuilder import RamschTeamBuilder
+from game_classes.TeamBuilder import RamschTeamBuilder
 from game_classes.game_modes.GameRegistry import GameRegistry
 
 if TYPE_CHECKING:

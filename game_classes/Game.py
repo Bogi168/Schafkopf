@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from player_classes.Player import Player
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
-    from player_classes.TeamBuilder import TeamSetup, TeamBuilder
+    from game_classes.TeamBuilder import TeamSetup, TeamBuilder
     from game_classes.RunnersCalculator import RunnersSetup
     from money_handling.GameValueCalculator import GameValueCalculator
     from schafkopf_classes.Schafkopf import Schafkopf

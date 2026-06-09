@@ -7,7 +7,7 @@ from card_classes.Cards import Type
 from game_classes.RunnersCalculator import WenzRunnersCalculator
 from input_validators.CardDecisionValidator import WenzCardDecisionValidator
 from money_handling.GameValueCalculator import WenzGameValueCalculator
-from player_classes.TeamBuilder import WenzTeamBuilder
+from game_classes.TeamBuilder import WenzTeamBuilder
 from game_classes.game_modes.GameRegistry import GameRegistry
 
 if TYPE_CHECKING:

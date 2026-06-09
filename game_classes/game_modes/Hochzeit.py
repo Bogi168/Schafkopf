@@ -11,7 +11,7 @@ from money_handling.GameValueCalculator import (
     GameValueCalculator,
     HochzeitGameValueCalculator,
 )
-from player_classes.TeamBuilder import HochzeitTeamBuilder
+from game_classes.TeamBuilder import HochzeitTeamBuilder
 from system.custom_exceptions import GameNotPlayableError
 
 if TYPE_CHECKING:
