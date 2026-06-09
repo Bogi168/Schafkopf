@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from card_classes.CardPowerCalculator import RamschCardPowerCalculator
 from game_classes.Game import Game
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from money_handling.WinnersSelector import WinnersSelector
     from game_classes.RoundManager import RoundManager
     from money_handling.GameValueCalculator import GameValueCalculator
+    from schafkopf_classes.Schafkopf import Schafkopf
 
 
 @GameRegistry.register_game
@@ -73,6 +74,16 @@ class Ramsch(Game):
         )
         self.alone_price: int = alone_price
         self.active_players: list[Player] = []
+
+    @classmethod
+    def gather_kwargs(
+        cls, chooser: Player | None, schafkopf: Schafkopf
+    ) -> dict[str, Any]:
+        kwargs: dict[str, Any] = super().gather_kwargs(
+            chooser=chooser, schafkopf=schafkopf
+        )
+        kwargs.update(alone_price=schafkopf.alone_price)
+        return kwargs
 
     def create_round_manager(self) -> RoundManager:
         return RamschRoundManager(

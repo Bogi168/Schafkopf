@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from game_classes.Game import Game
 from card_classes.Cards import Card, Color, Type
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
     from money_handling.GameValueCalculator import GameValueCalculator
+    from schafkopf_classes.Schafkopf import Schafkopf
 
 
 @GameRegistry.register_game
@@ -95,6 +96,22 @@ class Sauspiel(Game):
         self.base_price: int = base_price
         self.call_price: int = call_price
         self.call_sau: Card = call_sau
+
+    @classmethod
+    def gather_kwargs(
+        cls, chooser: Player | None, schafkopf: Schafkopf
+    ) -> dict[str, Any]:
+        kwargs: dict[str, Any] = super().gather_kwargs(
+            chooser=chooser, schafkopf=schafkopf
+        )
+        assert chooser is not None
+        kwargs.update(
+            game_chooser=chooser,
+            base_price=schafkopf.base_price,
+            call_price=schafkopf.call_price,
+            sau_color=chooser.get_sau_color(),
+        )
+        return kwargs
 
     def create_game_value_calculator(
         self, winners: list[Player]

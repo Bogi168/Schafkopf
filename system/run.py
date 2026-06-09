@@ -1,5 +1,5 @@
 from system.Renderer import ConsoleRenderer
-from game_classes.Schafkopf import Schafkopf
+from schafkopf_classes.Schafkopf import Schafkopf
 
 if __name__ == "__main__":
     game = Schafkopf(

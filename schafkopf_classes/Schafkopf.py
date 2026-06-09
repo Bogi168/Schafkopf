@@ -3,21 +3,17 @@ import random
 from typing import Any
 
 from system.Renderer import Renderer
-from card_classes.Cards import Cards, Color
+from card_classes.Cards import Cards
 from player_classes.Player import Player, Bot
 from game_classes.Game import Game
 from game_classes.game_modes.Sauspiel import Sauspiel
-from game_classes.game_modes.Hochzeit import Hochzeit
-from game_classes.game_modes.Wenz import Wenz
-from game_classes.game_modes.Solo import Solo
 from game_classes.game_modes.Ramsch import Ramsch
-from game_classes.game_modes.WenzTout import WenzTout
 from game_classes.game_modes.SoloTout import SoloTout
 from input_validators.GameDecisionValidator import GameDecisionValidator
 from card_classes.CardPowerCalculator import SauspielCardPowerCalculator
 from game_classes.game_modes.GameRegistry import GameRegistry
 from system.custom_exceptions import (
-    GamemodeIsNotImplementedError,
+    GameNotPlayableError,
     PlayerIsNotInPlayersListError,
 )
 from system.text import (
@@ -143,43 +139,10 @@ class Schafkopf:
         return None
 
     def get_game(self, game_mode: type[Game], chooser: Player | None) -> Game | None:
-        kwargs: dict[str, Any] = dict(
-            cards=self.cards,
-            renderer=self.renderer,
-            players=self.players,
-            amount_game_value_doubles=self.amount_game_value_doubles,
-        )
-        if game_mode is Ramsch:
-            kwargs.update(alone_price=self.alone_price)
-            return game_mode(**kwargs)
-
-        assert chooser is not None
-        kwargs.update(game_chooser=chooser, base_price=self.base_price)
-
-        if game_mode is Sauspiel:
-            sau_color: Color = chooser.get_sau_color()
-            kwargs.update(call_price=self.call_price, sau_color=sau_color)
-
-        elif game_mode is Hochzeit:
-            partner: Player | None = self.get_hochzeit_partner(game_chooser=chooser)
-            if partner is None:
-                return None
-            else:
-                kwargs.update(alone_price=self.alone_price, partner=partner)
-
-        elif game_mode is Wenz or game_mode is WenzTout:
-            kwargs.update(alone_price=self.alone_price)
-
-        elif game_mode is Solo or game_mode is SoloTout:
-            trump_color = chooser.get_trump_color()
-            kwargs.update(trump_color=trump_color, alone_price=self.alone_price)
-
-        else:
-            raise GamemodeIsNotImplementedError(
-                f"{game_mode.name} is not implemented yet"
-            )
-
-        return game_mode(**kwargs)
+        try:
+            return game_mode(**game_mode.gather_kwargs(chooser=chooser, schafkopf=self))
+        except GameNotPlayableError:
+            return None
 
     def players_choose_game(self) -> Game | None:
         game_mode: type[Game] | None = None

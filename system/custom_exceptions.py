@@ -1,4 +1,4 @@
-class GamemodeIsNotImplementedError(Exception):
+class GameNotPlayableError(Exception):
     pass
 
 

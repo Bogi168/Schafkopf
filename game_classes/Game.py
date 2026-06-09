@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from game_classes.GameRenderer import GameRenderer
 from game_classes.RoundManager import RoundManager
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from player_classes.TeamBuilder import TeamSetup, TeamBuilder
     from game_classes.RunnersCalculator import RunnersSetup
     from money_handling.GameValueCalculator import GameValueCalculator
+    from schafkopf_classes.Schafkopf import Schafkopf
 
 
 class Game(ABC):
@@ -80,11 +81,23 @@ class Game(ABC):
         self.active_team: Team | None = None
         self.runners_amount: int = 0
 
+    @classmethod
+    def gather_kwargs(
+        cls, chooser: Player | None, schafkopf: Schafkopf
+    ) -> dict[str, Any]:
+        return dict(
+            cards=schafkopf.cards,
+            renderer=schafkopf.renderer,
+            players=schafkopf.players,
+            amount_game_value_doubles=schafkopf.amount_game_value_doubles,
+        )
+
     def create_teams(self) -> None:
         """
         Creates the team objects and sets player_teams, active_team and teams of Game
         :rtype: None
         """
+
         teams_setup: TeamSetup = self.team_builder.create_teams()
         self.player_teams: dict[Player, Team] = teams_setup.player_teams
         self.active_team: Team = teams_setup.active_team
@@ -205,8 +218,9 @@ class Game(ABC):
         self.create_teams()
         self.sort_player_hands()
         self.calculate_runners_amount()
-        round_manager: RoundManager = self.create_round_manager()
-        self.play_rounds(round_manager=round_manager)
-        self.amount_game_value_doubles += round_manager.amt_game_val_doubles
-        self.active_team: Team = round_manager.active_team
+        self.round_manager = self.create_round_manager()
+        assert self.round_manager is not None
+        self.play_rounds(round_manager=self.round_manager)
+        self.amount_game_value_doubles += self.round_manager.amt_game_val_doubles
+        self.active_team: Team = self.round_manager.active_team
         self.handle_winners()

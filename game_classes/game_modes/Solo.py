@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from card_classes.CardPowerCalculator import SoloCardPowerCalculator
 from game_classes.Game import Game
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from system.Renderer import Renderer
     from card_classes.Cards import Cards
     from money_handling.GameValueCalculator import GameValueCalculator
+    from schafkopf_classes.Schafkopf import Schafkopf
 
 
 @GameRegistry.register_game
@@ -81,6 +82,22 @@ class Solo(Game):
         self.game_chooser: Player = game_chooser
         self.alone_price: int = alone_price
         self.base_price: int = base_price
+
+    @classmethod
+    def gather_kwargs(
+        cls, chooser: Player | None, schafkopf: Schafkopf
+    ) -> dict[str, Any]:
+        kwargs: dict[str, Any] = super().gather_kwargs(
+            chooser=chooser, schafkopf=schafkopf
+        )
+        assert chooser is not None
+        kwargs.update(
+            game_chooser=chooser,
+            base_price=schafkopf.base_price,
+            trump_color=chooser.get_trump_color(),
+            alone_price=schafkopf.alone_price,
+        )
+        return kwargs
 
     def create_game_value_calculator(
         self, winners: list[Player]

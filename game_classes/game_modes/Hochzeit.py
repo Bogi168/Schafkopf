@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from card_classes.Cards import Color, Type
 from card_classes.CardPowerCalculator import HochzeitCardPowerCalculator
@@ -12,11 +12,13 @@ from money_handling.GameValueCalculator import (
     HochzeitGameValueCalculator,
 )
 from player_classes.TeamBuilder import HochzeitTeamBuilder
+from system.custom_exceptions import GameNotPlayableError
 
 if TYPE_CHECKING:
     from card_classes.Cards import Cards, Card
     from system.Renderer import Renderer
     from player_classes.Player import Player
+    from schafkopf_classes.Schafkopf import Schafkopf
 
 
 @GameRegistry.register_game
@@ -56,6 +58,25 @@ class Hochzeit(Game):
         self.game_chooser = game_chooser
         self.base_price = base_price
         self.alone_price = alone_price
+
+    @classmethod
+    def gather_kwargs(
+        cls, chooser: Player | None, schafkopf: Schafkopf
+    ) -> dict[str, Any]:
+        kwargs: dict[str, Any] = super().gather_kwargs(
+            chooser=chooser, schafkopf=schafkopf
+        )
+        assert chooser is not None
+        partner: Player | None = schafkopf.get_hochzeit_partner(game_chooser=chooser)
+        if partner is None:
+            raise GameNotPlayableError("No partner found for Hochzeit")
+        kwargs.update(
+            alone_price=schafkopf.alone_price,
+            partner=partner,
+            game_chooser=chooser,
+            base_price=schafkopf.base_price,
+        )
+        return kwargs
 
     def hochzeit_card_swap(self):
         hochzeit_players: list[Player] = self.player_teams[self.game_chooser].players
