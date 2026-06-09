@@ -166,7 +166,7 @@ class Schafkopf:
                     self.choosable_game_rank_mapping[game_mode]
                     > self.choosable_game_rank_mapping[Sauspiel]
                 ):
-                    decision: type[Game] | None = player.choose_game_mode(
+                    decision = player.choose_game_mode(
                         prev_game_mode=game_mode,
                         quitting_possible=True,
                     )
@@ -177,7 +177,7 @@ class Schafkopf:
                         game_chooser = player
 
                 else:
-                    decision: type[Game] | None = player.choose_game_mode(
+                    decision = player.choose_game_mode(
                         prev_game_mode=game_mode,
                     )
                     game_mode = decision
@@ -189,7 +189,9 @@ class Schafkopf:
         assert game_mode is not None
         return self.get_game(game_mode=game_mode, chooser=game_chooser)
 
-    def get_new_starter(self, prev_starter_index: int) -> Player:
+    def get_new_starter(
+        self, prev_starter_index: int
+    ) -> Player:  # players list rotates each round
         if self.players[prev_starter_index] == self.players[-1]:
             return self.players[0]
         else:

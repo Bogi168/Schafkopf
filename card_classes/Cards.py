@@ -27,7 +27,7 @@ class Type(IntEnum):
     SEVEN = 1
     EIGHT = 2
     NINE = 3
-    KOENIG = 6
+    KOENIG = 6  # In Game mode Wenz Ober is equivalent to a 5, Geier makes Unters a 4
     TEN = 7
     SAU = 8
     UNTER = 9

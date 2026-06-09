@@ -86,6 +86,7 @@ class SauspielTeamBuilder(TeamBuilder):
             if any(card == self.call_sau for card in player.player_cards):
                 team_1.players.append(player)
                 break
+        assert len(team_1.players) == 2
         active_team = team_1
         team_2 = Team(team_name="Team 2")
         team_2.players = [
