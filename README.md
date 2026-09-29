@@ -15,13 +15,6 @@ The focus of this project is the rule engine: a clean, testable architecture tha
 
 Scoring includes doubling the stakes (Legen), shooting and shooting back (Schießen / Zurückschießen), Schneider and runners (Laufende).
 
-## Requirements
-
-- Python 3.12
-- pytest (only for running the tests)
-
-The game itself uses only the standard library.
-
 ## Running the game
 
 From the project root:
@@ -51,6 +44,7 @@ python3 -m pytest tests/
 
 ## Limitations
 
+Whether the bots want to play or not and the game, they want to play, has to be selected manually at the moment.
 The bots currently play a random legal card. This repository focuses on the rules and the architecture, not on bot strategy.
 
 A separate version with a pygame GUI and stronger bot heuristics, built with Claude Code on top of this codebase, can be found here: https://github.com/Bogi168/GUI_Schafkopf
