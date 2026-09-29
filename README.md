@@ -44,7 +44,6 @@ python3 -m pytest tests/
 
 ## Limitations
 
-Whether the bots want to play or not and the game, they want to play, has to be selected manually at the moment.
-The bots currently play a random legal card. This repository focuses on the rules and the architecture, not on bot strategy.
+Whether the bots want to play or not and the game, they want to play, has to be selected manually at the moment and the bots currently play a random legal card. This repository focuses on the rules and the architecture, not on bot strategy.
 
 A separate version with a pygame GUI and stronger bot heuristics, built with Claude Code on top of this codebase, can be found here: https://github.com/Bogi168/GUI_Schafkopf
